@@ -3,9 +3,9 @@
 After initialisation/power-on, the CPU is in kernel mode, which implies the following:
 
 - program page = 0
--- IP = 0x0
+- - IP = 0x0
 - memory page = 1
--- SP = 0xffffff
+- - SP = 0xffffff
 
 The first instruction is 0x0 from page 0.
 
