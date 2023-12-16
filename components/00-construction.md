@@ -22,6 +22,6 @@ When code that uses the EnnCPU constructs the CPU object, it takes the following
 
 ## Notes
 
-- the kernel memory, instruction and stack page are all separate pages
+- the kernel memory and instruction pages are separate pages: the stack grows downwards from the top of the kernel memory page
 - there is no automatic self-modification of kernel code: the MMU initialises the kernel code page as read-only executable, and the kernel stack and memory page as a non-executable RW page
 - all pages are 2^24 bits (16 MB) long: the minimum memory footprint is 32 MB + components' state overhead
