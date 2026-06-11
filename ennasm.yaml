@@ -1,0 +1,56 @@
+filetype: ennasm
+
+detect:
+    filename: "\\.(enn|asm)"
+    signature: "WSP|RSP|ADRL|MVM|LDRS"
+
+rules:
+
+    - statement: "\\b(?i)((F)?(ADD|SUB|DIV|M(O)?V(L|M|H)?|MUL(A|B)?))(?-i)\\b"
+    - statement: "\\b(F(CNV|CST|SQT|C(0|1|2)|LN|REC|NEG|ABS))"
+    - statement: "\\b(F?(C|B)(EQ|NE|GT|LT))\\b"
+    - statement: "\\b((C|B)(OR|AND|XOR|NAND))\\b"
+    - statement: "\\b(CINV)\\b"
+    - statement: "\\b((W|R)(SP|PS|XS|IP))\\b"
+    - statement: "\\b(SWPR)\\b"
+    - statement: "\\b(SHDW|LITE|SWAP)\\b"
+    - statement: "(LSH(L|R))|(ROT(L|R))"
+    - statement: "(GET(H|M|L))"
+
+    - constant:  "\\b(?i)((ADR)(M|L|H)?)(?-i)\\b"
+    - constant: "\\b((LD|ST)(R|2|3)(B|W|S))\\b"
+
+    - constant: "\\b((PSH|POP|JUNK)(2|3)?(B|W|S))\\b"
+
+    - special: "(J(M|L)(Z|NZ)?(R|O))|(RET|LOOP|LRET)"
+    - special: "(J(M|L)(A|FAR))"
+    
+    - error: "\\bERR\\b"
+
+    - symbol.dollar:
+        start: "\\$"
+        end: "$"
+        rules:
+            - todo: "XYXYXY"
+
+    - constant.string:
+        start: "@|%"
+        end: "$"
+        rules:
+            - todo: "(TODO|XXX|FIXME):?"
+
+    - comment:
+        start: ";"
+        end: "$"
+        skip: "-"
+        rules:
+            - todo: "(TODO|XXX|FIXME):?"
+
+
+    - type: "\\b(A|B|C|D|E|F|G|H|AB|BC|CD|DE|EF|FG|GH|HA|ABC|BCD|CDE|DEF|EFG|GHA|HAB)\\b"
+
+    - constant.number: "\\b0x[0-9 a-f A-F]*\\b"
+    - constant.number: "\\b[0-9]*\\b"
+
+    - preproc: "\\.(NOP|ORG|SEC(TION)?|INT24|INT48|FP24|FP48|ASCII|PAD|INT8|INT16)"
+
