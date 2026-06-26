@@ -1,0 +1,60 @@
+MOVM A, #0x4
+WSP  A
+
+MOV D, #5
+MOV E, #7
+PSHB D
+PSHB E
+SWVB
+POPB D
+POPB E
+ERR
+
+ERR
+
+MOV H, #25
+MOV A, #0
+MOV B, #1
+@LOOP
+    MOV C, B
+    ADD C, A
+
+    JLO @PRNTA
+    
+    MOV A, B
+    MOV B, C
+    SUB H, #1
+    
+    MVL E, #255
+    MVM E, #252
+    CGT A, E
+    JMO.P @BIG
+
+    JMNZO H, @LOOP
+MOV D, #9
+.INT16 0x0001
+ERR
+
+@PRNTA
+DBGW A
+RET
+ERR
+
+@BIG
+ADRL D, @ERRMSG
+ADRM D, @ERRMSG
+@BIGLP
+    LDRB A, D
+    JMZO A, @BIGLPE
+    ADD  D, #1
+    DBGC A
+    JMO  @BIGLP
+@BIGLPE
+MOV A, #10
+DBGC A
+ERR
+
+@ERRMSG
+.INT8 0xa
+.ASCII The number is too big
+.NUL

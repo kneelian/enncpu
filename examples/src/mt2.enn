@@ -1,0 +1,448 @@
+.ORG 0x0000
+.SECTION %PGA
+
+	ADRL  A, @STACK
+	ADRM  A, @STACK
+	WSP   A
+
+	ADRL  A, @PROG
+	ADRM  A, @PROG
+	JMR   A	
+
+; string address in A
+; must be terminated with 0x00
+; trashes A, B
+@PRINT_STRING
+	LDRB  B, A+
+	CEQ   B, #0
+	RET.P
+	DBGC  B
+	JMO @PRINT_STRING
+
+; takes reg in A
+; takes addr of string in B
+; expects buffer to be at least 8 bytes
+; returns zero-terminated string
+; trashes A, B, C, D, E
+@REG2DEC
+	MOV   E, #0
+	MOV   C, #10
+	@REG2DEC_L1
+	MOV   D, A
+	MOD   D, C
+	PSHB  D
+	ADD   E, #1
+	DIV   A, C
+	JMZO  A, @REG2DEC_L2
+	JMO   @REG2DEC_L1
+
+	@REG2DEC_L2
+	POPB  D
+	SUB   E, #1
+	ADD   D, '0'
+	STRB  D, B+
+	JMZO  E, @REG2DEC_L3
+	JMO   @REG2DEC_L2
+
+	@REG2DEC_L3
+	MOV   D, #0
+	STRB  D, B
+	RET
+
+; takes address of string in B
+; trashes C, D, E, F
+; returns int in A
+@DEC2REG
+	MOV  C, #10
+	MOVL D, '0'
+	MOV  A, #0
+	
+	@DEC2REG_L1
+	LDRB  E, B+
+	CEQ   E, #0
+	RET.P
+	ADD   E, D
+	MULA  A, C
+	ADD   A, E
+	JMO @DEC2REG_L1
+
+; takes address of string 1 in A
+; and of string 2 in B
+; trashes C, D
+; returns 1 in A if strings are equal
+; or 0 if they're different
+@STRCMP
+	LDRB  C, A+
+	LDRB  D, B+
+	CNE   C, D
+	MOV.P A, #0
+	RET.P 		; else if equal
+	CEQ   C, #0
+	MOV.P A, #1
+	RET.P
+	JMO @STRCMP
+
+; takes address of string in A
+; returns length in A
+; trashes B, C
+@STRLEN
+	LDRB  B, A+
+	CNE   B, #0
+	ADD.P C, #1
+	JMO.P @STRLEN
+	RET
+
+; takes address of string in A
+; trashed B, C, D
+@LOWER2UPPER
+	MOVL   B, #0x60
+	MOVL   C, #0x7b
+
+	@L2U_L1
+	LDRB   D, A
+	CEQ    D, #0
+	RET.P
+	
+	CGT    D, B
+	CLT.P  D, C
+	SUB.P  D, #0x20
+	STRB.P D, A
+	ADD    A, #1
+	JMO @L2U_L1
+
+; reverses the above, same principle
+@UPPER2LOWER
+	MOVL   B, 'A'
+	MOVL   C, 'B'
+
+	@U2L_L1
+	LDRB   D, A
+	CEQ    D, #0
+	RET.P
+
+	CGT    D, B
+	CLT.P  D, C
+	ADD.P  D, #0x20
+	STRB.P D, A
+	ADD    A, #1
+	JMO @U2L_L1
+
+; takes address of source in A
+; and address of destination in B
+; and number of bytes to copy in C
+; trashes D
+@MEMCPY
+	LDRB  D, A+
+	STRB  D, B+
+	SUB   C, #1
+	JMNZO C, @MEMCPY
+	RET
+
+; takes int in A
+; prints as hex
+@HEXPRINT
+	MOVL B, '0'
+	DBGC B
+	MOVL C, 'x'
+	DBGC C
+	MOV  D, #20
+	MOV  E, #6
+
+	@HEXPRINT_L1
+	MOV   C, A
+	LSHR  C, D
+	BAND  C, #0x0f
+	SUB   D, #4
+	SUB   E, #1
+	CGT   C, #9
+	ADD.P C, #7
+	ADD   C, B
+	DBGC  C
+	JMNZO E, @HEXPRINT_L1
+
+	RET
+
+; takes address of destination in A
+; reads up to 16 bytes
+@READSTR
+	MOV  B, #16
+	@READSTR_L1
+	DBGINC C
+	SUB    B, #1
+	CEQ    B, #0
+OR  CEQ    C, #10
+OR  CEQ    C, #13
+	RET.P
+	STRB   C, A+
+	JMO    @READSTR_L1	
+
+%PGA
+
+.ORG 0x200
+.SECTION %PGB
+
+@PROG
+	MOVL A, @STR_TITLE
+	MOVM A, @STR_TITLE
+	JLA  @PRINT_STRING
+	MOV  A, '\n'
+	DBGC A
+
+	MOVL A, #0xa5
+	MOVM A, #0x0b
+	MOVH A, #0xb0
+	JLA  @HEXPRINT
+
+	MOVL A, '\n'
+	DBGC A
+
+	ADRL A, @STR
+	ADRM A, @STR
+	ADRL B, @STR
+	ADRM B, @STR
+	JLA  @STRCMP
+	DBGB A
+
+	ADRL A, @STR7
+	ADRM A, @STR7
+	JLA  @READSTR
+
+	ADRL A, @STR7
+	ADRM A, @STR7
+	JLA  @LOWER2UPPER
+
+	ADRL A, @STR7
+	ADRM A, @STR7
+	PSHS A
+
+	ADRL A, @STR4
+	ADRM A, @STR4
+	PSHS A
+
+	ADRL A, @STR3
+	ADRM A, @STR3
+
+;	JLA @PRINT_STRING
+	
+FAR JLO  @PRINTF_COL
+
+	ERR
+
+; printf-like function
+; takes address of main string in A
+; 	prints until it meets $ as placeholder
+;   pops string address from stack and prints replacing $
+@PRINTF
+	MOV  B, #0
+	MOV  D, #0
+
+	POPS C     ; return address
+
+	@PRINTF_L1
+	LDRB  D, A+
+	JMZO  D, @PRINTF_END
+	CEQ   D, '$' ; is it placeholder?
+	JMO.P @PRINTF_AT
+	; else
+	DBGC D
+	JMO  @PRINTF_L1
+
+	@PRINTF_AT
+	POPS E
+	@PRINTF_AT_L1
+	LDRB F, E+
+	JMZO F, @PRINTF_L1
+	DBGC F
+	JMO  @PRINTF_AT_L1
+
+	@PRINTF_END
+	PSHS C
+	RET
+
+; takes FP24 in A
+; takes address of string buffer (at least 16 bytes) in B
+; trashes indiscriminately
+@FLOAT2STRING
+	; handling special cases first
+	CNAN   A
+	MOVL.P C, 'N'
+	STRB.P C, B+
+	MOVL.P C, 'a'
+	STRB.P C, B+
+	MOVL.P C, 'N'
+	STRB.P C, B+
+	MOV.P  C, #0
+	STRB.P C, B+
+	RET.P
+
+	MOV    D, A
+	LSHR   D, #23
+	CNE    D, #0
+	MOV.P  D, '+'
+	CINV
+	MOV.P  D, '-'
+	STRB   D, B+
+
+	CINF   A
+	MOVL.P C, 'i'
+	STRB.P C, B+
+	MOVL.P C, 'n'
+	STRB.P C, B+
+	MOVL.P C, 'f'
+	STRB.P C, B+
+	RET.P
+	
+	MOV  D, A
+
+	RET
+
+; like the regular printf
+; using $ as a placeholder
+; except with the caveat that
+; it also uses colour codes
+; via ASCII escape sequences
+; 
+; colour prefixes are introduced
+; using the & prefix
+; and 0x00 -- 0x0f for the
+; foreground colours
+@PRINTF_COL
+	MOV  B, #0
+	MOV  D, #0
+
+	POPS C     ; return address
+
+	@PRINTF_COL_L1
+	LDRB  D, A+
+	JMZO  D, @PRINTF_COL_END
+	CEQ   D, '$'  ; is it placeholder?
+    JMO.P @PRINTF_COL_AT
+	CEQ   D, '&'  ; is it a colour?
+    JMO.P @PRINTF_COL_PCT
+	; else
+	DBGC D
+	JMO  @PRINTF_COL_L1
+
+	@PRINTF_COL_AT
+	POPS E
+	@PRINTF_COL_AT_L1
+	LDRB F, E+
+	JMZO F, @PRINTF_COL_L1
+	DBGC F
+    JMO  @PRINTF_COL_AT_L1
+
+	@PRINTF_COL_PCT
+	LDRB  H, A+
+	SUB   H, '0'
+	JLO.P @ESC_COL
+    JMO   @PRINTF_COL_L1
+
+	@PRINTF_COL_END
+    JLO  @ESC_RESET
+	PSHS C
+	RET
+
+; ANSI escape reset
+@ESC_RESET
+	MOVL G, #0x1b
+	DBGC G
+	MOVL G, '['
+	DBGC G
+	MOVL G, 'm'
+	DBGC G
+	RET
+
+; ANSI escape sequence helper
+; trashes E, F, G, takes colour arg in H
+@ESC_COL
+	CEQ   H, #0
+    JMO.P @ESC_RESET
+
+	CGT   H, #9
+	SUB.P H, #7
+	
+	MOVL G, #0x1b
+	DBGC G
+	MOVL G, '['
+	DBGC G
+	MOVL G, '3'
+	DBGC G
+	MOVL G, '8'
+	DBGC G
+	MOVL G, #0x3b ; semic olon
+	DBGC G
+	MOVL G, '5'
+	DBGC G
+	MOVL G, #0x3b
+	DBGC G
+
+	MOVL E, #100
+	MOVL F, #10
+
+	@ESC_COL_L1
+	CGT   H, E ; > 100?
+	MOV.P G, H
+	DIV.P G, E
+	ADD.P G, #0x30
+	CINV
+	JMO.P @ESC_COL_L2
+	DBGC  G    ; debugs are inconveniently
+			   ; not predicated
+
+	@ESC_COL_L2
+	CGT   H, #10
+	MOV.P G, H
+	DIV.P G, F
+	MOD.P G, F
+	ADD.P G, #0x30
+	CINV
+	JMO.P @ESC_COL_L3
+	DBGC  G
+
+	@ESC_COL_L3
+	MOV   G, H
+	MOD   G, F
+	ADD   G, #0x30
+	DBGC  G
+
+	MOVL  G, 'm'
+	DBGC  G
+	RET
+
+%PGB
+
+.ORG 0x2000
+.SECTION %DATA
+
+@STR
+.REP  16 0xff
+.INT8 0x00
+
+@STR2
+.ASCIZ The value 0x1d4f is =
+
+; for some reason it eats the first comma
+@STR3
+.ASCII I really like &E$&0 $ i swear
+.INT8  0x0a
+.INT8  0x00
+@STR4
+.ASCIZ dirty
+@STR5
+.ASCIZ women
+@STR6
+.ASCIZ boys
+
+@STR7
+.REP  16 0x00
+
+; the actual serious strings start here
+@STR_TITLE
+.ASCIZ [DON'T FORGET TO PACK!]
+
+@STR_SUBTITLE
+.ASCIZ < A GAME ABOUT LAST-MINUTE TRAVEL PLANS >
+%DATA
+
+.ORG 0x4000
+@STACK

@@ -1,0 +1,130 @@
+.ORG 0x0000
+.SEC %pga
+@START
+
+MOV  A, #32
+MOVM A, #4
+WSP A
+
+MOV  A, #0
+MVH A, #255
+MOV  B, #0
+MVH B, #200
+
+MOV  E, #0
+MOV  F, #12
+MOVM E, #21
+MOVM F, #17
+
+MOV   C, A
+ADD   C, B
+CLT   C, A
+
+MOV   G, E
+ADD   G, F
+ADD.P G, #1
+
+ADRL H, @PRINTHEX
+PSHS A
+
+MOV  A, #48
+DBGC A
+MOVL A, #120
+DBGC A
+
+MOV  A, E
+JLR  H
+
+MOV  A, #58
+DBGC A
+
+POPS A
+JLR  H
+PSHS A
+MOV  A, #32
+DBGC A
+MOV  A, #43
+DBGC A
+MOV  A, #32
+DBGC A
+
+MOV  A, #48
+DBGC A
+MOVL A, #120
+DBGC A
+
+MOV  A, F
+JLR  H
+MOV  A, #58
+DBGC A
+MOV  A, B
+JLR  H
+
+MOV  A, #32
+DBGC A
+MOV  A, #61
+DBGC A
+MOV  A, #32
+DBGC A
+
+MOV  A, #48
+DBGC A
+MOVL A, #120
+DBGC A
+
+MOV  A, G
+JLR  H
+MOV  A, #58
+DBGC A
+MOV  A, C
+JLR  H
+
+MOV  A, #10
+DBGC A
+POPS A
+
+ERR
+
+%pga
+
+; takes arg in A
+; trashes B, C, D
+@PRINTHEX
+SWAP
+LITE A
+
+PSHI #32
+
+ADRL D, @CHARS
+ADRM D, @CHARS
+
+MOV C, #6
+
+@PRINTLOOPA
+	MOV   B, A
+	BAND  B, #15
+	PSHB  B
+	LSHR  A, #4
+	SUB   C, #1
+	JMNZO C, @PRINTLOOPA
+
+@PRINTLOOPB
+	POPB  A
+	CEQ   A, #32
+	JMO.P @BREAK
+
+	MOV  C, D
+	ADD  C, A
+	LDRB A, C
+	DBGC A
+
+	JMO @PRINTLOOPB
+
+@BREAK
+
+SWAP
+
+RET
+
+@CHARS
+.ASCII 0123456789ABCDEF

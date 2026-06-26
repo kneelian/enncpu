@@ -1,0 +1,100 @@
+.ORG 0x0000
+.SEC %pga
+@START
+
+MOV  A, #0x00
+MOVM A, #0x1f
+WSP  A
+
+ADRL A, @ENTRY
+ADRM A, @ENTRY
+
+ERR
+
+; this set of routines supports 24-byte bigints
+; and a set of basic routines for them
+
+@gpr_to_big
+; value to move to bigint in A
+; addr of target string in B
+; trashes C
+
+	MOV   C, B
+	ADD   C, #21
+	STRS  A, C-
+	MOV   A, #0
+	@gpr_to_big_L1
+		STRS  A, C-
+		CEQ   B, C
+		RET.P
+		JMO   @gpr_to_big_L1
+
+@add_big
+; addr of LHS in A
+; addr of RHS in B
+;   sesqui of LHS in C
+;   sesqui of RHS in D
+;   temp copy of LHS in E (for carry)
+; addr of result in F
+; temp values in G, H
+	
+	; clear target string just in case
+	MOV  C, F
+	MOVL D, #0
+	MOV  E, #24
+	@add_big_L1
+		STRB  D, C+
+		SUB   E, #1
+		JMNZO E, @add_big_L1
+
+	; start from lowest word
+	; postdecrement
+	CNEV
+	MOV   G, A
+	ADD   A, #21
+	ADD   B, #21
+	ADD   F, #21
+	@add_big_L2
+		MOV   H, G
+		LDRS  C, A-
+		LDRS  D, B-
+		MOV   E, C
+		ADD   C, D
+		ADD.P C, #1
+		CLT   C, E  ; if true, carry is set
+		STRS  C, F-
+		SUB   H, A
+		JMNZO H, @add_big_L2
+	
+	RET
+
+; takes zero terminated string ptr in A
+; trashes B
+@PRINTSTR
+	LDRB  B, A+
+	CEQ   B, #0
+	RET.P
+	DBGC  B
+	JMO   @PRINTSTR
+
+%pga
+
+.ORG 0x0800
+.SEC %prog
+@ENTRY
+
+MOV  A, '\n'
+DBGC A
+
+ERR
+
+@big1
+.ASCII XXXXXXXXXXXXXXXXXXXXXXXX
+@big2
+.ASCII XXXXXXXXXXXXXXXXXXXXXXXX
+@big3
+.ASCII XXXXXXXXXXXXXXXXXXXXXXXX
+@big4
+.ASCII XXXXXXXXXXXXXXXXXXXXXXXX
+
+%prog

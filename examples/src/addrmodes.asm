@@ -1,0 +1,8 @@
+ADRM A, @TEST
+ADRL A, @TEST
+ERR
+
+
+.ORG 0x100
+
+@TEST

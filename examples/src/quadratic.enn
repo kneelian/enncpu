@@ -1,0 +1,33 @@
+; quadratic solver
+;	 ax^2 + bx + c
+;
+; takes A B C in A,B,C as floats
+; returns x1 in A, x2 in B as floats
+; if there is no solution, returns NaN
+; trashes A-F indiscriminately
+@QUAD
+	MOV  D, B
+	
+	FMUL D, D ; b^2
+
+	MOV  F, #4
+	FCNV F, F
+	FMUL F, A
+	FMUL F, C
+
+	FSUB D, F ; D
+	FSQT D, D
+
+	FC2  F
+	FMUL F, A ; 2a
+
+	FNEG B, B
+	MOV  A, B
+
+	FADD A, D
+	FSUB B, D
+
+	FDIV A, F
+	FDIV B, F
+	
+	RET

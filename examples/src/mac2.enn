@@ -1,0 +1,82 @@
+.ORG 0x0000
+.SEC %pga
+@START
+
+MOV  A, #0x00
+MOVM A, #0x1f
+WSP  A
+
+FAR JMO @ENTRY
+
+ERR
+
+; takes input in A
+; writes result to F
+; trashes B C D
+@INT2DEC
+	MOV  B, #16
+	PSHB B
+	MOV  B, A
+	MOV  C, A
+	MOV  D, #10
+
+	@I2DLOOP1
+
+	MOD   B, D
+	PSHB  B
+	DIV   C, D
+	MOV   B, C
+
+	CNE   C, #0
+	JMO.P @I2DLOOP1
+
+	@I2DLOOP2
+
+	POPB   B
+	CEQ    B, #16
+	MOV.P  B, #0
+	STRB.P B, F+
+	RET.P
+
+	ADD   B, '0'
+	; DBGC  B
+	STRB  B, F+
+	JMO   @I2DLOOP2
+RET
+
+; takes zero terminated string ptr in A
+; trashes B
+@PRINTSTR
+	LDRB  B, A+
+	CEQ   B, #0
+	RET.P
+	DBGC  B
+	JMO   @PRINTSTR
+
+%pga
+
+.ORG 0x0400
+.SEC %prog
+@ENTRY
+
+MOVL A, #0xf1
+MOVM A, #0x19
+MOVL F, @TGTSTR
+MOVM F, @TGTSTR
+
+JLA  @INT2DEC
+
+MOV  A, #0
+MOVL A, @TGTSTR
+MOVM A, @TGTSTR
+JLA  @PRINTSTR
+
+MOV  A, '\n'
+DBGC A
+
+ERR
+
+@TGTSTR
+.ASCIZ XXXXXXXXXX
+
+%prog

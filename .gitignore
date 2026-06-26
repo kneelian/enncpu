@@ -68,11 +68,12 @@ vcpkg_installed/
 Testing/
 .cache/
 
+asm
+cpu
+
 floppy/*
 floppy*
 
-*.asm
-*.enn
 *.bin
 *.img
 *.txt

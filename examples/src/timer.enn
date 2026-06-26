@@ -1,0 +1,89 @@
+.SEC %main
+@start
+	MASK
+	
+	RXS   A
+	
+	JMZO  A, @coldboot
+FAR JLO   @exception
+
+	WFI
+
+@coldboot
+
+	UNMASK
+
+	MOVM  A, #0x10
+	WSP   A
+
+	DBGW  A
+
+	WFI
+
+@exception
+	ERR
+
+	DBGS   A
+
+	GETL   B, A
+	CEQ    B, #0x20
+FAR JMO.P  @keybd_int
+	CEQ    B, #0x23
+FAR JMO.P  @timer_int
+	; else
+
+	UNMASK
+	RET
+
+@timer_int
+	MOV    E, #24
+	LSHL   E, #4
+	CGT    D, E
+	JMO.P  @timer_hit
+	ADD    D, #1
+
+	UNMASK
+	RET
+
+@timer_hit	
+	MOV    D, #0
+	ADRL   F, @string_timer
+	ADRM   F, @string_timer
+FAR JLO    @printstr
+
+	UNMASK
+	RET
+
+@keybd_int
+	GETM   B, A
+	MOVL   C, #0x71
+	CEQ    B, C
+FAR JMO.P  @die
+	ADRL   F, @string_keybd
+	ADRM   F, @string_keybd
+FAR JLO    @printstr
+
+	UNMASK
+	RET
+
+@die
+	ERR
+
+; address in F
+; trashes A
+@printstr
+	LDRB  A, F+
+	CEQ   A, #0
+	RET.P
+	DBGC  A
+	JMO   @printstr
+
+@string_timer
+.ASCIZ Timer interrupt! 
+.PAD
+
+@string_keybd
+.ASCIZ Keyhit! 
+.PAD
+
+%main

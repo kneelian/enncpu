@@ -1,0 +1,57 @@
+.SEC %main
+@start
+	MASK
+	
+	RXS   F
+	JMNZO F, @exception
+
+	MOV   E, #0
+
+	MOVM  A, #0x40
+	WSP   A
+	MOV   D, #0
+
+	UNMASK
+
+	WFI
+
+	@exception
+		JUNKS
+		GETL  A, F
+		CEQ   A, #32
+	    JMO.P @keyboard
+
+		; else timer!
+		MOVL  B, #0x10
+		CGT   D, B
+		JMO.P @timer
+		
+		ADD   D, #1
+		UNMASK
+		WFI
+
+	@timer
+		DBGW  D
+		MOV   D, #0
+		UNMASK
+		WFI
+
+
+	@keyboard
+		ADD   D, #1
+		MOV   A, F
+		LSHR  A, #8
+		MOVL  B, #0x71
+		CEQ   A, B
+		JMO.P @die
+
+		DBGC  A
+
+		UNMASK
+
+		WFI
+		
+	@die
+	ERR
+
+%main

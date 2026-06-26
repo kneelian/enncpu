@@ -1,0 +1,73 @@
+.ORG 0x0000
+.SEC %pga
+@START
+
+MOV  A, #0
+MOVM A, #0x1f
+WSP  A
+
+MOV  B, #0x11
+MOVM B, #0x22
+MOVH B, #0x33
+
+MOV  A, B
+
+FAR JLO @PRINTHEX
+
+ERR
+%pga
+
+.ORG 0x2000
+.SEC %pgb
+; takes arg in A
+; trashes B, C, D
+
+@PRINTHEX
+
+PSHS A 
+
+MOVL D, '0'
+DBGC D 
+MOVL D, 'x'
+DBGC D
+
+MOVL D, #48
+
+POPB B 
+MOV  C, B 
+BAND C, #0x0f
+ADD  C, D
+DBGC C
+MOV  C, B 
+LSHR C, #4
+BAND C, #0x0f
+ADD  C, D
+DBGC C
+
+POPB B 
+MOV  C, B 
+BAND C, #0x0f
+ADD  C, D
+DBGC C
+MOV  C, B 
+LSHR C, #4
+ADD  C, D
+DBGC C
+
+POPB B 
+MOV  C, B 
+BAND C, #0x0f
+ADD  C, D
+DBGC C
+MOV  C, B 
+LSHR C, #4
+ADD  C, D
+DBGC C
+
+MOVL D, '\n'
+DBGC D
+
+RET
+
+%pgb
+

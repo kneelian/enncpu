@@ -1,0 +1,42 @@
+.ORG 0x0000
+.SEC %pga
+@START
+
+MOV  A, #0x00
+MOVM A, #0x1f
+WSP  A
+
+FAR JMO @ENTRY
+
+ERR
+
+; this set of routines
+
+@add_big
+
+RET
+
+; takes zero terminated string ptr in A
+; trashes B
+@PRINTSTR
+	LDRB  B, A+
+	CEQ   B, #0
+	RET.P
+	DBGC  B
+	JMO   @PRINTSTR
+
+%pga
+
+.ORG 0x0400
+.SEC %prog
+@ENTRY
+
+MOV  A, '\n'
+DBGC A
+
+ERR
+
+@TGTSTR
+.ASCIZ XXXXXXXXXX
+
+%prog
