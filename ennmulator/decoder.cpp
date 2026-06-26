@@ -27,9 +27,18 @@ INSN DECODE_PREFIXED(u16 raw, u8 prefix);
 
 INSN CPU::DECODE(u16 raw)
 {
-	if(PREFIX) { return DECODE_PREFIXED(raw, PREFIX); }
 
 	INSN result;
+
+	//printf("decoding 0x%04x w/ prefix 0x%02x\n", raw, PREFIX);
+	if(PREFIX) { 
+		result = DECODE_PREFIXED(raw, PREFIX);
+		if((result.OPERATION == JMFAR) or (result.OPERATION == JLFAR) and PREFIX == 0x7f)
+			PREFIX = 0x00;
+		//printf("prefixed decoded: %s\n",
+		//	unmappings[result.OPERATION].c_str());
+		return result;
+	}
 
 	if(raw & 0x8000)
 		result.PREDICATED = true;
@@ -145,7 +154,7 @@ INSN DECODE_PREFIXED(u16 raw, u8 prefix)
 		if(raw & 0x2000) { off = -off; }
 		result.IMMEDIATE = off;
 
-//		std::printf("!! [J%cFAR] <--- 0x%04x !! \n", (result.OPERATION==JMFAR)?'M':'L', raw);
+		// std::printf("!! [J%cFAR] <--- 0x%04x !! \n", (result.OPERATION==JMFAR)?'M':'L', raw);
 
 		return result;
 	}
@@ -205,8 +214,8 @@ INSN DECODE_PREFIXED(u16 raw, u8 prefix)
 		default:
 			return {};
 	}
-	//std::printf("insn raw: 0x%04x : %x | %x = %x \n", raw, OPCA, OPCB, (OPCA << 2) | OPCB);
-	//std::printf("decoded: [%d]\tfmadd_48: [%d] / fmov_48: [%d]\n", result.OPERATION, FMADD_48, FMOV_48);
+	// std::printf("insn raw: 0x%04x : %x | %x = %x \n", raw, OPCA, OPCB, (OPCA << 2) | OPCB);
+	// std::printf("decoded: [%d]\tfmadd_48: [%d] / fmov_48: [%d]\n", result.OPERATION, FMADD_48, FMOV_48);
 
 	return result;
 }

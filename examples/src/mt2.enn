@@ -182,6 +182,19 @@ OR  CEQ    C, #13
 .SECTION %PGB
 
 @PROG
+	FCE  A
+	ADRL B, @STR7
+	ADRM B, @STR7
+FAR JLO  @FLOAT2STRING
+
+	ADRL A, @STR7
+	ADRM A, @STR7
+	JLA  @PRINT_STRING
+	MOV  A, '\n'
+	DBGC A
+
+	ERR
+
 	MOVL A, @STR_TITLE
 	MOVM A, @STR_TITLE
 	JLA  @PRINT_STRING
@@ -265,36 +278,97 @@ FAR JLO  @PRINTF_COL
 @FLOAT2STRING
 	; handling special cases first
 	CNAN   A
-	MOVL.P C, 'N'
-	STRB.P C, B+
-	MOVL.P C, 'a'
-	STRB.P C, B+
-	MOVL.P C, 'N'
-	STRB.P C, B+
-	MOV.P  C, #0
-	STRB.P C, B+
-	RET.P
-
-	MOV    D, A
-	LSHR   D, #23
-	CNE    D, #0
-	MOV.P  D, '+'
-	CINV
-	MOV.P  D, '-'
-	STRB   D, B+
+FAR JMO.P  @IS_NAN
 
 	CINF   A
-	MOVL.P C, 'i'
-	STRB.P C, B+
-	MOVL.P C, 'n'
-	STRB.P C, B+
-	MOVL.P C, 'f'
-	STRB.P C, B+
-	RET.P
+FAR JMO.P  @IS_INF
+
+	MOV   G, #0
+
+	FC0   C
+	FCGT  A, C  ; positive?
+	MOV.P G, #1 ; preserve sign in G
+
+	FABS  A, A
+
+	MOV   C, A
+	MOV   D, A
 	
-	MOV  D, A
+	FC1   E       ;  1.0
+	MOV   F, #10  ; 10.0
+	PSHB  F       ; sentinel val on stack
+	FCNV  F, F
+
+	FMOD  C, E  ; decimal part
+	FSUB  D, C  ; whole part
+
+	@F2S_L1
+		MOV   H, D  ; the whole
+		FMOD  H, F
+		FCST  H, H
+		PSHB  H
+		FDIV  D, F
+		FCGT  D, E
+		JMO.P @F2S_L1
+
+
+	CEQ    G, #0
+	MOVL.P G, '-' 
+	STRB.P G, B+  ; sign recovered
+
+	@F2S_L2
+		POPB  G
+		CEQ   G, #10 ; end of
+		JMO.P @F2S_L3
+		ADD   G, '0'
+		STRB  G, B+
+		JMO   @F2S_L2
+
+	@F2S_L3
+		MOVL  G, '.'
+		STRB  G, B+
+
+	MOV  D, #5
+
+	@F2S_L4
+		FMUL  C, F  ; * 10.0
+		MOV   H, C  ; and the dec
+		FMOD  H, F	
+		FCST  G, H 
+		ADD   G, '0'
+		STRB  G, B+
+		SUB   D, #1
+		JMNZO D, @F2S_L4
+
+	MOV  A, #0
+	STRB A, B+
 
 	RET
+
+	@IS_NAN
+		MOVL A, 'N'
+		STRB A, B+
+		MOVL A, 'a'
+		STRB A, B+
+		MOVL A, 'N'
+		STRB A, B+
+		MOVL A, #0
+		STRB A, B+
+		RET
+
+	@IS_INF
+		MOVL A, 'i'
+		STRB A, B+
+		MOVL A, 'n'
+		STRB A, B+
+		MOVL A, 'f'
+		STRB A, B+
+		MOVL A, '.'
+		STRB A, B+
+		MOVL A, #0
+		STRB A, B+
+		RET
+
 
 ; like the regular printf
 ; using $ as a placeholder

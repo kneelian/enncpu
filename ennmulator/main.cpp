@@ -153,107 +153,14 @@ int main(int argc, char** argv)
 	}
 	std::printf("\n\n");
 
-	#ifdef __x86_64__
-
 	bool err = false;
-
-	SDL_Event event;
-
-	for(int i = 0; i < 64; i++)
-	{
+	for(int i = 0; i < (1 << 24); i++)
 		if(!basic_cpu.IS_WFI())
 			for(int j = 0; j < 1024; j++)
-				if(basic_cpu.FOXTROT() == false)
+				if(basic_cpu.STEP() == false) // removing foxtrot
 					{ err = true; goto err1; }
-		
-		if(SDL_PollEvent(&event) != 0)
-		{
-			switch(event.type)
-			{
-				case SDL_KEYDOWN:
-					if(basic_cpu.XS) { break; }
-					basic_cpu.CLR_WFI();
-					basic_cpu.EXECUTE({
-						KERNI,
-						-1, -1, -1,
-						((event.key.keysym.sym & 0x00ffff) << 8) | 32,	// interrupt 32 triggered
-						false,
-						false
-					});
-					break;
-				default:
-					break;
-			}
-		}
-	}
 
-	err1:;
-	
-	if(err == false)
-	{
-		SDL_GFX FB(basic_cpu, 0x01'00'00);
-
-		auto start  = std::chrono::steady_clock::now();
-		auto end 	= std::chrono::steady_clock::now();
-		auto target = start + 20ms;
-	//	auto delta  = target - start;
-
-		SDL_TimerID timer = SDL_AddTimer(100, TIMER, &basic_cpu);
-
-		for(u64 i = 0; i < (1ul << 48); i++)
-		{
-			if(!basic_cpu.IS_WFI())
-				for(u32 j = 0; j < (1024); j++)
-					if(basic_cpu.FOXTROT() == false)
-						goto error2;
-			if(SDL_PollEvent(&event) != 0)
-			{
-				switch(event.type)
-				{
-					case SDL_KEYDOWN:
-						if(basic_cpu.XS) { break; }
-						basic_cpu.CLR_WFI();
-						basic_cpu.EXECUTE({
-							KERNI,
-							-1, -1, -1,
-							((event.key.keysym.sym & 0x00ffff) << 8) | 32,	// interrupt 32 triggered
-							false,
-							false
-						});
-						break;
-					default:
-						break;
-				}
-			}
-
-			end 	= std::chrono::steady_clock::now();
-			if(end >= target) 
-			{
-				start = std::chrono::steady_clock::now();
-				target = start + 20ms; // refresh with new target
-				FB.RENDER();
-				if(basic_cpu.XS == 0)
-				{
-					basic_cpu.CLR_WFI();
-					if(!basic_cpu.IS_MASKED_INT())
-					basic_cpu.EXECUTE({
-						KERNI,
-						-1, -1, -1,
-						37,	// interrupt 37 is screen refresh
-						false,
-						false
-					});
-				}
-			}	
-		}
-
-		error2:;
-		SDL_RemoveTimer(timer);
-
-		FB.RENDER();
-		SDL_Delay(1000);
-	}
-	#endif
+	err1:
 
 	__DEBUG_PRINT_STATE(basic_cpu);
 

@@ -12,7 +12,13 @@ int EXEC_SYSC(u16 SYSC, CPU* me);
 
 int CPU::EXECUTE(const INSN insn)
 {
-	//std::printf("This should execute a %s (0x%06x) at [0x%06x]\n", unmappings[insn.OPERATION].c_str(), insn.IMMEDIATE, IP);
+	/*std::printf("This should execute a %s (0x%06x) at [0x%06x] {%c, %c} pre:0x%02x\n", 
+		unmappings[insn.OPERATION].c_str(), 
+		insn.IMMEDIATE, 
+		IP,
+		insn.PREDICATED?'P':'n', 
+		insn.HOLD_PREFIX?'H':'l', 
+		PREFIX);*/
 	if(insn.OPERATION == ERR) 
 	{ 
 		std::printf("OOPS! Hit an error @ 0x%06x\n", IP - 2);
@@ -1824,8 +1830,6 @@ int EXEC_JUMP(INSN insn, CPU* me)
 	me->IP -= 2;
 	me->IP &= 0x00ffffff;
 
-	//std::printf("Jump! located @ <0x%08x>, tick # {0x%08x} from [0x%06x]", me->IP, me->TICKS);
-
 	switch(insn.OPERATION)
 	{
 		case RET:
@@ -1891,8 +1895,6 @@ int EXEC_JUMP(INSN insn, CPU* me)
 	}
 
 	me->IP &= 0x00ffffff;
-
-	//std::printf(" to [0x%06x]\n", me->IP);
 
 	me->CLR_MASKED_INT();
 

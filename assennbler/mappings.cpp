@@ -429,6 +429,9 @@ std::unordered_map<OP, std::string> unmappings =
 	{ GETM, "GETM" },
 	{ GETL, "GETL" },
 
+	{ LDRB, "LDRB" },
+	{ STRB, "STRB" },
+
 	{ LABEL, "@"},
 	{ DIRECTIVE, "."},
 	{ JUNKB, "JUNKB" },

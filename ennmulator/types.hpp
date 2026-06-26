@@ -20,6 +20,8 @@
 #define u16 uint16_t
 #define u8  uint8_t
 
+extern std::unordered_map<OP, std::string> unmappings;
+
 struct MMU;
 struct CPU; 
 
@@ -259,15 +261,33 @@ struct CPU
 	*/
 	u64 TROT_RAW;
 	std::array<INSN, 4> TROT;
+	// has an issue in the decoder when decoding sequences
+	// of prefixed and unprefixed instructions, because prefix
+	// state remains preserved in the cache and isn't flushed
+	// properly. patched a bit hackily in the decoder.cpp file
+	// but i suspect it will resurface
 	bool FOXTROT()
 	{
 		u32 BASE_IP = IP & 0x00fffff8;
 		TROT_RAW = LINKED_MMU->READ_64(BASE_IP, PS);
 		for(int i = 0; i < 4; i++)
-			TROT.at(i) = DECODE(TROT_RAW >> (16 * (3 - i)) & 0x0000ffff);
+		{
+			TROT.at(i) = DECODE((TROT_RAW >> (16 * (3 - i))) & 0x0000ffff);
+			if( (TROT.at(i).OPERATION == JLFAR) or (TROT.at(i).OPERATION == JMFAR) )
+				PREFIX = 0x00;
+		}
+
+		//printf("[0x%06x] trot bundle: 0x%08lx\n", BASE_IP, TROT_RAW);
+		//printf("[0x%06x] instructions in bundle: [ ", BASE_IP);
+		for(int i = 0; i < 4; i++)
+		{
+			//printf("%s ", unmappings[TROT.at(i).OPERATION].c_str());
+		}
+		//printf("]\n");
 
 		for(int i = (IP >> 1) & 3; i < 4; i++)
 		{
+
 			IP += 2;
 			int type = EXECUTE(TROT.at(i));
 			if(type < 0) return false; else
