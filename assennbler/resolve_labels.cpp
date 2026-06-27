@@ -37,6 +37,9 @@ void RESOLVE_LABELS(
 		{ continue; }
 		switch(i.OPERATION)
 		{
+			case DIRECTIVE:
+				if(i.DIREC != INT24) { continue; }
+				else { i.RAW_DATA = i.LABEL_POS; }
 			case MVLA:
 			case MVLB:
 			case MVLC:

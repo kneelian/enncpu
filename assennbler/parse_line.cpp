@@ -192,6 +192,13 @@ LINE PARSE_THIS(
 			
 			case INT24:
 				result.DIREC = INT24;
+				if(line[1][0] == '@')
+				{
+					result.RAW_DATA = 0;
+					result.LABELNAME = line[1].substr(1, line[1].size());
+					current_address += 3;
+					return result;
+				}
 				if(line[1].size() > 0)
 					dir_temp.s = std::clamp(std::stoi(line[1], 0, 0), -8388608, 16777216);
 				result.RAW_DATA = dir_temp.u & 0xffffff;
