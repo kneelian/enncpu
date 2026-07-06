@@ -12,13 +12,7 @@ int EXEC_SYSC(u16 SYSC, CPU* me);
 
 int CPU::EXECUTE(const INSN insn)
 {
-	/*std::printf("This should execute a %s (0x%06x) at [0x%06x] {%c, %c} pre:0x%02x\n", 
-		unmappings[insn.OPERATION].c_str(), 
-		insn.IMMEDIATE, 
-		IP,
-		insn.PREDICATED?'P':'n', 
-		insn.HOLD_PREFIX?'H':'l', 
-		PREFIX);*/
+	//std::printf("This should execute a %s (0x%06x) at [0x%06x]\n", unmappings[insn.OPERATION].c_str(), insn.IMMEDIATE, IP);
 	if(insn.OPERATION == ERR) 
 	{ 
 		std::printf("OOPS! Hit an error @ 0x%06x\n", IP - 2);
@@ -107,7 +101,7 @@ int CPU::EXECUTE(const INSN insn)
 			ACTIVE_SET->at(insn.FIRST_REG) +=
 				ACTIVE_SET->at(insn.SECOND_REG);
 			break;
-		case SADD:
+		case ADDSAT:
 			temp = 
 				ACTIVE_SET->at(insn.FIRST_REG) +
 				ACTIVE_SET->at(insn.SECOND_REG);
@@ -127,9 +121,9 @@ int CPU::EXECUTE(const INSN insn)
 			ACTIVE_SET->at(insn.FIRST_REG) -=
 				ACTIVE_SET->at(insn.SECOND_REG);
 			break;
-		case SSUB:
+		case SUBSAT:
 			temp = 
-				ACTIVE_SET->at(insn.FIRST_REG) +
+				ACTIVE_SET->at(insn.FIRST_REG) -
 				ACTIVE_SET->at(insn.SECOND_REG);
 			if(temp < 0)
 				temp = 0;
@@ -144,7 +138,7 @@ int CPU::EXECUTE(const INSN insn)
 			else
 				ACTIVE_SET->at(insn.FIRST_REG) = ((temp >>24) & 0x00ffffff);
 			break;
-		case SMUL:
+		case MULSAT:
 			temp = 
 				ACTIVE_SET->at(insn.FIRST_REG) *
 				ACTIVE_SET->at(insn.SECOND_REG);
@@ -1095,7 +1089,6 @@ int CPU::EXECUTE(const INSN insn)
 			break;
 		case LDRWI:
 			ACTIVE_SET->at(insn.FIRST_REG) = GET_16((IP - 2) + insn.IMMEDIATE);
-			//std::printf("## %d \n", insn.IMMEDIATE);
 			break;
 		case LDRSI:
 			ACTIVE_SET->at(insn.FIRST_REG) = GET_24((IP - 2) + insn.IMMEDIATE);
@@ -1359,7 +1352,6 @@ int CPU::EXECUTE(const INSN insn)
 			break;
 
 		case RSP:
-			//std::printf("hello!x\n");
 			ACTIVE_SET->at(insn.FIRST_REG) = SP;
 			break;
 		case WSP:
@@ -1395,6 +1387,14 @@ int CPU::EXECUTE(const INSN insn)
 				SET_COND();
 			else
 				CLR_COND();
+			break;
+
+		case RXV:
+			ACTIVE_SET->at(insn.FIRST_REG) = XV;
+			break;
+		case WXV:
+			if(PS & 0x0001)
+				XV = ACTIVE_SET->at(insn.FIRST_REG);
 			break;
 
 		case SWPR:
@@ -1676,30 +1676,6 @@ int CPU::EXECUTE(const INSN insn)
 			break;
 
 		case FMADD_48:
-			temp  = ACTIVE_SET->at(insn.THIRD_REG);
-			temp <<= 24;
-			temp |= ACTIVE_SET->at((insn.THIRD_REG + 1) & 7);
-			temp <<= 16;
-			f64temp = std::bit_cast<double>(temp);
-
-			temp  = ACTIVE_SET->at(insn.SECOND_REG);
-			temp <<= 24;
-			temp |= ACTIVE_SET->at((insn.SECOND_REG + 1) & 7);
-			temp <<= 16;
-
-			f64temp *= std::bit_cast<double>(temp);
-
-			temp  = ACTIVE_SET->at(insn.FIRST_REG);
-			temp <<= 24;
-			temp |= ACTIVE_SET->at((insn.FIRST_REG + 1) & 7);
-			temp <<= 16;
-
-			f64temp += std::bit_cast<double>(temp);
-
-			ACTIVE_SET->at(insn.FIRST_REG + 0) = 
-				(std::bit_cast<u64>(std::bit_cast<i64>(f64temp)) >> 40) & 0xffffff;
-			ACTIVE_SET->at(insn.FIRST_REG + 1) = 
-				(std::bit_cast<u64>(std::bit_cast<i64>(f64temp)) >> 16) & 0xffffff;
 			break;
 
 		case MASK:
@@ -1719,7 +1695,7 @@ int CPU::EXECUTE(const INSN insn)
 			if(!IS_MASKED_INT()) 
 			{
 				FETCHED_INSN = 0x0000;
-				DECODED_INSN = {NOP, -1, -1, -1, -32767, false, false};
+				DECODED_INSN = {NOP, -1, -1, -32767, false, false};
 
 				SET_MASKED_INT();
 				XS = insn.IMMEDIATE;
@@ -1727,7 +1703,7 @@ int CPU::EXECUTE(const INSN insn)
 				SP &= 0xffffff;
 				PUT_24(SP, IP);
 				PS |= 0x0001;   // add kernel perms
-				IP  = 0x0000;   // jump to entry point
+				IP  = XV;       // jump to exception vector
 				//std::printf("\tDEBUG: KERNI hit! XS: [0x%04x]\n", XS);
 			}
 			else
@@ -1747,6 +1723,7 @@ int CPU::EXECUTE(const INSN insn)
 		case TRAPI:
 			return (insn.IMMEDIATE) << 8;
 			break;
+
 		case SYSCI:
 			return EXEC_SYSC(insn.IMMEDIATE, this);
 			break;
@@ -1830,6 +1807,8 @@ int EXEC_JUMP(INSN insn, CPU* me)
 	me->IP -= 2;
 	me->IP &= 0x00ffffff;
 
+	//std::printf("Jump! located @ <0x%08x>, tick # {0x%08x} from [0x%06x]", me->IP, me->TICKS);
+
 	switch(insn.OPERATION)
 	{
 		case RET:
@@ -1895,6 +1874,8 @@ int EXEC_JUMP(INSN insn, CPU* me)
 	}
 
 	me->IP &= 0x00ffffff;
+
+	//std::printf(" to [0x%06x]\n", me->IP);
 
 	me->CLR_MASKED_INT();
 

@@ -84,36 +84,3 @@ bool CPU::LOAD_NEW_FORMAT(std::vector<u8>& bstream)
 	}
 	return true;
 }
-
-void CPU::PRECACHE_FLUSH()
-{
-	PREFETCH_RAW = 0;
-	for(auto & i : PREFETCH_INSN_CACHE)
-		i = { NOP, -1, -1, -1, -32767, false, false };
-	PREFETCH_INDEX = -1;
-}
-
-void CPU::PREFETCH()
-{
-	PREFETCH_RAW = LINKED_MMU->READ_64(IP, PS);
-
-	IP += 8;
-
-	PREFETCH_OLD_PREFIX = PREFIX;
-
-	for(int i = 0; i < 4; i++)
-	{
-		INSN temp = DECODE( u16(PREFETCH_RAW >> ((3 - i) * 16)) );
-
-		if(temp.OPERATION == PREF) 
-			{ SET_PREFIX(temp.IMMEDIATE); } else
-		if(PREFIX and (temp.HOLD_PREFIX == false))
-			{ SET_PREFIX(0x00); }
-
-		PREFETCH_INSN_CACHE[i] = temp;
-	}
-
-	PREFIX = PREFETCH_OLD_PREFIX;
-
-	PREFETCH_INDEX = 0;
-}

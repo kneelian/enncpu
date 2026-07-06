@@ -11,7 +11,7 @@ using namespace std::chrono_literals;
 #include "random_module.hpp"
 
 //#include "gfx.hpp"
-#ifdef __x86_64__
+#ifdef f
 #include "sdl_gfx.hpp"
 #endif
 
@@ -29,7 +29,7 @@ u32 TIMER(u32 INTERVAL, void* ARG)
 	{	
 		us->EXECUTE({
 			KERNI,
-			-1, -1, -1,
+			-1, -1,
 			0x23,				// timer exception is int 0x23
 			false,
 			false
@@ -59,20 +59,7 @@ void __DEBUG_PRINT_STATE(CPU& cpu)
 
 int main(int argc, char** argv)
 {
-	CPU basic_cpu(true);
-	basic_cpu.LINKED_MMU->ADD_CHUNK();
-	basic_cpu.LINKED_MMU->ADD_CHUNK();
-	basic_cpu.LINKED_MMU->ADD_CHUNK();
-	basic_cpu.LINKED_MMU->ADD_CHUNK();
-
-	/*std::printf("nr of pages: %d\n", basic_cpu.LINKED_MMU->LAST_PAGE - 1);
-	for(int i = 0; i < basic_cpu.LINKED_MMU->LAST_PAGE - 1; i++)
-	{
-		std::printf("/ mapping 0x%04x -> 0x%04x; perm: 0x%02x\n",
-			i,
-			basic_cpu.LINKED_MMU->MAPPINGS[i],
-			basic_cpu.LINKED_MMU->PERMS[basic_cpu.LINKED_MMU->MAPPINGS[i]]);
-	}*/
+	CPU basic_cpu;
 
 	if(argc > 2)
 	{
@@ -157,10 +144,10 @@ int main(int argc, char** argv)
 	for(int i = 0; i < (1 << 24); i++)
 		if(!basic_cpu.IS_WFI())
 			for(int j = 0; j < 1024; j++)
-				if(basic_cpu.STEP() == false) // removing foxtrot
+				if(basic_cpu.STEP() == false)
 					{ err = true; goto err1; }
 
-	err1:
+	err1:;
 
 	__DEBUG_PRINT_STATE(basic_cpu);
 

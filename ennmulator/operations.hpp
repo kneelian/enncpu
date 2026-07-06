@@ -31,7 +31,7 @@ enum OP : uint16_t
 
 	ADDHI, SUBHI, // add and sub to high byte
 
-	SADD, SSUB, SMUL, // saturating
+	ADDSAT, SUBSAT, MULSAT, // saturating
 
 	CEQ, CNE,  CGT,   CLT,  //conditional
 	COR, CAND, CNAND, CNOR, //conditional
@@ -45,6 +45,15 @@ enum OP : uint16_t
 
 	MOV, INV, // = MOV A, !B
 	XCG, // swap Ra and Rb
+
+	PADD,
+	PSUB,
+	PMUL,
+	PDIV,
+	PCPY,           // replicate low byte to all three lanes
+	PBAND,
+	PBOR,
+	PBXOR,
 
 	JUNKB,
 	JUNKW,
@@ -63,28 +72,28 @@ enum OP : uint16_t
 
 	ST2B, ST2W, ST2S, // store two
 	LD2B, LD2W, LD2S, // load
-	ST3B, ST3W, ST3S, // store three
-	LD3B, LD3W, LD3S, // load
+	ST3B, ST3W, ST3S, // obsolete
+	LD3B, LD3W, LD3S, // obsolete
 
 	ST2BBD, ST2WBD, ST2SBD,
 	LD2BBD, LD2WBD, LD2SBD,
-	ST3BBD, ST3WBD, ST3SBD,
-	LD3BBD, LD3WBD, LD3SBD,
+	ST3BBD, ST3WBD, ST3SBD, // obsolete
+	LD3BBD, LD3WBD, LD3SBD, // obsolete
 
 	ST2BBI, ST2WBI, ST2SBI,
 	LD2BBI, LD2WBI, LD2SBI,
-	ST3BBI, ST3WBI, ST3SBI,
-	LD3BBI, LD3WBI, LD3SBI,
+	ST3BBI, ST3WBI, ST3SBI, // obsolete
+	LD3BBI, LD3WBI, LD3SBI, // obsolete
 
 	ST2BAD, ST2WAD, ST2SAD,
 	LD2BAD, LD2WAD, LD2SAD,
-	ST3BAD, ST3WAD, ST3SAD,
-	LD3BAD, LD3WAD, LD3SAD,
+	ST3BAD, ST3WAD, ST3SAD, // obsolete
+	LD3BAD, LD3WAD, LD3SAD, // obsolete
 
 	ST2BAI, ST2WAI, ST2SAI,
 	LD2BAI, LD2WAI, LD2SAI,
-	ST3BAI, ST3WAI, ST3SAI,
-	LD3BAI, LD3WAI, LD3SAI,
+	ST3BAI, ST3WAI, ST3SAI, // obsolete
+	LD3BAI, LD3WAI, LD3SAI, // obsolete
   
 	STRBI, STRWI, STRSI, // store  
 	LDRBI, LDRWI, LDRSI, // load
@@ -128,6 +137,7 @@ enum OP : uint16_t
 	RIP, WIP,
 	RPS, WPS,
 	RXS, WXS, CXS, // and check if in an exception
+	RXV, WXV, // exception vector
 
 	// test and write MMU page properties
 	TPAGE, WPAGE,
@@ -176,6 +186,10 @@ enum OP : uint16_t
 	FSUB_48,
 	FMUL_48,
 	FDIV_48,
+	FMOD_48,
+
+	FCST_24_48,
+	FCST_48_24,
 
 	FMADD_48, 
 

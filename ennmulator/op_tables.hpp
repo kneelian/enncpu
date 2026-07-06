@@ -13,8 +13,7 @@ OP REG_REG_TABLE[][8] =
 	  COR, 	  CAND,	       CNAND,    CNOR}, // 0010
 
 	{ BOR,	  BAND,	       BXOR,     BNOR,
-	  ST2WBD, LD2WBD,      ST2WAI,   LD2WAI }, // 0011
-	  		//BORINV,	BANDINV,   BXORINV,  BNORINV
+	  NOP,    NOP,         NOP,      NOP }, // 0011
 
 	{ POPC,	  PARI,	       LEAD,	 TAIL,
 	  LSHL,	  LSHR,	       ROTL,	 ROTR}, // 0100
@@ -27,27 +26,24 @@ OP REG_REG_TABLE[][8] =
 
 	{ JMZR,   JLZR,   JMNZR,  JLNZR,
 	  CEQ_OR, CNE_OR, CGT_OR, CLT_OR },
-	// replacing the displacement jumps
-	// because I literally never use them
-	/*
-	{ JMD,  JLD,    JMRD,   JLRD,
-	  JMZD, JLZD,   JMNZD,  JLNZD },*/  // 1000
-	{ CGTS, CLTS,   NOP,    ST2WAD, 
-	  GETL, GETM,   GETH,   LD2WAD },	   //  1001
-	{ ST2SAI, /**/  STRBBI,	STRWBI,  STRSBI,
-	  ST3SAI, /**/  LDRBBI,	LDRWBI,  LDRSBI }, // 1010 beforeincrement
-	{ LD2SAI, /**/  STRBAI,	STRWAI,  STRSAI,
-	  LD3SAI, /**/  LDRBAI,	LDRWAI,  LDRSAI},  // 1011 afterincrement
 
-	{ ST2W,	  /**/  STRBBD,	STRWBD,  STRSBD,
-	  LD2W,	  /**/  LDRBBD,	LDRWBD,  LDRSBD }, // 1100 beforedecrement
-	{ ST2WBI, /**/  STRBAD,	STRWAD,  STRSAD,
-	  LD2WBI, /**/  LDRBAD,	LDRWAD,  LDRSAD},  // 1101 afterdecrement
+	{ CGTS, CLTS,   ADDSAT, SUBSAT, 
+	  GETL, GETM,   GETH,   MULSAT },	   //  1001
 
-	{ ST2S,  	 ST3S, 		LD2S,	 LD3S,
-	  ST2SBD,	 ST3SBD,	LD2SBD,  LD3SBD},   // 1110
-	{ ST2SAD,	 ST3SAD,	LD2SAD,  LD3SAD,
-	  ST2SBI,	 ST3SBI,	LD2SBI,  LD3SBI},  // 1111
+	{ NOP,    /**/  STRBBI,	STRWBI,  STRSBI,
+	  NOP,    /**/  LDRBBI,	LDRWBI,  LDRSBI }, // 1010 beforeincrement
+	{ ST2SAI, /**/  STRBAI,	STRWAI,  STRSAI,
+	  LD2SAI, /**/  LDRBAI,	LDRWAI,  LDRSAI },  // 1011 afterincrement
+
+	{ ST2SBD,     /**/  STRBBD,	STRWBD,  STRSBD,
+	  LD2SBD,     /**/  LDRBBD,	LDRWBD,  LDRSBD },  // 1100 beforedecrement
+	{ ST2S,       /**/  STRBAD,	STRWAD,  STRSAD,
+	  LD2S,       /**/  LDRBAD,	LDRWAD,  LDRSAD },  // 1101 afterdecrement
+
+	{ FADD_48,  FCST_24_48,   /**/ PADD,    PBAND,
+	  FSUB_48,  FCST_48_24,   /**/ PSUB,    PBOR },   // 1110
+	{ FMUL_48,  FMOD_48,      /**/ PMUL,    PBXOR,
+	  FDIV_48,  NOP,          /**/ PDIV,    PCPY },   // 1111
 };
 
 const OP REG_IMM_TBLA[] =
@@ -65,8 +61,8 @@ const OP REG_IMM_TBLA[] =
 	CBITI,  // 1010
 	TGLI,   // 1011
 	SUBHI,  // 1100
-	CEQI_OR, // !!  // 1101
-	CNEI_OR, // !!  // 1110
+	CEQI_OR, // 1101
+	CNEI_OR, // 1110
 		NOP, // STRSI,  // 1111
 };
 	
@@ -98,14 +94,14 @@ const OP REG_SOLO_TBLA[] =
 	FIL,  SWPR, SHDW, LITE, // 0011xx
 	RSP,  WSP,  RIP,  WIP,  // 0100
 	RPS,  WPS,  RXS,  WXS,  // 0101
-	JMR,  JLR,  JMPD, JMSD, // 0110
+	JMR,  JLR,  RXV,  WXV, // 0110
 	JLPD, JLSD, SEED, NOP, // 0111
 
 	FCPI, 	FCE,  	FC0,  	FC1,  // 1000
 	FC2,  	FCSQ2,	FCPHI,	FCTAU,// 1001xx
 	CINF, 	CNAN, 	CNRM, 	ERR,  // 1010xx
-	PSH2W,  PSH2S,  PSH3S,  ERR,  // 1100xx
-	POP2W,  POP2S,  POP3S,  ERR,  // 1101xx
+	PSH2W,  PSH2S,  ERR,    ERR,  // 1100xx
+	POP2W,  POP2S,  ERR,    ERR,  // 1101xx
 	MMU_SETRO,   // 111000
 	MMU_CHKRO,   // 111001
 	MMU_SETUSR,  // 111010
@@ -171,7 +167,7 @@ const std::array<OP, 16> IMM8_B =
 
 const std::array<OP, 32> FP48_TYPE =
 {
-	FMADD_48, FMADD_48, FMADD_48, FMADD_48,
+	NOP, NOP, NOP, NOP,
 
 	FADD_48,  FSUB_48,  FMUL_48,  FDIV_48,
 	FABS_48,  FNEG_48,  FREC_48,  FSQT_48,
@@ -198,7 +194,7 @@ const std::array<OP, 8> PRE_1_FP24_OPS_B =
 const std::array<OP, 8> PRE_1_MEM_OPS_A =
 {
 	LDRS, STRS, LD2S, ST2S,
-	LD3S, ST3S, PSHS, POPS,
+	NOP, NOP, PSHS, POPS,
 };
 
 const std::array<OP, 8> PRE_1_MEM_OPS_B =
@@ -217,8 +213,8 @@ const std::array<OP, 8> PRE_1_MEM_OPS_C =
 
 const std::array<OP, 8> PRE_1_MEM_OPS_D =
 {
-	LD3SAI, ST3SAI, LD3SAD, ST3SAD,
-	LD3SBI, ST3SBI, LD3SBD, ST3SBD,
+	NOP, NOP, NOP, NOP,
+	NOP, NOP, NOP, NOP,
 };
  
 std::unordered_map<OP, std::string> unmappings =
@@ -261,9 +257,9 @@ std::unordered_map<OP, std::string> unmappings =
 	{ CANDI,  "CANDI" }, 
 	{ BORI,  "BORI" }, 
 	{ BANDI,  "BANDI" }, 
-	{ SADD,  "SADD" }, 
-	{ SSUB,  "SSUB" }, 
-	{ SMUL,  "SMUL" }, 
+	{ ADDSAT,  "ADDSAT" }, 
+	{ SUBSAT,  "SUBSAT" }, 
+	{ MULSAT,  "MULSAT" }, 
 	{ SYSCI, "SYSCI" },
 	{ KERNI, "KERNI" },
 	{ CEQ,  "CEQ" }, 

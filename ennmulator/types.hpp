@@ -20,8 +20,6 @@
 #define u16 uint16_t
 #define u8  uint8_t
 
-extern std::unordered_map<OP, std::string> unmappings;
-
 struct MMU;
 struct CPU; 
 
@@ -36,9 +34,7 @@ struct MMU
 	   		b1 -
 	   		b2 - readonly
 	*/
-	u8* PAGES[4096];
-
-	u16 LAST_PAGE = 0;
+	std::array< std::array<u8, 4096>, 4096> PAGES;
 
 	u16 MAPPINGS[4096];
 
@@ -46,27 +42,18 @@ struct MMU
 	{
 		for(int i = 0; i < 4096; i++)
 		{ 
-			PERMS[i] = 0xff; 
-			MAPPINGS[i] = 0xffff; 
-			PAGES[i] = nullptr;
+			PERMS[i] = 0x0; 
+			MAPPINGS[i] = i;
 		} 
 		MMU_VALID = true;
 	}
 	~MMU()
 	{
-		for(int i = 0; i < LAST_PAGE; i++)
-		{
-			if(PAGES[i] != nullptr)
-				delete[] PAGES[i];
-		}
 	}
 
 	bool CHECK_READONLY(u16 page);
 	void CLEAR_READONLY(u16 page);
 	void   SET_READONLY(u16 page);
-
-	i16 ADD_CHUNK();
-	i16 ADD_PAGE();
 
 	bool CHECK_PAGE_EXISTS(u16 page);
 
@@ -118,11 +105,8 @@ struct INSN
 
 	i8  FIRST_REG = -1;
 	i8  SECOND_REG = -1;
-	i8  THIRD_REG = -1;
 
 	i32 IMMEDIATE = -32767;
-
-	// i16 PADDING;
 
 	bool HOLD_PREFIX = false;
 	bool PREDICATED = false;
@@ -147,6 +131,8 @@ struct CPU
 	u16 PS = 0x0000; // processor state
 	u16 XS = 0x0000; // exception state
 
+	u32 XV = 0x0000; // exception vector
+
 	u8 PREFIX = 0x00;
 
 	u64 RAND_STATE = 0x12345678deadbeef;
@@ -166,15 +152,6 @@ struct CPU
 	inline u8 PREFIX_STATE()  { return PREFIX; }
 	inline void CLR_PREFIX()  { SET_PREFIX(0); }
 
-
-	u64 PREFETCH_RAW = 0;
-	std::array<INSN, 4> PREFETCH_INSN_CACHE = {};
-	i8 PREFETCH_INDEX = -1;
-	u8 PREFETCH_OLD_PREFIX = 0x00;
-	void PREFETCH();
-	void PRECACHE_FLUSH();
-
-
 	inline void SET_PREFIX(u8 p) 
 	{ 
 		if(PREFIX == p) { return; }
@@ -192,27 +169,15 @@ struct CPU
 
 	u8 *FALLBACK_PAGE = nullptr;
 
-	CPU() = delete;
-
-	CPU(bool HAS_MMU)
+	CPU()
 	{
-		
 		for(int i = 0; i < 8; i++)
 		{
 			SET_A[i] = 0;
 			SET_B[i] = 0;
 		}
-		if(HAS_MMU)
-		{
-			PS = 0x0003;
-			LINKED_MMU = new MMU;
-			if(LINKED_MMU->ADD_PAGE() < 0) throw;
-		}
-		else
-		{
-			PS = 0x0001;
-			FALLBACK_PAGE = new u8[65536];
-		}
+		PS = 0x0003;
+		LINKED_MMU = new MMU;
 	}
 	~CPU()
 	{
@@ -252,55 +217,5 @@ struct CPU
 		if(EXECUTE(DECODED_INSN) < 0) 
 			 return false;
 		else return true;
-	}
-
-	/*
-		provisionally naming the cache and
-		bundle execution system FOXTROT because
-		it's done in 4 steps (i.e. a 4/4 dance)
-	*/
-	u64 TROT_RAW;
-	std::array<INSN, 4> TROT;
-	// has an issue in the decoder when decoding sequences
-	// of prefixed and unprefixed instructions, because prefix
-	// state remains preserved in the cache and isn't flushed
-	// properly. patched a bit hackily in the decoder.cpp file
-	// but i suspect it will resurface
-	bool FOXTROT()
-	{
-		u32 BASE_IP = IP & 0x00fffff8;
-		TROT_RAW = LINKED_MMU->READ_64(BASE_IP, PS);
-		for(int i = 0; i < 4; i++)
-		{
-			TROT.at(i) = DECODE((TROT_RAW >> (16 * (3 - i))) & 0x0000ffff);
-			if( (TROT.at(i).OPERATION == JLFAR) or (TROT.at(i).OPERATION == JMFAR) )
-				PREFIX = 0x00;
-		}
-
-		//printf("[0x%06x] trot bundle: 0x%08lx\n", BASE_IP, TROT_RAW);
-		//printf("[0x%06x] instructions in bundle: [ ", BASE_IP);
-		for(int i = 0; i < 4; i++)
-		{
-			//printf("%s ", unmappings[TROT.at(i).OPERATION].c_str());
-		}
-		//printf("]\n");
-
-		for(int i = (IP >> 1) & 3; i < 4; i++)
-		{
-
-			IP += 2;
-			int type = EXECUTE(TROT.at(i));
-			if(type < 0) return false; else
-			if(type > 0)
-			{
-				TICKS++;
-				return true;
-			}
-			else
-			{
-				TICKS++;
-			}
-		}
-		return true;
 	}
 };
