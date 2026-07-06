@@ -40,10 +40,10 @@ OP REG_REG_TABLE[][8] =
 	{ ST2S,   /**/  STRBAD,	STRWAD,  STRSAD,
 	  LD2S,   /**/  LDRBAD,	LDRWAD,  LDRSAD },  // 1101 afterdecrement
 
-	{ ERR, ERR /**/ PADD,    PBAND,
-	  ERR, ERR /**/ PSUB,    PBOR },   // 1110
-	{ ERR, ERR /**/ PMUL,    PBXOR,
-	  ERR, ERR /**/ PDIV,    PCPY },   // 1111
+	{ ERR, ERR, /**/ PADD,    PBAND,
+	  ERR, ERR, /**/ PSUB,    PBOR },   // 1110
+	{ ERR, ERR, /**/ PMUL,    PBXOR,
+	  ERR, ERR, /**/ PDIV,    PCPY },   // 1111
 };
 
 const OP REG_IMM_TBLA[] =

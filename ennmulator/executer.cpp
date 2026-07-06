@@ -154,6 +154,125 @@ int CPU::EXECUTE(const INSN insn)
 			ACTIVE_SET->at(insn.FIRST_REG) %= 
 				ACTIVE_SET->at(insn.SECOND_REG);
 			break;
+
+		case PADD:
+			{
+				u8 t1, t2, t3;
+				u8 t4, t5, t6;
+				t1 = (ACTIVE_SET->at(insn.FIRST_REG) >> 16);
+				t2 = (ACTIVE_SET->at(insn.FIRST_REG) >>  8);
+				t3 = (ACTIVE_SET->at(insn.FIRST_REG) >>  0);
+				t4 = (ACTIVE_SET->at(insn.SECOND_REG) >>16);
+				t5 = (ACTIVE_SET->at(insn.SECOND_REG) >> 8);
+				t6 = (ACTIVE_SET->at(insn.SECOND_REG) >> 0);
+				t1 += t4;
+				t2 += t5;
+				t3 += t6;
+				ACTIVE_SET->at(insn.FIRST_REG) = (u32(t1) << 16) | (u32(t2) << 8) | (u32(t3) << 0);
+			}
+			break;
+		case PSUB:
+			{
+				u8 t1, t2, t3;
+				u8 t4, t5, t6;
+				t1 = (ACTIVE_SET->at(insn.FIRST_REG) >> 16);
+				t2 = (ACTIVE_SET->at(insn.FIRST_REG) >>  8);
+				t3 = (ACTIVE_SET->at(insn.FIRST_REG) >>  0);
+				t4 = (ACTIVE_SET->at(insn.SECOND_REG) >>16);
+				t5 = (ACTIVE_SET->at(insn.SECOND_REG) >> 8);
+				t6 = (ACTIVE_SET->at(insn.SECOND_REG) >> 0);
+				t1 -= t4;
+				t2 -= t5;
+				t3 -= t6;
+				ACTIVE_SET->at(insn.FIRST_REG) = (u32(t1) << 16) | (u32(t2) << 8) | (u32(t3) << 0);
+			}
+			break;
+		case PMUL:
+			{
+				u8 t1, t2, t3;
+				u8 t4, t5, t6;
+				t1 = (ACTIVE_SET->at(insn.FIRST_REG) >> 16);
+				t2 = (ACTIVE_SET->at(insn.FIRST_REG) >>  8);
+				t3 = (ACTIVE_SET->at(insn.FIRST_REG) >>  0);
+				t4 = (ACTIVE_SET->at(insn.SECOND_REG) >>16);
+				t5 = (ACTIVE_SET->at(insn.SECOND_REG) >> 8);
+				t6 = (ACTIVE_SET->at(insn.SECOND_REG) >> 0);
+				t1 *= t4;
+				t2 *= t5;
+				t3 *= t6;
+				ACTIVE_SET->at(insn.FIRST_REG) = (u32(t1) << 16) | (u32(t2) << 8) | (u32(t3) << 0);
+			}
+			break;
+		case PDIV:
+			{
+				u8 t1, t2, t3;
+				u8 t4, t5, t6;
+				t1 = (ACTIVE_SET->at(insn.FIRST_REG) >> 16);
+				t2 = (ACTIVE_SET->at(insn.FIRST_REG) >>  8);
+				t3 = (ACTIVE_SET->at(insn.FIRST_REG) >>  0);
+				t4 = (ACTIVE_SET->at(insn.SECOND_REG) >>16);
+				t5 = (ACTIVE_SET->at(insn.SECOND_REG) >> 8);
+				t6 = (ACTIVE_SET->at(insn.SECOND_REG) >> 0);
+				t1 /= t4;
+				t2 /= t5;
+				t3 /= t6;
+				ACTIVE_SET->at(insn.FIRST_REG) = (u32(t1) << 16) | (u32(t2) << 8) | (u32(t3) << 0);
+			}
+			break;
+		case PBAND:
+			{
+				u8 t1, t2, t3;
+				u8 t4, t5, t6;
+				t1 = (ACTIVE_SET->at(insn.FIRST_REG) >> 16);
+				t2 = (ACTIVE_SET->at(insn.FIRST_REG) >>  8);
+				t3 = (ACTIVE_SET->at(insn.FIRST_REG) >>  0);
+				t4 = (ACTIVE_SET->at(insn.SECOND_REG) >>16);
+				t5 = (ACTIVE_SET->at(insn.SECOND_REG) >> 8);
+				t6 = (ACTIVE_SET->at(insn.SECOND_REG) >> 0);
+				t1 &= t4;
+				t2 &= t5;
+				t3 &= t6;
+				ACTIVE_SET->at(insn.FIRST_REG) = (u32(t1) << 16) | (u32(t2) << 8) | (u32(t3) << 0);
+			}
+			break;
+		case PBOR:
+			{
+				u8 t1, t2, t3;
+				u8 t4, t5, t6;
+				t1 = (ACTIVE_SET->at(insn.FIRST_REG) >> 16);
+				t2 = (ACTIVE_SET->at(insn.FIRST_REG) >>  8);
+				t3 = (ACTIVE_SET->at(insn.FIRST_REG) >>  0);
+				t4 = (ACTIVE_SET->at(insn.SECOND_REG) >>16);
+				t5 = (ACTIVE_SET->at(insn.SECOND_REG) >> 8);
+				t6 = (ACTIVE_SET->at(insn.SECOND_REG) >> 0);
+				t1 |= t4;
+				t2 |= t5;
+				t3 |= t6;
+				ACTIVE_SET->at(insn.FIRST_REG) = (u32(t1) << 16) | (u32(t2) << 8) | (u32(t3) << 0);
+			}
+			break;
+		case PBXOR:
+			{
+				u8 t1, t2, t3;
+				u8 t4, t5, t6;
+				t1 = (ACTIVE_SET->at(insn.FIRST_REG) >> 16);
+				t2 = (ACTIVE_SET->at(insn.FIRST_REG) >>  8);
+				t3 = (ACTIVE_SET->at(insn.FIRST_REG) >>  0);
+				t4 = (ACTIVE_SET->at(insn.SECOND_REG) >>16);
+				t5 = (ACTIVE_SET->at(insn.SECOND_REG) >> 8);
+				t6 = (ACTIVE_SET->at(insn.SECOND_REG) >> 0);
+				t1 ^= t4;
+				t2 ^= t5;
+				t3 ^= t6;
+				ACTIVE_SET->at(insn.FIRST_REG) = (u32(t1) << 16) | (u32(t2) << 8) | (u32(t3) << 0);
+			}
+			break;
+		case PCPY:
+			temp = ACTIVE_SET->at(insn.SECOND_REG) & 0xff;
+			ACTIVE_SET->at(insn.FIRST_REG) =
+				(temp << 16) | (temp << 8) | (temp << 0);
+			break;
+
 		case MOVI:
 			ACTIVE_SET->at(insn.FIRST_REG) =
 			(insn.IMMEDIATE & 0xff);
