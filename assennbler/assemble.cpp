@@ -303,10 +303,6 @@ void ASSEMBLE(
 				case BAND:	 insn |= 0b0'00'0011'001'000000; break;
 				case BXOR:	 insn |= 0b0'00'0011'010'000000; break;
 				case BNOR:	 insn |= 0b0'00'0011'011'000000; break;
-				case BORINV: insn |= 0b0'00'0011'100'000000; break;
-				case BANDINV:insn |= 0b0'00'0011'101'000000; break;
-				case BXORINV:insn |= 0b0'00'0011'110'000000; break;
-				case BNORINV:insn |= 0b0'00'0011'111'000000; break;
 
 				case POPC:	 insn |= 0b0'00'0100'000'000000; break;	
 				case PARI:	 insn |= 0b0'00'0100'001'000000; break;	
@@ -356,10 +352,6 @@ void ASSEMBLE(
 	
 				case CGTS:	 insn |= 0b0'00'1001'000'000000; break;	
 				case CLTS:	 insn |= 0b0'00'1001'001'000000; break;	
-	
-				case SADD:	 insn |= 0b0'00'1001'000'000000; break;	
-				case SSUB:	 insn |= 0b0'00'1001'001'000000; break;	
-				case SMUL:	 insn |= 0b0'00'1001'010'000000; break;
 
 				case GETL: 
 					insn |= 0b0'00'1001'100'000000; break;
@@ -371,69 +363,18 @@ void ASSEMBLE(
 				case SYSCI:
 					insn |= 0b0'11'1100'1'00000000; break;
 
-			//  case ST2B:
-				case ST2W:
-					insn |= 0b0'00'1100'000'000000; break;
 				case ST2S:
-					insn |= 0b0'00'1110'000'000000; break;
-				case ST3S:
-					insn |= 0b0'00'1110'001'000000; break;
-				case ST2WBI: 
 					insn |= 0b0'00'1101'000'000000; break;
-				case ST2SBI: 
-					insn |= 0b0'00'1111'100'000000; break;
-				case ST3SBI: 
-					insn |= 0b0'00'1111'101'000000; break;
-				case ST2WBD: 
-					insn |= 0b0'00'0011'100'000000; break;
 				case ST2SBD: 
-					insn |= 0b0'00'1110'100'000000; break;
-				case ST3SBD: 
-					insn |= 0b0'00'1110'101'000000; break;
-				case ST2WAI: 
-					insn |= 0b0'00'0011'110'000000; break;
+					insn |= 0b0'00'1100'000'000000; break;
 				case ST2SAI: 
-					insn |= 0b0'00'1010'000'000000; break;
-				case ST3SAI:
-					insn |= 0b0'00'1010'100'000000; break;
-				case ST2WAD: 
-					insn |= 0b0'00'1001'011'000000; break;
-				case ST2SAD: 
-					insn |= 0b0'00'1111'000'000000; break;
-				case ST3SAD:  
-					insn |= 0b0'00'1111'001'000000; break;
-				case LD2W:
-					insn |= 0b0'00'1100'100'000000; break;
-				case LD2S:
-					insn |= 0b0'00'1110'010'000000; break;
-				case LD3S:
-					insn |= 0b0'00'1110'011'000000; break;
-				case LD2WBI: 
-					insn |= 0b0'00'1101'100'000000; break;
-				case LD2SBI: 
-					insn |= 0b0'00'1111'110'000000; break;
-				case LD3SBI: 
-					insn |= 0b0'00'1111'111'000000; break;
-				case LD2WBD: 
-					insn |= 0b0'00'0011'101'000000; break;
-
-				case LD2SBD: 
-					insn |= 0b0'00'1110'110'000000; break;
-				case LD3SBD:
-					insn |= 0b0'00'1110'111'000000; break;
-				case LD2WAI: 
-					insn |= 0b0'00'0011'111'000000; break;
-				case LD2SAI: 
 					insn |= 0b0'00'1011'000'000000; break;
-				case LD3SAI:
+				case LD2S:
+					insn |= 0b0'00'1101'100'000000; break;
+				case LD2SBD:
+					insn |= 0b0'00'1100'100'000000; break;
+				case LD2SAI:
 					insn |= 0b0'00'1011'100'000000; break;
-				case LD2WAD: 
-					insn |= 0b0'00'1001'111'000000; break;
-				case LD2SAD: 
-					insn |= 0b0'00'1111'010'000000; break;
-				case LD3SAD: 
-					insn |= 0b0'00'1111'011'000000; break;
-				break;
 
 				case STRBBI: insn |= 0b0'00'1010'001'000000; break;
 				case STRWBI: insn |= 0b0'00'1010'010'000000; break;
@@ -550,6 +491,10 @@ void ASSEMBLE(
 				case JLPD: insn |= 0b0'01'0110'000'011100; break;
 				case JLSD: insn |= 0b0'01'0110'000'011101; break;
 
+				case FIL:  insn |= 0b0'01'0110'000'001100; break;
+				case SWPR: insn |= 0b0'01'0110'000'001101; break;
+				case SHDW: insn |= 0b0'01'0110'000'001110; break;
+				case LITE: insn |= 0b0'01'0110'000'001111; break;
 				case RSP:  insn |= 0b0'01'0110'000'010000; break;
 				case WSP:  insn |= 0b0'01'0110'000'010001; break;
 				case RIP:  insn |= 0b0'01'0110'000'010010; break;
@@ -558,10 +503,8 @@ void ASSEMBLE(
 				case WPS:  insn |= 0b0'01'0110'000'010101; break;
 				case RXS:  insn |= 0b0'01'0110'000'010110; break;
 				case WXS:  insn |= 0b0'01'0110'000'010111; break;
-				case FIL:  insn |= 0b0'01'0110'000'001100; break;
-				case SWPR: insn |= 0b0'01'0110'000'001101; break;
-				case SHDW: insn |= 0b0'01'0110'000'001110; break;
-				case LITE: insn |= 0b0'01'0110'000'001111; break;
+				case RXV:  insn |= 0b0'01'0110'000'011010; break;
+				case WXV:  insn |= 0b0'01'0110'000'011011; break;
 
 				case SEED: insn |= 0b0'01'0110'000'011110; break;
 				case RND:  insn |= 0b0'01'0110'000'001010; break;
@@ -588,10 +531,8 @@ void ASSEMBLE(
 
 				case PSH2W:  insn |= 0b0'01'0110'000'110000; break;
 				case PSH2S:  insn |= 0b0'01'0110'000'110001; break;
-				case PSH3S:  insn |= 0b0'01'0110'000'110010; break;
 				case POP2W:  insn |= 0b0'01'0110'000'110100; break;
 				case POP2S:  insn |= 0b0'01'0110'000'110101; break;
-				case POP3S:  insn |= 0b0'01'0110'000'110110; break;
 
 				case CALW: insn |= 0b0'01'0111'000'001100; break;
 				case CNEV: insn |= 0b0'01'0111'000'001101; break;
@@ -615,6 +556,17 @@ void ASSEMBLE(
 				case POPB: insn |= 0b0'01'0110'000'000100; break;
 				case POPW: insn |= 0b0'01'0110'000'000101; break;
 				case POPS: insn |= 0b0'01'0110'000'000110; break;
+
+				case PADD:  insn |= 0b0'00'1110'010'000000; break;
+				case PSUB:  insn |= 0b0'00'1110'110'000000; break;
+				case PMUL:  insn |= 0b0'00'1111'010'000000; break;
+				case PDIV:  insn |= 0b0'00'1111'110'000000; break;
+				case PBAND: insn |= 0b0'00'1110'011'000000; break;
+				case PBOR:  insn |= 0b0'00'1110'111'000000; break;
+				case PBXOR: insn |= 0b0'00'1111'011'000000; break;
+				case PCPY:  insn |= 0b0'00'1111'111'000000; break;
+
+				insn |= 0b0'00'1100'010'000000;
 
 				case PREF: insn |= 0b0'11'1111'1'00000000; break;
 

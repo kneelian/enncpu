@@ -34,7 +34,7 @@ enum OP : uint16_t
 
 	ADDHI, SUBHI, // add and sub to high byte
 
-	SADD, SSUB, SMUL, // saturating
+	ADDSAT, SUBSAT, MULSAT, // saturating
 
 	CEQ, CNE,  CGT,   CLT,  //conditional
 	COR, CAND, CNAND, CNOR, //conditional
@@ -59,6 +59,14 @@ enum OP : uint16_t
 	PEEKW,
 	PEEKS, // check top of stack w/o pop
 
+	PADD,
+	PSUB,
+	PMUL,
+	PDIV,
+	PCPY,           // replicate low byte to all three lanes
+	PBAND,
+	PBOR,
+	PBXOR,
 
 	//  byte, word, sesqui
 	STRB, STRW, STRS, // store
@@ -137,6 +145,7 @@ enum OP : uint16_t
 	RPS, WPS,
 	RXS, WXS, 
 	CXS,       // and check if in exception
+	RXV, WXV,
 
 	// test and write MMU page properties
 	TPAGE, WPAGE,
