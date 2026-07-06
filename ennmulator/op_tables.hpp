@@ -13,7 +13,7 @@ OP REG_REG_TABLE[][8] =
 	  COR, 	  CAND,	       CNAND,    CNOR}, // 0010
 
 	{ BOR,	  BAND,	       BXOR,     BNOR,
-	  NOP,    NOP,         NOP,      NOP }, // 0011 !!
+	  ERR,    ERR,         ERR,      ERR }, // 0011 !! <--- partially empty
 
 	{ POPC,	  PARI,	       LEAD,	 TAIL,
 	  LSHL,	  LSHR,	       ROTL,	 ROTR}, // 0100
@@ -22,7 +22,7 @@ OP REG_REG_TABLE[][8] =
 	{ FSIN,	  FCOS,	       FTAN,	 FASIN,
 	  FEXP,	  FLN,	       FREC,	 FABS}, // 0110
 	{ FNEG,	  FCGT,	       FCLT,	 FMOD,
-	  REV,	  MEMMAP,      XCG,      NOP }, // 0111
+	  REV,	  MEMMAP,      XCG,      ERR }, // 0111
 
 	{ JMZR,   JLZR,        JMNZR,    JLNZR,
 	  CEQ_OR, CNE_OR,      CGT_OR,   CLT_OR },
@@ -30,8 +30,8 @@ OP REG_REG_TABLE[][8] =
 	{ CGTS, CLTS,   ADDSAT, SUBSAT, 
 	  GETL, GETM,   GETH,   MULSAT },	   //  1001
 
-	{ NOP,    /**/  STRBBI,	STRWBI,  STRSBI,
-	  NOP,    /**/  LDRBBI,	LDRWBI,  LDRSBI }, // 1010 beforeincrement
+	{ ERR,    /**/  STRBBI,	STRWBI,  STRSBI,
+	  ERR,    /**/  LDRBBI,	LDRWBI,  LDRSBI }, // 1010 beforeincrement
 	{ ST2SAI, /**/  STRBAI,	STRWAI,  STRSAI,
 	  LD2SAI, /**/  LDRBAI,	LDRWAI,  LDRSAI },  // 1011 afterincrement
 
@@ -40,10 +40,10 @@ OP REG_REG_TABLE[][8] =
 	{ ST2S,   /**/  STRBAD,	STRWAD,  STRSAD,
 	  LD2S,   /**/  LDRBAD,	LDRWAD,  LDRSAD },  // 1101 afterdecrement
 
-	{ NOP, NOP /**/ PADD,    PBAND,
-	  NOP, NOP /**/ PSUB,    PBOR },   // 1110
-	{ NOP, NOP /**/ PMUL,    PBXOR,
-	  NOP, NOP /**/ PDIV,    PCPY },   // 1111
+	{ ERR, ERR /**/ PADD,    PBAND,
+	  ERR, ERR /**/ PSUB,    PBOR },   // 1110
+	{ ERR, ERR /**/ PMUL,    PBXOR,
+	  ERR, ERR /**/ PDIV,    PCPY },   // 1111
 };
 
 const OP REG_IMM_TBLA[] =
@@ -63,7 +63,7 @@ const OP REG_IMM_TBLA[] =
 	SUBHI,   // 1100
 	CEQI_OR, // 1101
 	CNEI_OR, // 1110
-	NOP,        // !!  1111
+	ERR,        // !!  1111
 };
 	
 const OP REG_IMM_TBLB[] =
@@ -88,14 +88,14 @@ const OP REG_IMM_TBLB[] =
 
 const OP REG_SOLO_TBLA[] =
 {
-	PSHB, PSHW, PSHS, NOP,  // 0000xx
-	POPB, POPW, POPS, NOP,  // 0001xx
+	PSHB, PSHW, PSHS, ERR,  // 0000xx
+	POPB, POPW, POPS, ERR,  // 0001xx
 	TPAGE,WPAGE,RND,  ZRO,  // 0010xx
 	FIL,  SWPR, SHDW, LITE, // 0011xx
 	RSP,  WSP,  RIP,  WIP,  // 0100
 	RPS,  WPS,  RXS,  WXS,  // 0101
 	JMR,  JLR,  RXV,  WXV, // 0110
-	ERR,  ERR,  SEED, NOP, // 0111
+	ERR,  ERR,  SEED, ERR, // 0111
 
 	FCPI, 	FCE,  	FC0,  	FC1,  // 1000
 	FC2,  	FCSQ2,	FCPHI,	FCTAU,// 1001xx
@@ -134,11 +134,11 @@ const OP REG_SOLO_TBLB[] =
 
 const OP NO_REGISTERS[] =
 	{
-		SWVB, SWVW,   SWVS,  NOP,    // 0000xx
+		SWVB, SWVW,   SWVS,  ERR,    // 0000xx
 		SWAP, JUNKB,  JUNKW, JUNKS,  // 0001
 		RET,  ERET,   RESET, DBG,    // 0010
 		CALW, CNEV,   CINV,  WFINT,  // 0011
-		MASK, UNMASK, CXS,   NOP,    // 0100 
+		MASK, UNMASK, CXS,   ERR,    // 0100 
 	};
 
 const std::array<OP, 64> DEBUGS =
