@@ -1,0 +1,15 @@
+.ORG 0x0000
+.SECTION %START
+
+	MOVL  A, #0x24
+	MOVM  A, #0x36
+	MOVH  A, #0x48
+
+	MOVL  B, #0x06
+	PCPY  B, B
+
+	PADD  A, B
+
+	ERR
+	
+%START
