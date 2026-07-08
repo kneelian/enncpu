@@ -109,11 +109,6 @@ void ASSEMBLE(
 			
 			else if(i.STATE == 0x01)
 			{
-				if(i.KEEP_PREFIX)
-				{
-					insn |= 0x4000; // bit 14
-				}
-
 				if(i.OPERATION == FMADD_48)
 				{	
 					u8 r1 = i.REG_A >> 1;

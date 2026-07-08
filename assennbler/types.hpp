@@ -44,6 +44,5 @@ struct LINE
 	i32  LABEL_OFF = -(1 << 24);
 	u64  RAW_DATA = 0;
 	std::string LABELNAME = "";
-	bool KEEP_PREFIX = false;
 	u8   STATE = 0;
 };

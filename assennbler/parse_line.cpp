@@ -10,7 +10,7 @@ void PARSE_LINES(
 	std::unordered_map<std::string, u32>& label_addr)
 {
 	u8 STATE = 0;
-	LINE prev_line = { false, NONE, -127, -127, -127, COMMENT, -1024, current_address, -1, -(1 << 24), 0, "", false};
+	LINE prev_line = { false, NONE, -127, -127, -127, COMMENT, -1024, current_address, -1, -(1 << 24), 0, "", 0};
 	out.push_back(prev_line);
 	for(auto& i : lines)
 	{
@@ -58,19 +58,19 @@ LINE PARSE_THIS(
 
 	if(line.size() > 1 and (line[0] == "FAR" or line[0] == "PRE") and line[1][0] != '#')
 	{
-		LINE prefix_line = { false, NONE, -127, -127, -127, PREF, -1024, current_address, -1, -(1 << 24), 0, "", false, 0};
+		LINE prefix_line = { false, NONE, -127, -127, -127, PREF, -1024, current_address, -1, -(1 << 24), 0, "", 0};
 		current_address += 2;
 		for(int i = 0; i < line.size() - 1; i++)
 		{
 			line[i] = line[i+1];
 		}
-		if(pref1_mappings.contains(line[0]))
+		/*if(pref1_mappings.contains(line[0]))
 		{
 			state = 0x01;
 			result.STATE = 0x01;
 			prefix_line.IMMEDIATE = 1;
-		}
-		else if(pref7f_mappings.contains(line[0]))
+		} else */
+		if(pref7f_mappings.contains(line[0]))
 		{
 			state = 0x7f;
 			result.STATE = 0x7f;
@@ -295,7 +295,7 @@ LINE PARSE_THIS(
 
 	if(state and !temp.empty())
 	{
-		if(state == 0x01 and pref1_mappings.contains(temp))
+		/*if(state == 0x01 and pref1_mappings.contains(temp))
 		{
 			// std::printf("try previous line?\n");
 			if(prev_line.OPERATION != PREF and
@@ -309,16 +309,15 @@ LINE PARSE_THIS(
 	
 			result.OPERATION = pref1_mappings.at(temp);
 			result.STATE = 1;
-		}
-		else if(state == 0x7f and pref7f_mappings.contains(temp))
+		} else */
+		if(state == 0x7f and pref7f_mappings.contains(temp))
 		{
 			result.OPERATION = pref7f_mappings.at(temp);
 			result.STATE = 0x7f;
-		}
-		else if(mappings.contains(temp))
+		} else 
+		if(mappings.contains(temp))
 		{
 			state = 0;
-			prev_line.KEEP_PREFIX = false;
 			// std::printf("we deleted the previous prefix!\n");
 			goto default_parse;
 		}
