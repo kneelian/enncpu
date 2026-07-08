@@ -144,11 +144,15 @@ INSN DECODE_PREFIXED(u16 raw, u8 prefix)
 		i16 off = raw & 0x1fff;
 		if(raw & 0x2000) { off = -off; }
 		result.IMMEDIATE = off;
-
-//		std::printf("!! [J%cFAR] <--- 0x%04x !! \n", (result.OPERATION==JMFAR)?'M':'L', raw);
-
-		return result;
 	}
+
+	return result;
+
+	/*
+
+		WIP: removing fp48 for the time being
+			 as it messes heavily with the rest
+			 of the thing
 
 	if(raw & 0x8000)
 		result.PREDICATED = true;
@@ -206,4 +210,5 @@ INSN DECODE_PREFIXED(u16 raw, u8 prefix)
 	//std::printf("decoded: [%d]\tfmadd_48: [%d] / fmov_48: [%d]\n", result.OPERATION, FMADD_48, FMOV_48);
 
 	return result;
+	*/
 }

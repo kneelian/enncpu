@@ -165,6 +165,7 @@ const std::array<OP, 16> IMM8_B =
 	SYSCI, KERNI,PSHI, PREF, // prefix
 };
 
+/*
 const std::array<OP, 32> FP48_TYPE =
 {
 	NOP, NOP, NOP, NOP,
@@ -216,7 +217,9 @@ const std::array<OP, 8> PRE_1_MEM_OPS_D =
 	NOP, NOP, NOP, NOP,
 	NOP, NOP, NOP, NOP,
 };
- 
+*/
+
+
 std::unordered_map<OP, std::string> unmappings =
 { 
 	{ JMFAR, "JMFAR" },
