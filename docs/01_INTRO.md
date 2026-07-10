@@ -31,6 +31,9 @@ To build ENNCPU, you need a sufficiently new C++ compiler that supports C++20 du
 reliance on newer language features. Currently, both the ennmulator and the assennbler
 function only as commandline programs.
 
+Running it is done through `cpu -b [filename]` to load a program stored as a binary, and
+optionally also `-f [filename]` to also load a 1.44M floppy image.
+
 The ennmulator, built with Clang 16.0 and  `-Og -g`, achieves around 65-100M emulated
 instructions a second on a Macbook Pro M1, depending on the exact workload; memory-heavy
 workloads take somewhat more time, and most of it is wasted on indirection through the MMU

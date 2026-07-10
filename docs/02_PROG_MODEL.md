@@ -63,3 +63,25 @@ There are a few broad classes of instructions:
 - manipukating internal registers (`WSP`, `RXS`, ...)
 - miscellanea
 
+# Alignment and memory
+
+While ENNCPU allows for unaligned reads, instructions must be aligned to even addresses.
+Although it is possible to get the IP to hold an unaligned value, fetches and jumps all
+occur on even addresses, and the CPU should realign itself after one read.
+
+There are no requirements for alignment of reads or writes, pushes or pops. As the
+address space is 24-bit, trying to increment or decrement beyond it wraps around.
+All reads amd writes happen in the scope of a page. Since memory is paged in 4K chunks, 
+accesses larger than a byte (e.g. `LDRW` to read a 16-bit word) will wrap around if they're
+made at a page boundary (that is, trying to read two bytes from `0x0fff` will read one byte
+from `0x0fff` and one byte from `0x0000`). This also applies to stack accesses (so make sure
+your stack is not hugging the page boundary of the first page!), as the stack also goes
+through the MMU interface like normal.
+
+# Limitations
+
+The reference ennmulator has some limitations:
+
+- technically limited to 2^34 ticks (no infinite looping)
+- can load only one binary file
+- can load only one floppy image that must be 1440K
