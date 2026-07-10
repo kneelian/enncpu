@@ -13,18 +13,13 @@
 
 ; takes int48 in AB and CD
 ; (big endian)
-; returns int48 in EF
+; returns int48 in AB
 ; (big endian)
 @ADC_I48
-
-	MOV  E, A
-	MOV  F, B
-
-	ADD  E, C
-	ADD  F, D
-
-	CGT   B, F
-	ADD.P E, #1
+	ADD   A, C
+	ADD   B, D
+	CGT   D, B
+	ADD.P A, #1
 
 	RET
 
