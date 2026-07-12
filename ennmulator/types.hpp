@@ -158,7 +158,7 @@ struct CPU
 		PREFIX = p;
 	}
 
-	u32 TICKS = 0;
+	u64 TICKS = 0;
 
 	u16  FETCHED_INSN = 0x0000;
 	INSN DECODED_INSN;

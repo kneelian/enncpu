@@ -132,11 +132,11 @@ int CPU::EXECUTE(const INSN insn)
 
 		case MULA:
 		case MULB:
-			temp = ACTIVE_SET->at(insn.FIRST_REG) * ACTIVE_SET->at(insn.SECOND_REG);
+			temp = u64(ACTIVE_SET->at(insn.FIRST_REG)) * u64(ACTIVE_SET->at(insn.SECOND_REG));
 			if(insn.OPERATION == MULA)
 				ACTIVE_SET->at(insn.FIRST_REG) = ((temp >> 0) & 0x00ffffff);
 			else
-				ACTIVE_SET->at(insn.FIRST_REG) = ((temp >>24) & 0x00ffffff);
+				ACTIVE_SET->at(insn.FIRST_REG) = ((u64(temp) >>24) & 0x00ffffff);
 			break;
 		case MULSAT:
 			temp = 
