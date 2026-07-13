@@ -1905,7 +1905,7 @@ int EXEC_JUMP(INSN insn, CPU* me)
 		case JLA:
 		case JMO:
 		case JLO:
-			std::printf("JUMP: %d = 0x%06x\n", insn.IMMEDIATE * 2, insn.IMMEDIATE * 2);
+			//std::printf("JUMP: %d = 0x%06x\n", insn.IMMEDIATE * 2, insn.IMMEDIATE * 2);
 			temp = insn.IMMEDIATE * 2;
 			break;
 
