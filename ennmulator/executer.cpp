@@ -1891,6 +1891,9 @@ int EXEC_JUMP(INSN insn, CPU* me)
 		me->PUT_24(me->SP, me->IP);
 	}
 
+	if(insn.OPERATION & ABSOLUTE)
+		insn.IMMEDIATE = std::bit_cast<u8>(i8(insn.IMMEDIATE));
+
 	//std::printf("%s\n", unmappings[insn.OPERATION].c_str());
 
 	i32 temp;
@@ -1902,6 +1905,7 @@ int EXEC_JUMP(INSN insn, CPU* me)
 		case JLA:
 		case JMO:
 		case JLO:
+			std::printf("JUMP: %d = 0x%06x\n", insn.IMMEDIATE * 2, insn.IMMEDIATE * 2);
 			temp = insn.IMMEDIATE * 2;
 			break;
 
