@@ -14,7 +14,15 @@
 	ADD   B, D
 	CGT   D, B
 	ADD.P A, #1
+	RET
 
+; AB - CD
+; returns AB
+@SBC_I48
+	SUB   B, D
+	CGT   B, D
+	SUB   A, C
+	SUB.P A, #1
 	RET
 
 ; takes int48 in AB and CD
@@ -62,53 +70,197 @@
 
 	RET
 
-; AB - CD
-; returns AB
-@SBC_I48
-	SUB   B, D
-	CGT   B, D
-	SUB   A, C
-	SUB.P A, #1
-	RET
-
-; AB >= CD
-; 	returns 1/0 in E
-@CGE_I48
-	MOV   E, #0
-	CGT   A, C
-	ADD.P E, #1
-	RET.P
-	CLT   A, C
-	RET.P ; else equal
-	CGT   B, D
-OR  CEQ   B, D
-	ADD.P E, #1
-	RET
-
+; takes int48 dividend in AB (big endian)
+; takes int48 divisor in CD (big endian)
+; returns int48 quotient in AB (big endian)
+; returns int48 remainder in EF (big endian)
 @DIV_I48
-; AB / CD
-; returns AB quo, CD rem
-;	while R >= D
-;		R = R - D
-;		Q = Q + 1
-;   AB = Q, CD = R
 	CEQ   C, #0
 	CEQ.P D, #0
-	MOV.P A, #0
-	MOV.P B, #0
-	RET.P ; escape hatch
-FAR JMO @DIV_I48_MAIN
-	; too long for PGA
+	RET.P
+
+    MOV   E, #0
+    MOV   F, #0
+
+    MOV   G, #48
+
+@DIV_LOOP
+    MOV   H, F
+    LSHR  H, #23
+    LSHL  E, #1
+    BOR   E, H
+
+    MOV   H, A
+    LSHR  H, #23
+    LSHL  F, #1
+    BOR   F, H
+
+    MOV   H, B
+    LSHR  H, #23
+    LSHL  A, #1
+    BOR   A, H
+
+    LSHL  B, #1
+
+    CLT   E, C
+ OR CLT   F, D
+    JMO.P @DIV_SKIP
+
+@DIV_SUB
+    CLT   F, D 
+    SUB   F, D
+    SUB   E, C 
+    SUB.P E, #1 
+    ADD   B, #1
+
+@DIV_SKIP
+    SUB   G, #1
+    CGT   G, #0
+    JMO.P @DIV_LOOP
+
+    RET
+
+; bitwise
+@BOR_I48
+	BOR A, C
+	BOR B, D
 	RET
-	
+@BAND_I48
+	BAND A, C
+	BAND B, D
+	RET
+@BXOR_I48
+	BXOR A, C
+	BXOR B, D
+	RET
+
+; shifts
+; amount in C
+; trashes D, E
+@LSHL_I48
+	LSHL A, C
+	MOV  D, B
+	LSHL B, C
+	MOV  E, #24
+	SUB  E, C
+	LSHR D, E
+	BOR  A, D
+	RET
+@LSHR_I48
+    LSHR B, C
+    MOV  D, A
+    LSHR A, C
+    MOV  E, #24
+    SUB  E, C
+    LSHL D, E
+    BOR  B, D
+    RET
+; AB = ~AB + 1
+@NEG_I48
+    INV   A, A
+    INV   B, B
+    ADD   B, #1
+    CEQ   B, #0
+    ADD.P A, #1
+    RET
+
+; tighter inc/dec
+; to avoid setting up AB +/- CD
+@INC_I48
+    ADD   B, #1
+    CLT   B, #1
+    ADD.P A, #1
+    RET
+@DEC_I48
+    SUB   B, #1
+    CLT   B, #1
+    SUB.P A, #1
+    RET
+
+; ditto for mul 2, div 2
+@MUL2_I48
+    MOV   H, B
+    LSHR  H, #23
+    LSHL  A, #1
+    BOR   A, H
+    LSHL  B, #1
+    RET
+@DIV2_I48
+    MOV   H, A
+    LSHL  H, #23
+    LSHR  B, #1
+    BOR   B, H
+    LSHR  A, #1
+    RET
+
+; AB == CD
+@CEQ_I48
+	CEQ   A, C
+	CEQ.P B, D
+	MOV.P E, #1
+	RET.P
+	MOV   E, #0
+	RET
+; AB > CD
+@CGT_I48
+	MOV   E, #0
+	CLT   A, C
+	RET.P
+	CGT   B, D
+	ADD.P E, #1
+	RET
+
+; takes int48 dividend in AB (big endian)
+; returns int48 quotient in AB (big endian)
+; returns int48 remainder in EF (big endian)
+@DIV10_I48
+    MOV   C, #10
+
+    MOV   E, A
+    DIV   A, C
+
+    MOV   F, A
+    MULA  F, C
+    SUB   E, F
+
+    MOV   F, B
+    LSHR  F, #12
+    LSHL  E, #12
+    BOR   E, F
+
+    MOV   F, E
+    DIV   E, C
+
+    MOV   G, E
+    MULA  G, C
+    SUB   F, G
+
+    MOV   G, B
+    LSHL  G, #12
+    LSHR  G, #12
+
+    LSHL  F, #12
+    BOR   F, G
+
+    MOV   G, F
+    DIV   F, C
+
+    MOV   H, F
+    MULA  H, C
+    SUB   G, H
+
+    LSHL  E, #12
+    BOR   E, F
+    MOV   B, E
+
+    MOV   F, G
+    MOV   E, #0
+    RET
+
 %PGA
 
 .ORG 0x0200
 .SEC %PGB
-
-@DIV_I48_MAIN
-
-	RET
 
 %PGB
 
@@ -120,16 +272,20 @@ FAR JMO @DIV_I48_MAIN
 	ADRM A, @STK
 	WSP  A
 
-	MOVL A, #0x2b
+	MOVL A, #0x4b
 	MOVL B, #0xff
 	MOVH B, #0xff
 
-	MOVL C, #0x3b
+	JLA @DIV10_I48
+
+	ERR
+
+	MOVL C, #0x00
 	MOVL D, #0xff
-	MOVL D, #0xff
+	MOVM D, #0xff
 	MOVH D, #0x80
 
-	JLA  @MUL_I48
+	JLA  @DIV_I48
 
 	ERR
 
