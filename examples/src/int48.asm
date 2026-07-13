@@ -257,6 +257,39 @@
     MOV   E, #0
     RET
 
+; takes int48 in AB (big endian)
+; returns int48 root in B
+@ISQRT_I48
+    MOV   C, #0 
+    MOV   D, #1
+    LSHL  D, #23
+
+@ISQRT_LOOP
+    MOV   E, C
+    BOR   E, D
+    
+    MOV   F, E
+    MULA  F, E
+    MOV   H, E
+    MULB  H, E
+
+	CEQ   H, A
+    CGT.P F, B
+ OR CGT   H, A
+    JMO.P @ISQRT_SKIP
+
+@ISQRT_KEEP
+    MOV   C, E
+
+@ISQRT_SKIP
+    LSHR  D, #1
+    CNE   D, #0
+    JMO.P @ISQRT_LOOP
+
+    MOV   B, C
+    MOV   A, #0
+    RET
+
 %PGA
 
 .ORG 0x0200
@@ -271,6 +304,15 @@
 	ADRL A, @STK
 	ADRM A, @STK
 	WSP  A
+
+	MOVL A, #0xf4
+	MOVM A, #0x24
+	MOVL B, #0xf4
+	MOVM B, #0x24
+
+	JLA @ISQRT_I48
+
+	ERR
 
 	MOVL A, #0x4b
 	MOVL B, #0xff
