@@ -298,6 +298,11 @@ void ASSEMBLE(
 				case BAND:	 insn |= 0b0'00'0011'001'000000; break;
 				case BXOR:	 insn |= 0b0'00'0011'010'000000; break;
 				case BNOR:	 insn |= 0b0'00'0011'011'000000; break;
+				case CGE:	 insn |= 0b0'00'0011'100'000000; break;
+				case CLE:	 insn |= 0b0'00'0011'101'000000; break;
+				case CGE_OR: insn |= 0b0'00'0011'110'000000; break;
+				case CLE_OR: insn |= 0b0'00'0011'111'000000; break;
+
 
 				case POPC:	 insn |= 0b0'00'0100'000'000000; break;	
 				case PARI:	 insn |= 0b0'00'0100'001'000000; break;	
