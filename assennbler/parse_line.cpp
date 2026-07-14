@@ -36,6 +36,8 @@ LINE PARSE_THIS(
 
 	if(line.size() > 1 and line[0] == "OR")
 	{
+		if(line[1] == "CGE") line[1] = "CGE_OR"; else
+		if(line[1] == "CLE") line[1] = "CLE_OR"; else
 		if(line[1] == "CEQ") line[1] = "CEQ_OR"; else
 		if(line[1] == "CNE") line[1] = "CNE_OR"; else
 		if(line[1] == "CGT") line[1] = "CGT_OR"; else
@@ -618,6 +620,11 @@ void DISAMBIGUATE(std::vector<LINE>& lines)
 			case CNE_OR:if((i.IMMEDIATE != -1024) and (i.REG_B  < 0)) i.OPERATION = CNEI_OR; break;
 			case CGT_OR:if((i.IMMEDIATE != -1024) and (i.REG_B  < 0)) i.OPERATION = CGTI_OR; break;
 			case CLT_OR:if((i.IMMEDIATE != -1024) and (i.REG_B  < 0)) i.OPERATION = CLTI_OR; break;
+
+			case CGE:	if((i.IMMEDIATE != -1024) and (i.REG_B  < 0)) i.OPERATION = CGEI; break;
+			case CLE:	if((i.IMMEDIATE != -1024) and (i.REG_B  < 0)) i.OPERATION = CLEI; break;
+			case CGE_OR:if((i.IMMEDIATE != -1024) and (i.REG_B  < 0)) i.OPERATION = CGEI_OR; break;
+			case CLE_OR:if((i.IMMEDIATE != -1024) and (i.REG_B  < 0)) i.OPERATION = CLEI_OR; break;
 			
 			case CEQ:	if((i.IMMEDIATE != -1024) and (i.REG_B  < 0)) i.OPERATION = CEQI;	 break;
 			case CNE:	if((i.IMMEDIATE != -1024) and (i.REG_B  < 0)) i.OPERATION = CNEI;	 break;
@@ -628,31 +635,24 @@ void DISAMBIGUATE(std::vector<LINE>& lines)
 			case BOR:	if((i.IMMEDIATE != -1024) and (i.REG_B  < 0)) i.OPERATION = BORI;	 break;
 			case BAND:	if((i.IMMEDIATE != -1024) and (i.REG_B  < 0)) i.OPERATION = BANDI;	 break;
 			
-			case MOV:	if((i.IMMEDIATE != -1024) and (i.REG_B  < 0)) i.OPERATION = MOVI;	 break;
+			case MOV:	
+				if((i.IMMEDIATE != -1024) and (i.REG_B  < 0))
+				{
+					switch(i.REG_A + 'A')
+					{
+						case 'A': i.OPERATION = MVLA; break;
+						case 'B': i.OPERATION = MVLB; break;
+						case 'C': i.OPERATION = MVLC; break;
+						case 'D': i.OPERATION = MVLD; break;
+						case 'E': i.OPERATION = MVLE; break;
+						case 'F': i.OPERATION = MVLF; break;
+						case 'G': i.OPERATION = MVLG; break;
+						case 'H': i.OPERATION = MVLH; break;
 
-			case STRB:	
-				if(((i.IMMEDIATE != -1024) and (i.REG_B  < 0)) or i.LABELNAME.size() > 1) 
-					i.OPERATION = STRBI;
-				break;
-			case STRW:	
-				if(((i.IMMEDIATE != -1024) and (i.REG_B  < 0)) or i.LABELNAME.size() > 1) 
-					i.OPERATION = STRWI;
-				break;
-			case STRS:	
-				if(((i.IMMEDIATE != -1024) and (i.REG_B  < 0)) or i.LABELNAME.size() > 1) 
-					i.OPERATION = STRSI;
-				break;
-			case LDRB:	
-				if(((i.IMMEDIATE != -1024) and (i.REG_B  < 0)) or i.LABELNAME.size() > 1) 
-					i.OPERATION = LDRBI;
-				break;
-			case LDRW:	
-				if(((i.IMMEDIATE != -1024) and (i.REG_B  < 0)) or i.LABELNAME.size() > 1) 
-					i.OPERATION = LDRWI;
-				break;
-			case LDRS:	
-				if(((i.IMMEDIATE != -1024) and (i.REG_B  < 0)) or i.LABELNAME.size() > 1) 
-					i.OPERATION = LDRSI;
+						default: problem = true; break;
+					}
+					i.REG_A = -127;
+				}	
 				break;
 
 			default: continue;

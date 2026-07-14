@@ -13,7 +13,7 @@ OP REG_REG_TABLE[][8] =
 	  COR, 	  CAND,	       CNAND,    CNOR}, // 0010
 
 	{ BOR,	  BAND,	       BXOR,     BNOR,
-	  ERR,    ERR,         ERR,      ERR }, // 0011 !! <--- partially empty
+	  CGE,    CLE,         CGE_OR,   CLE_OR }, // 0011 !! <--- partially empty
 
 	{ POPC,	  PARI,	       LEAD,	 TAIL,
 	  LSHL,	  LSHR,	       ROTL,	 ROTR}, // 0100
@@ -50,8 +50,8 @@ const OP REG_IMM_TBLA[] =
 {
 	ADDI,    // 0000
 	SUBI,    // 0001
-	MOVI,    // 0010
-	ADDHI,   // 0011
+	CGEI_OR, // 0010
+	CGEI,    // 0011
 	LSHLI,   // 0100
 	LSHRI,   // 0101
 	NOP,         // 0110 <-- PREFIX FOR SOLO_A
@@ -60,10 +60,10 @@ const OP REG_IMM_TBLA[] =
 	CLRI,    // 1001
 	CBITI,   // 1010
 	TGLI,    // 1011
-	SUBHI,   // 1100
+	CLEI,    // 1100
 	CEQI_OR, // 1101
 	CNEI_OR, // 1110
-	ERR,        // !!  1111
+	CLEI_OR,
 };
 	
 const OP REG_IMM_TBLB[] =

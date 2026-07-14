@@ -29,12 +29,12 @@ enum OP : uint16_t
 	CEQ_OR,  CNE_OR,  CGT_OR,  CLT_OR,
 	CEQI_OR, CNEI_OR, CGTI_OR, CLTI_OR,
 
-	ADDHI, SUBHI, // add and sub to high byte
-
 	ADDSAT, SUBSAT, MULSAT, // saturating
 
 	CEQ, CNE,  CGT,   CLT,  //conditional
 	COR, CAND, CNAND, CNOR, //conditional
+	CGE, CLE, CLE_OR, CGE_OR,
+	CGEI, CLEI, CGEI_OR, CLEI_OR,
 
 	CGTS, CLTS, // signed
 	CINV,       // reverse predication

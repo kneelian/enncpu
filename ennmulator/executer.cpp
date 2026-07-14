@@ -91,9 +91,6 @@ int CPU::EXECUTE(const INSN insn)
 
 	switch(insn.OPERATION)
 	{
-		case ADDHI:
-			ACTIVE_SET->at(insn.FIRST_REG) += (insn.IMMEDIATE << 16);
-			break;
 		case ADDI:
 			ACTIVE_SET->at(insn.FIRST_REG) += insn.IMMEDIATE;
 			break;
@@ -110,10 +107,6 @@ int CPU::EXECUTE(const INSN insn)
 			ACTIVE_SET->at(insn.FIRST_REG) = temp;
 			break;
 
-		case SUBHI:
-			ACTIVE_SET->at(insn.FIRST_REG) -= (insn.IMMEDIATE << 16);
-			ACTIVE_SET->at(insn.FIRST_REG) &= 0x00ffffff;
-			break;
 		case SUBI:
 			ACTIVE_SET->at(insn.FIRST_REG) -= insn.IMMEDIATE;
 			break;
@@ -354,6 +347,54 @@ int CPU::EXECUTE(const INSN insn)
 				SET_COND();
 			else
 				CLR_COND();
+			break;
+		case CGEI_OR:
+			if( ACTIVE_SET->at(insn.FIRST_REG) >=
+				insn.IMMEDIATE)
+					SET_COND();
+			break;
+		case CGEI:
+			if( ACTIVE_SET->at(insn.FIRST_REG) >=
+				insn.IMMEDIATE)
+					SET_COND();
+				else
+					CLR_COND();
+			break;
+		case CGE_OR:
+			if( ACTIVE_SET->at(insn.FIRST_REG) >=
+				ACTIVE_SET->at(insn.SECOND_REG))
+					SET_COND();
+			break;
+		case CGE:
+			if( ACTIVE_SET->at(insn.FIRST_REG) >=
+				ACTIVE_SET->at(insn.SECOND_REG))
+					SET_COND();
+			else
+					CLR_COND();
+			break;
+				case CLEI_OR:
+			if( ACTIVE_SET->at(insn.FIRST_REG) <=
+				insn.IMMEDIATE)
+					SET_COND();
+			break;
+		case CLEI:
+			if( ACTIVE_SET->at(insn.FIRST_REG) <=
+				insn.IMMEDIATE)
+					SET_COND();
+				else
+					CLR_COND();
+			break;
+		case CLE_OR:
+			if( ACTIVE_SET->at(insn.FIRST_REG) <=
+				ACTIVE_SET->at(insn.SECOND_REG))
+					SET_COND();
+			break;
+		case CLE:
+			if( ACTIVE_SET->at(insn.FIRST_REG) <=
+				ACTIVE_SET->at(insn.SECOND_REG))
+					SET_COND();
+			else
+					CLR_COND();
 			break;
 		case CGTI_OR:
 			if( ACTIVE_SET->at(insn.FIRST_REG) >
