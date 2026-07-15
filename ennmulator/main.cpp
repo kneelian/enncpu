@@ -10,10 +10,13 @@ using namespace std::chrono_literals;
 #include "types.hpp"
 #include "random_module.hpp"
 
-//#include "gfx.hpp"
-#ifdef f
-#include "sdl_gfx.hpp"
-#endif
+
+#define KNRM  "\x1B[0m"
+#define KRED  "\x1B[31m"
+#define KGRN  "\x1B[32m"
+#define KPEE  "\x1B[93m"
+#define KPOO  "\x1B[33m"
+#define KWHT  "\x1B[37m"
 
 void __DOUBLE_FRAMEBUFFER(std::vector<std::vector<u32>>&);
 
@@ -54,7 +57,7 @@ void __DEBUG_PRINT_STATE(CPU& cpu)
 	std::printf("\tIP: 0x%04x\tSP: 0x%04x\n\tPS: 0x%04x\tXS: 0x%04x\n",
 		cpu.IP, cpu.SP, cpu.PS, cpu.XS );
 	std::printf("\tFETCHED INSN: 0x%04x\n", cpu.FETCHED_INSN);
-	std::printf("\tTICKS: %d\n", cpu.TICKS);
+	std::printf("\tTICKS: %ld\n", cpu.TICKS);
 }
 
 int main(int argc, char** argv)
@@ -132,11 +135,11 @@ int main(int argc, char** argv)
 	std::printf("\n        ");
 	for(int i = 0; i < 32; i++)
 		std::printf("---");
-	for(int i = 0; i < 1024; i++)
+	for(int i = 0; i < 2048; i++)
 	{
+		u8 x = basic_cpu.GET_8(i);
 		if((i % 32 == 0)) { std::printf(" |\n0x%04x: ", i); }
-		// if((i % 16 == 0)) { std::printf(". "); }
-		std::printf("%02x ", int(basic_cpu.GET_8(i)));
+		std::printf("%s%02x%s ", (x!=0)?KPEE:KNRM, x, KNRM);
 	}
 	std::printf("\n\n");
 
