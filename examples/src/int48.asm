@@ -274,17 +274,12 @@
     MULB  H, E
 
 	CEQ   H, A
-    CGT.P F, B
- OR CGT   H, A
-    JMO.P @ISQRT_SKIP
+    CLE.P F, B
+ OR CLT   H, A
+    MOV.P C, E
 
-@ISQRT_KEEP
-    MOV   C, E
-
-@ISQRT_SKIP
     LSHR  D, #1
-    CNE   D, #0
-    JMO.P @ISQRT_LOOP
+    JMNZO D, @ISQRT_LOOP
 
     MOV   B, C
     MOV   A, #0
