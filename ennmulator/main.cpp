@@ -48,10 +48,10 @@ void __DEBUG_PRINT_STATE(CPU& cpu)
 		"\n\tC: 0x%06x\t D: 0x%06x"
 		"\n\tE: 0x%06x\t F: 0x%06x"
 		"\n\tG: 0x%06x\t H: 0x%06x\n",
-		cpu.ACTIVE_SET->at(0), cpu.ACTIVE_SET->at(1),
-		cpu.ACTIVE_SET->at(2), cpu.ACTIVE_SET->at(3),
-		cpu.ACTIVE_SET->at(4), cpu.ACTIVE_SET->at(5),
-		cpu.ACTIVE_SET->at(6), cpu.ACTIVE_SET->at(7)
+		cpu.ACTIVE_SET.at(0), cpu.ACTIVE_SET.at(1),
+		cpu.ACTIVE_SET.at(2), cpu.ACTIVE_SET.at(3),
+		cpu.ACTIVE_SET.at(4), cpu.ACTIVE_SET.at(5),
+		cpu.ACTIVE_SET.at(6), cpu.ACTIVE_SET.at(7)
 		);
 	std::printf("-------------------\n");
 	std::printf("\tIP: 0x%04x\tSP: 0x%04x\n\tPS: 0x%04x\tXS: 0x%04x\n",

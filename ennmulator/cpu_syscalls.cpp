@@ -23,7 +23,7 @@ bool SYSC_1(CPU* cpu)
 
 	try
 	{
-		cpu->DEVICES.at(cpu->ACTIVE_SET->at(0))->SYSC(1, cpu);
+		cpu->DEVICES.at(cpu->ACTIVE_SET.at(0))->SYSC(1, cpu);
 	}
 	catch(...)
 	{

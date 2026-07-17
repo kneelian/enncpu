@@ -30,8 +30,8 @@ OP REG_REG_TABLE[][8] =
 	{ CGTS, CLTS,   ADDSAT, SUBSAT, 
 	  GETL, GETM,   GETH,   MULSAT },	   //  1001
 
-	{ ERR,    /**/  STRBBI,	STRWBI,  STRSBI,
-	  ERR,    /**/  LDRBBI,	LDRWBI,  LDRSBI }, // 1010 beforeincrement
+	{ HALFA,  /**/  STRBBI,	STRWBI,  STRSBI,
+	  HALFB,  /**/  LDRBBI,	LDRWBI,  LDRSBI }, // 1010 beforeincrement
 	{ ST2SAI, /**/  STRBAI,	STRWAI,  STRSAI,
 	  LD2SAI, /**/  LDRBAI,	LDRWAI,  LDRSAI },  // 1011 afterincrement
 

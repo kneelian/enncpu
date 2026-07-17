@@ -123,8 +123,7 @@ struct INSN
 
 struct CPU
 {
-	std::array<u32, 8> SET_A, SET_B;
-	std::array<u32, 8> *ACTIVE_SET = &SET_A;
+	std::array<u32, 8> ACTIVE_SET, SHADOW_SET;
 
 	u32 SP = 0x0000; // stack pointer
 	u32 IP = 0x0000; // instruction pointer
@@ -173,8 +172,8 @@ struct CPU
 	{
 		for(int i = 0; i < 8; i++)
 		{
-			SET_A[i] = 0;
-			SET_B[i] = 0;
+			ACTIVE_SET[i] = 0;
+			SHADOW_SET[i] = 0;
 		}
 		PS = 0x0003;
 		LINKED_MMU = new MMU;

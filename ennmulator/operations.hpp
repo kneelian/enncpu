@@ -36,6 +36,9 @@ enum OP : uint16_t
 	CGE, CLE, CLE_OR, CGE_OR,
 	CGEI, CLEI, CGEI_OR, CLEI_OR,
 
+	HALFA,
+	HALFB, // low and high 12 bits
+
 	CGTS, CLTS, // signed
 	CINV,       // reverse predication
 

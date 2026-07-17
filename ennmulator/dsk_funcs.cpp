@@ -2,10 +2,10 @@
 
 void IDENTIFY(CPU* cpu)
 {
-	cpu->ACTIVE_SET->at(0) = 0x0044534b; // "DSK"
-	cpu->ACTIVE_SET->at(1) = 0x00454e4e; // "ENN"
+	cpu->ACTIVE_SET.at(0) = 0x0044534b; // "DSK"
+	cpu->ACTIVE_SET.at(1) = 0x00454e4e; // "ENN"
 
-	cpu->ACTIVE_SET->at(2) = 0x00000003; // three functions
+	cpu->ACTIVE_SET.at(2) = 0x00000003; // three functions
 
 	return;
 }
@@ -18,19 +18,19 @@ void DSK::SYSC(u32 id, CPU* cpu)
 		case 2: break;
 		case 3: 
 			GIVE_SECTOR(
-				cpu->ACTIVE_SET->at(2),
-				cpu->ACTIVE_SET->at(3),
+				cpu->ACTIVE_SET.at(2),
+				cpu->ACTIVE_SET.at(3),
 				cpu->PS,
 				cpu->LINKED_MMU);
-			cpu->ACTIVE_SET->at(0) = 0x24;
+			cpu->ACTIVE_SET.at(0) = 0x24;
 			break;
 		case 4:
 			TAKE_SECTOR(
-				cpu->ACTIVE_SET->at(2),
-				cpu->ACTIVE_SET->at(3),
+				cpu->ACTIVE_SET.at(2),
+				cpu->ACTIVE_SET.at(3),
 				cpu->PS,
 				cpu->LINKED_MMU);
-			cpu->ACTIVE_SET->at(0) = 0x34;
+			cpu->ACTIVE_SET.at(0) = 0x34;
 			break;
 		default: break;
 	}
