@@ -1,0 +1,29 @@
+.ORG 0x0000
+.SEC %START
+@START
+    ADRL  A, @STK
+    ADRM  A, @STK ; loads addr. of @STK into A
+    WSP   A       ; writes A to SP
+
+@FIB
+    MOV   A, #0          ; F(n)
+    MOV   B, #1          ; F(n+1)
+    MOV   H, #37         ; loop counter
+    
+@FIB_LOOP
+    PSHS  A              ; push current Fibonacci number
+    
+    MOV   C, B           ; C = F(n+1)
+    ADD   B, A           ; B = F(n+1) + F(n) -> F(n+2)
+    MOV   A, C           ; A = F(n+1)
+    
+    SUB   H, #1
+    JMNZO H, @FIB_LOOP
+
+    POPS H
+    ERR
+   
+%START
+
+.ORG 0x0400
+@STK

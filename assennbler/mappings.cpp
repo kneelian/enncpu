@@ -423,6 +423,9 @@ std::unordered_map<std::string, OP> pref1_mappings =
 	{ "ST2SAI",  ST2SAI },
 	{ "LD2SAI",  LD2SAI },
 
+	{ "HALFA", HALFA },
+	{ "HALFB", HALFB },
+
 };
 
 std::unordered_map<OP, std::string> unmappings =
@@ -433,6 +436,9 @@ std::unordered_map<OP, std::string> unmappings =
 	{ MMU_CHKRO,	"MMU_CHKRO" }, 
 	{ MMU_SETUSR,	"MMU_SETUSR" },
 	{ MMU_CHKUSR,	"MMU_CHKUSR" },
+
+	{ HALFA, "HALFA" },
+	{ HALFB, "HALFB" },
 
 	{ CGE, "CGE" },
 	{ CLE, "CLE" },

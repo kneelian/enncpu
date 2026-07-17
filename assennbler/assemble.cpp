@@ -303,7 +303,6 @@ void ASSEMBLE(
 				case CGE_OR: insn |= 0b0'00'0011'110'000000; break;
 				case CLE_OR: insn |= 0b0'00'0011'111'000000; break;
 
-
 				case POPC:	 insn |= 0b0'00'0100'000'000000; break;	
 				case PARI:	 insn |= 0b0'00'0100'001'000000; break;	
 				case LEAD:	 insn |= 0b0'00'0100'010'000000; break;	
@@ -375,6 +374,9 @@ void ASSEMBLE(
 					insn |= 0b0'00'1100'100'000000; break;
 				case LD2SAI:
 					insn |= 0b0'00'1011'100'000000; break;
+
+				case HALFA: insn |= 0b0'00'1010'000'000000; break;
+				case HALFB: insn |= 0b0'00'1010'100'000000; break;
 
 				case STRBBI: insn |= 0b0'00'1010'001'000000; break;
 				case STRWBI: insn |= 0b0'00'1010'010'000000; break;
