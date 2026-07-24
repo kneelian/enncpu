@@ -4,12 +4,12 @@
 #include <sstream>
 #include <filesystem>
 
-#include <chrono>
-using namespace std::chrono_literals;
+#include<thread>
 
 #include "types.hpp"
 #include "random_module.hpp"
 
+#include "raylib-cpp.hpp"
 
 #define KNRM  "\x1B[0m"
 #define KRED  "\x1B[31m"
@@ -17,29 +17,6 @@ using namespace std::chrono_literals;
 #define KPEE  "\x1B[93m"
 #define KPOO  "\x1B[33m"
 #define KWHT  "\x1B[37m"
-
-void __DOUBLE_FRAMEBUFFER(std::vector<std::vector<u32>>&);
-
-u32 TIMER(u32 INTERVAL, void* ARG)
-{
-	CPU* us = reinterpret_cast<CPU*>(ARG);
-	if(us->XS) { return INTERVAL; }
-	if(us->IS_MASKED_INT()) { return INTERVAL; }
-
-	us->CLR_WFI();
-
-	if(!us->IS_MASKED_INT())
-	{	
-		us->EXECUTE({
-			KERNI,
-			-1, -1,
-			0x23,				// timer exception is int 0x23
-			false,
-			false
-		});
-	}
-	return 0;
-}
 
 void __DEBUG_PRINT_STATE(CPU& cpu)
 {
@@ -60,8 +37,20 @@ void __DEBUG_PRINT_STATE(CPU& cpu)
 	std::printf("\tTICKS: %ld\n", cpu.TICKS);
 }
 
+void VM(CPU& us)
+{
+	for(u64 i = 0; i < (1ULL << 48); i++)
+		if(us.STEP() == false)
+			break;
+
+	__DEBUG_PRINT_STATE(us);
+
+	std::printf("\n");
+}
+
 int main(int argc, char** argv)
 {
+
 	CPU basic_cpu;
 
 	if(argc > 2)
@@ -143,18 +132,49 @@ int main(int argc, char** argv)
 	}
 	std::printf("\n\n");
 
-	bool err = false;
-	for(int i = 0; i < (1 << 24); i++)
-		if(!basic_cpu.IS_WFI())
-			for(int j = 0; j < 1024; j++)
-				if(basic_cpu.STEP() == false)
-					{ err = true; goto err1; }
+	int screenWidth = 650;
+    int screenHeight = 400;
 
-	err1:;
+    SetTraceLogLevel(LOG_NONE);
+    raylib::Window w(screenWidth, screenHeight, "Raylib C++", 0, LOG_NONE);
+    SetTraceLogLevel(LOG_NONE);
+    
+    w.SetTargetFPS(30);
 
-	__DEBUG_PRINT_STATE(basic_cpu);
+    raylib::Shader s = LoadShader(0, TextFormat("crt.fs", 330));
 
-	std::printf("\n");
+    Image img = GenImageColor(650, 400, WHITE);
+    ImageFormat(&img, PIXELFORMAT_UNCOMPRESSED_R5G6B5);
+    img.data = basic_cpu.LINKED_MMU->DATA.data() + 0x01'00'00;
+    Texture2D tex;
+
+    RenderTexture2D target;
+    target = LoadRenderTexture(screenWidth, screenHeight);
+
+    std::thread t (VM, std::ref(basic_cpu));
+
+    t.detach();
+
+    while (!w.ShouldClose()) // Detect window close button or ESC key
+    {
+        float time32 = float(GetTime());
+        SetShaderValue(s, GetShaderLocation(s, "time"), &time32, RL_SHADER_UNIFORM_FLOAT);
+
+        tex = LoadTextureFromImage(img);
+
+        BeginTextureMode(target);
+            ClearBackground(RAYWHITE);
+            DrawTexture(tex, 0, 0, WHITE);
+        EndTextureMode();
+
+        BeginDrawing();
+            BeginShaderMode(s);
+                DrawTextureRec(target.texture, (Rectangle){ 0, 0, (float)target.texture.width, (float)-target.texture.height }, (Vector2){ 0, 0 }, WHITE);
+            EndShaderMode();
+        EndDrawing();
+
+        UnloadTexture(tex);
+    }
 
 	return 0;
 }
