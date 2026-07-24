@@ -119,7 +119,7 @@ enum OP : uint16_t
 
 	PSHI, // push immediate byte
 
-	END, // reverse endian
+	ENDS, ENDW, // reverse endian
 	REV, // reverse bits
 
 	POPC,

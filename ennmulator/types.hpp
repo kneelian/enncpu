@@ -34,7 +34,7 @@ struct MMU
 	   		b1 -
 	   		b2 - readonly
 	*/
-	std::array< std::array<u8, 4096>, 4096> PAGES;
+	std::array<u8, 4096 * 4096 > DATA;
 
 	u16 MAPPINGS[4096];
 

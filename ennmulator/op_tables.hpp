@@ -6,7 +6,7 @@
 OP REG_REG_TABLE[][8] =
 {
 	{ ERR,    STRB,        STRW,     STRS,
-	  END, 	  LDRB,	       LDRW,     LDRS}, // 0000xxx
+	  ENDS,	  LDRB,	       LDRW,     LDRS}, // 0000xxx
 	{ ADD, 	  SUB,         MULA,     MULB, 
 	  DIV, 	  MOD,         MOV,      INV }, // 0001
 	{ CEQ, 	  CNE,         CGT,      CLT,
@@ -22,7 +22,7 @@ OP REG_REG_TABLE[][8] =
 	{ FSIN,	  FCOS,	       FTAN,	 FASIN,
 	  FEXP,	  FLN,	       FREC,	 FABS}, // 0110
 	{ FNEG,	  FCGT,	       FCLT,	 FMOD,
-	  REV,	  MEMMAP,      XCG,      ERR }, // 0111
+	  REV,	  MEMMAP,      XCG,      ENDW }, // 0111
 
 	{ JMZR,   JLZR,        JMNZR,    JLNZR,
 	  CEQ_OR, CNE_OR,      CGT_OR,   CLT_OR },
@@ -336,7 +336,8 @@ std::unordered_map<OP, std::string> unmappings =
 	{ MVHG,  "MVHG" }, 
 	{ MVHH,  "MVHH" }, 
 	{ PSHI,  "PSHI" }, 
-	{ END,  "END" }, 
+	{ ENDS,  "ENDS" }, 
+	{ ENDW,  "ENDW" },
 	{ REV,  "REV" }, 
 	{ POPC,  "POPC" }, 
 	{ PARI,  "PARI" }, 

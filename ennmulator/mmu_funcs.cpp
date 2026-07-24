@@ -5,7 +5,7 @@ u16 MMU::READ_8(u32 addr, u16 proc_state)
 	u16 page_nr = (addr >> 12) & 0xfff;
 	u16 subaddr = (addr & 0xfff);
 	
-	return PAGES[MAPPINGS[page_nr]][subaddr];
+	return DATA[4096 * MAPPINGS[page_nr] + subaddr];
 }
 
 u32 MMU::READ_16(u32 addr, u16 proc_state)
@@ -13,9 +13,9 @@ u32 MMU::READ_16(u32 addr, u16 proc_state)
 	u16 page_nr = (addr >> 12) & 0xfff;
 	u16 subaddr = (addr & 0xfff);
 
-	u16 temp  = (PAGES[MAPPINGS[page_nr]][subaddr] << 8);
+	u16 temp  = (DATA[4096 * MAPPINGS[page_nr] + subaddr] << 8);
 	 subaddr  = (subaddr + 1) & 0xfff;
-	    temp |= (PAGES[MAPPINGS[page_nr]][subaddr] << 0);
+	    temp |= (DATA[4096 * MAPPINGS[page_nr] + subaddr] << 0);
 
 	return temp;
 }
@@ -25,11 +25,11 @@ u32 MMU::READ_24(u32 addr, u16 proc_state)
 	u16 page_nr = (addr >> 12) & 0xfff;
 	u16 subaddr = (addr & 0xfff);
 
-	u32 temp  = (PAGES[MAPPINGS[page_nr]][subaddr] << 16);
+	u32 temp  = (DATA[4096 * MAPPINGS[page_nr] + subaddr] << 16);
 	 subaddr  = (subaddr + 1) & 0xfff;
-	    temp |= (PAGES[MAPPINGS[page_nr]][subaddr] <<  8);
+	    temp |= (DATA[4096 * MAPPINGS[page_nr] + subaddr] <<  8);
 	 subaddr  = (subaddr + 1) & 0xfff;
-	    temp |= (PAGES[MAPPINGS[page_nr]][subaddr] <<  0);
+	    temp |= (DATA[4096 * MAPPINGS[page_nr] + subaddr] <<  0);
  
 	return temp;
 }
@@ -39,10 +39,10 @@ u32 MMU::READ_32(u32 addr, u16 proc_state)
 	u16 page_nr = (addr >> 12) & 0xfff;
 	u16 subaddr = (addr & 0xfff);
 
-	u32 temp  = (PAGES[MAPPINGS[page_nr]][subaddr + 0] << 24);
-	 	temp |= (PAGES[MAPPINGS[page_nr]][subaddr + 1] << 16);
-	    temp |= (PAGES[MAPPINGS[page_nr]][subaddr + 2] <<  8);
-	    temp |= (PAGES[MAPPINGS[page_nr]][subaddr + 3] <<  0);
+	u32 temp  = (DATA[4096 * MAPPINGS[page_nr] + subaddr + 0] << 24);
+	 	temp |= (DATA[4096 * MAPPINGS[page_nr] + subaddr + 1] << 16);
+	    temp |= (DATA[4096 * MAPPINGS[page_nr] + subaddr + 2] <<  8);
+	    temp |= (DATA[4096 * MAPPINGS[page_nr] + subaddr + 3] <<  0);
 
 	return temp;
 }
@@ -52,14 +52,14 @@ u64 MMU::READ_64(u64 addr, u16 proc_state)
 	u16 page_nr = (addr >> 12) & 0xfff;
 	u16 subaddr = (addr & 0xfff);
 
-	u64 temp  = (PAGES[MAPPINGS[page_nr]][subaddr + 0]); temp <<= 8;
-	 	temp |= (PAGES[MAPPINGS[page_nr]][subaddr + 1]); temp <<= 8;
-	    temp |= (PAGES[MAPPINGS[page_nr]][subaddr + 2]); temp <<= 8;
-	    temp |= (PAGES[MAPPINGS[page_nr]][subaddr + 3]); temp <<= 8;
-	 	temp |= (PAGES[MAPPINGS[page_nr]][subaddr + 4]); temp <<= 8;
-	 	temp |= (PAGES[MAPPINGS[page_nr]][subaddr + 5]); temp <<= 8;
-	    temp |= (PAGES[MAPPINGS[page_nr]][subaddr + 6]); temp <<= 8;
-	    temp |= (PAGES[MAPPINGS[page_nr]][subaddr + 7]);
+	u64 temp  = (DATA[4096 * MAPPINGS[page_nr] + subaddr + 0]); temp <<= 8;
+	 	temp |= (DATA[4096 * MAPPINGS[page_nr] + subaddr + 1]); temp <<= 8;
+	    temp |= (DATA[4096 * MAPPINGS[page_nr] + subaddr + 2]); temp <<= 8;
+	    temp |= (DATA[4096 * MAPPINGS[page_nr] + subaddr + 3]); temp <<= 8;
+	 	temp |= (DATA[4096 * MAPPINGS[page_nr] + subaddr + 4]); temp <<= 8;
+	 	temp |= (DATA[4096 * MAPPINGS[page_nr] + subaddr + 5]); temp <<= 8;
+	    temp |= (DATA[4096 * MAPPINGS[page_nr] + subaddr + 6]); temp <<= 8;
+	    temp |= (DATA[4096 * MAPPINGS[page_nr] + subaddr + 7]);
 
 	return temp;
 }
@@ -69,7 +69,7 @@ void MMU::WRITE_8(u32 addr, u16 proc_state, u8 payload)
 	u8  page_nr = (addr >> 12) & 0xfff;
 	u16 subaddr = (addr & 0xfff);
 
-	PAGES[MAPPINGS[page_nr]][subaddr] = payload;
+	DATA[4096 * MAPPINGS[page_nr] + subaddr] = payload;
 	return;
 }
 
@@ -78,9 +78,9 @@ void MMU::WRITE_16(u32 addr, u16 proc_state, u16 payload)
 	u8  page_nr = (addr >> 12) & 0xfff;
 	u16 subaddr = (addr & 0xfff);
 
-	PAGES[MAPPINGS[page_nr]][subaddr] = (payload >> 8) & 0xff;
+	DATA[4096 * MAPPINGS[page_nr] + subaddr] = (payload >> 8) & 0xff;
 	subaddr = (subaddr + 1) & 0xfff;
-	PAGES[MAPPINGS[page_nr]][subaddr] = (payload >> 0) & 0xff;
+	DATA[4096 * MAPPINGS[page_nr] + subaddr] = (payload >> 0) & 0xff;
 	return;
 }
 
@@ -89,11 +89,11 @@ void MMU::WRITE_24(u32 addr, u16 proc_state, u32 payload)
 	u8  page_nr = (addr >> 12) & 0xfff;
 	u16 subaddr = (addr & 0xfff);
 
-	PAGES[MAPPINGS[page_nr]][subaddr] = (payload >> 16) & 0xff;
+	DATA[4096 * MAPPINGS[page_nr] + subaddr] = (payload >> 16) & 0xff;
 	subaddr = (subaddr + 1) & 0xfff;
-	PAGES[MAPPINGS[page_nr]][subaddr] = (payload >>  8) & 0xff;
+	DATA[4096 * MAPPINGS[page_nr] + subaddr] = (payload >>  8) & 0xff;
 	subaddr = (subaddr + 1) & 0xfff;
-	PAGES[MAPPINGS[page_nr]][subaddr] = (payload >>  0) & 0xff;
+	DATA[4096 * MAPPINGS[page_nr] + subaddr] = (payload >>  0) & 0xff;
 	return;
 }
 
