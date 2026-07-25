@@ -150,7 +150,7 @@ struct CPU
 	inline bool   IS_MASKED_INT() { return PS & 0x0010; }
 	inline void  SET_MASKED_INT() { PS |=   0x0010;  }
 	inline void  CLR_MASKED_INT() { PS &= (~0x0010); }
-	inline bool     PENDING_INT() { return PS & 0x0100; }
+	inline bool  IS_PENDING_INT() { return PS & 0x0100; }
 	inline void SET_PENDING_INT() { PS |=   0x0100;  }
 	inline void CLR_PENDING_INT() { PS &= (~0x0100); }
 
@@ -203,7 +203,12 @@ struct CPU
 	u16 GET_16(u32);
 	u32 GET_24(u32);
 
-	void TRAP(u16 type, u32 IP);
+	void TRAP(u16 WHAT)
+	{
+		// if(IS_MASKED_INT()) { return; }
+		XS = WHAT;
+		SET_PENDING_INT();
+	}
 
 	bool SYSC(u16 ID);
 
@@ -217,11 +222,11 @@ struct CPU
 
 	inline void IRQ()
 	{
+		SET_MASKED_INT();
 		CLR_PENDING_INT();
 		SET_IN_INTERRUPT();
-		SET_MASKED_INT();
 		SP -= 3;
-		SP &= 0xffffff;
+		SP &= 0x00ff'ffff;
 		PUT_24(SP, IP);
 		IP = XV;
 	}
@@ -231,7 +236,7 @@ struct CPU
 	bool STEP()
 	{
 		TICKS++;
-		if(!IS_MASKED_INT() and PENDING_INT()) { IRQ(); }
+		if(!IS_MASKED_INT() and IS_PENDING_INT()) { IRQ(); }
 		FETCH();
 		DECODED_INSN = DECODE(FETCHED_INSN);
 		if(EXECUTE(DECODED_INSN) < 0) 
