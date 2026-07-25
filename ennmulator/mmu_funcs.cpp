@@ -4,17 +4,19 @@ u16 MMU::READ_8(u32 addr, u16 proc_state)
 {	
 	u32 page = (addr & 0x00'ff'f0'00) >> 12;
 	addr = (MAPPINGS[page] << 12) | (addr & 0x00'00'0f'ff);
-	
+
 	return DATA[addr];
 }
 
 u32 MMU::READ_16(u32 addr, u16 proc_state)
 {
 	u32 page = (addr & 0x00'ff'f0'00) >> 12;
-	addr = (MAPPINGS[page] << 12) | (addr & 0x00'00'0f'ff);
+	page = (MAPPINGS[page] << 12);
+	u32 subp = (addr & 0x00'00'0f'ff) >> 0;
+	addr = page | subp;
 
 	u16 temp  = (DATA[addr] << 8);
-	 addr = (addr + 1) & 0x00ffffff;
+	 addr = (page | ((subp + 1) & 0x0fff)) & 0x00ffffff;
 	    temp |= (DATA[addr] << 0);
 
 	return temp;
@@ -23,12 +25,14 @@ u32 MMU::READ_16(u32 addr, u16 proc_state)
 u32 MMU::READ_24(u32 addr, u16 proc_state)
 {
 	u32 page = (addr & 0x00'ff'f0'00) >> 12;
-	addr = (MAPPINGS[page] << 12) | (addr & 0x00'00'0f'ff);
+	page = (MAPPINGS[page] << 12);
+	u32 subp = (addr & 0x00'00'0f'ff) >> 0;
+	addr = page | subp;
 
 	u32 temp  = (DATA[addr] << 16);
-	 addr = (addr + 1) & 0x00ffffff;
+	 addr = (page | ((subp + 1) & 0x0fff)) & 0x00ffffff;
 	    temp |= (DATA[addr] <<  8);
-	 addr = (addr + 1) & 0x00ffffff;
+	 addr = (page | ((subp + 1) & 0x0fff)) & 0x00ffffff;
 	    temp |= (DATA[addr] <<  0);
  
 	return temp;
@@ -76,10 +80,12 @@ void MMU::WRITE_8(u32 addr, u16 proc_state, u8 payload)
 void MMU::WRITE_16(u32 addr, u16 proc_state, u16 payload)
 {
 	u32 page = (addr & 0x00'ff'f0'00) >> 12;
-	addr = (MAPPINGS[page] << 12) | (addr & 0x00'00'0f'ff);
+	page = (MAPPINGS[page] << 12);
+	u32 subp = (addr & 0x00'00'0f'ff) >> 0;
+	addr = page | subp;
 
 	DATA[addr] = (payload >> 8) & 0xff;
-	addr = (addr + 1) & 0x00ffffff;
+	addr = (page | ((subp + 1) & 0x0fff)) & 0x00ffffff;
 	DATA[addr] = (payload >> 0) & 0xff;
 	return;
 }
@@ -87,12 +93,14 @@ void MMU::WRITE_16(u32 addr, u16 proc_state, u16 payload)
 void MMU::WRITE_24(u32 addr, u16 proc_state, u32 payload)
 {
 	u32 page = (addr & 0x00'ff'f0'00) >> 12;
-	addr = (MAPPINGS[page] << 12) | (addr & 0x00'00'0f'ff);
+	page = (MAPPINGS[page] << 12);
+	u32 subp = (addr & 0x00'00'0f'ff) >> 0;
+	addr = page | subp;
 
 	DATA[addr] = (payload >> 16) & 0xff;
-	addr = (addr + 1) & 0x00ffffff;
+	addr = (page | ((subp + 1) & 0x0fff)) & 0x00ffffff;
 	DATA[addr] = (payload >> 8) & 0xff;
-	addr = (addr + 1) & 0x00ffffff;
+	addr = (page | ((subp + 2) & 0x0fff)) & 0x00ffffff;
 	DATA[addr] = (payload >> 0) & 0xff;
 	return;
 }
