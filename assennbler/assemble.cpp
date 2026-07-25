@@ -273,7 +273,7 @@ void ASSEMBLE(
 				case STRB:  insn |= 0b0'00'0000'001'000000; break;
 				case STRW:  insn |= 0b0'00'0000'010'000000; break;
 				case STRS:  insn |= 0b0'00'0000'011'000000; break;
-				case END:   insn |= 0b0'00'0000'100'000000; break;
+				case ENDS:  insn |= 0b0'00'0000'100'000000; break;
 				case LDRB:  insn |= 0b0'00'0000'101'000000; break;
 				case LDRW:  insn |= 0b0'00'0000'110'000000; break;
 				case LDRS:  insn |= 0b0'00'0000'111'000000; break;
@@ -338,6 +338,7 @@ void ASSEMBLE(
 				case REV:	 insn |= 0b0'00'0111'100'000000; break;	
 				case MEMMAP: insn |= 0b0'00'0111'101'000000; break; 	
 				case XCG:	 insn |= 0b0'00'0111'110'000000; break;	
+				case ENDW:   insn |= 0b0'00'0111'111'000000; break;
 	
 				case JMZR:	 insn |= 0b0'00'1000'000'000000; break;	
 				case JLZR:	 insn |= 0b0'00'1000'001'000000; break;	

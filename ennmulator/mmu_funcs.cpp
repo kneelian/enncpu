@@ -66,34 +66,26 @@ u64 MMU::READ_64(u64 addr, u16 proc_state)
 
 void MMU::WRITE_8(u32 addr, u16 proc_state, u8 payload)
 {
-	u8  page_nr = (addr >> 12) & 0xfff;
-	u16 subaddr = (addr & 0xfff);
-
-	DATA[4096 * MAPPINGS[page_nr] + subaddr] = payload;
+	DATA[addr] = (payload >> 0) & 0xff;
 	return;
 }
 
 void MMU::WRITE_16(u32 addr, u16 proc_state, u16 payload)
 {
-	u8  page_nr = (addr >> 12) & 0xfff;
-	u16 subaddr = (addr & 0xfff);
 
-	DATA[4096 * MAPPINGS[page_nr] + subaddr] = (payload >> 8) & 0xff;
-	subaddr = (subaddr + 1) & 0xfff;
-	DATA[4096 * MAPPINGS[page_nr] + subaddr] = (payload >> 0) & 0xff;
+	DATA[addr] = (payload >> 8) & 0xff;
+	addr = (addr + 1) & 0x00ffffff;
+	DATA[addr] = (payload >> 0) & 0xff;
 	return;
 }
 
 void MMU::WRITE_24(u32 addr, u16 proc_state, u32 payload)
 {
-	u8  page_nr = (addr >> 12) & 0xfff;
-	u16 subaddr = (addr & 0xfff);
-
-	DATA[4096 * MAPPINGS[page_nr] + subaddr] = (payload >> 16) & 0xff;
-	subaddr = (subaddr + 1) & 0xfff;
-	DATA[4096 * MAPPINGS[page_nr] + subaddr] = (payload >>  8) & 0xff;
-	subaddr = (subaddr + 1) & 0xfff;
-	DATA[4096 * MAPPINGS[page_nr] + subaddr] = (payload >>  0) & 0xff;
+	DATA[addr] = (payload >> 16) & 0xff;
+	addr = (addr + 1) & 0x00ffffff;
+	DATA[addr] = (payload >> 8) & 0xff;
+	addr = (addr + 1) & 0x00ffffff;
+	DATA[addr] = (payload >> 0) & 0xff;
 	return;
 }
 

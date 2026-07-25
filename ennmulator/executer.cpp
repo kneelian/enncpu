@@ -804,12 +804,19 @@ int CPU::EXECUTE(const INSN insn)
 				CLR_COND();
 			break;
 
-		case END:
+		case ENDW:
+			ACTIVE_SET.at(insn.FIRST_REG) =
+				((ACTIVE_SET.at(insn.SECOND_REG) & 0x0000ff) << 8) |
+				((ACTIVE_SET.at(insn.SECOND_REG) & 0x00ff00) >> 8);
+			break;
+
+		case ENDS:
 			ACTIVE_SET.at(insn.FIRST_REG) =
 				((ACTIVE_SET.at(insn.SECOND_REG) & 0x0000ff) << 16) |
 				((ACTIVE_SET.at(insn.SECOND_REG) & 0x00ff00) << 0 ) |
 				((ACTIVE_SET.at(insn.SECOND_REG) & 0xff0000) >> 16);
 			break;
+
 		case REV:
 			ACTIVE_SET.at(insn.FIRST_REG) = 0;
 			temp = ACTIVE_SET.at(insn.SECOND_REG);
