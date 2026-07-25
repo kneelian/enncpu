@@ -145,7 +145,7 @@ int main(int argc, char** argv)
 
     Image img = GenImageColor(650, 400, WHITE);
     ImageFormat(&img, PIXELFORMAT_UNCOMPRESSED_R5G6B5);
-    img.data = basic_cpu.LINKED_MMU->DATA.data() + 0x10'00'00;
+    img.data = basic_cpu.LINKED_MMU->DATA.data() + 0x80'00'00;
     Texture2D tex;
 
     RenderTexture2D target;

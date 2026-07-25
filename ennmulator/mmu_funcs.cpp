@@ -1,77 +1,82 @@
 #include "types.hpp"
 
 u16 MMU::READ_8(u32 addr, u16 proc_state)
-{
-	u16 page_nr = (addr >> 12) & 0xfff;
-	u16 subaddr = (addr & 0xfff);
+{	
+	u32 page = (addr & 0x00'ff'f0'00) >> 12;
+	addr = (MAPPINGS[page] << 12) | (addr & 0x00'00'0f'ff);
 	
-	return DATA[4096 * MAPPINGS[page_nr] + subaddr];
+	return DATA[addr];
 }
 
 u32 MMU::READ_16(u32 addr, u16 proc_state)
 {
-	u16 page_nr = (addr >> 12) & 0xfff;
-	u16 subaddr = (addr & 0xfff);
+	u32 page = (addr & 0x00'ff'f0'00) >> 12;
+	addr = (MAPPINGS[page] << 12) | (addr & 0x00'00'0f'ff);
 
-	u16 temp  = (DATA[4096 * MAPPINGS[page_nr] + subaddr] << 8);
-	 subaddr  = (subaddr + 1) & 0xfff;
-	    temp |= (DATA[4096 * MAPPINGS[page_nr] + subaddr] << 0);
+	u16 temp  = (DATA[addr] << 8);
+	 addr = (addr + 1) & 0x00ffffff;
+	    temp |= (DATA[addr] << 0);
 
 	return temp;
 }
 
 u32 MMU::READ_24(u32 addr, u16 proc_state)
 {
-	u16 page_nr = (addr >> 12) & 0xfff;
-	u16 subaddr = (addr & 0xfff);
+	u32 page = (addr & 0x00'ff'f0'00) >> 12;
+	addr = (MAPPINGS[page] << 12) | (addr & 0x00'00'0f'ff);
 
-	u32 temp  = (DATA[4096 * MAPPINGS[page_nr] + subaddr] << 16);
-	 subaddr  = (subaddr + 1) & 0xfff;
-	    temp |= (DATA[4096 * MAPPINGS[page_nr] + subaddr] <<  8);
-	 subaddr  = (subaddr + 1) & 0xfff;
-	    temp |= (DATA[4096 * MAPPINGS[page_nr] + subaddr] <<  0);
+	u32 temp  = (DATA[addr] << 16);
+	 addr = (addr + 1) & 0x00ffffff;
+	    temp |= (DATA[addr] <<  8);
+	 addr = (addr + 1) & 0x00ffffff;
+	    temp |= (DATA[addr] <<  0);
  
 	return temp;
 }
 
 u32 MMU::READ_32(u32 addr, u16 proc_state)
 {
-	u16 page_nr = (addr >> 12) & 0xfff;
-	u16 subaddr = (addr & 0xfff);
+	u32 page = (addr & 0x00'ff'f0'00) >> 12;
+	addr = (MAPPINGS[page] << 12) | (addr & 0x00'00'0f'ff);
 
-	u32 temp  = (DATA[4096 * MAPPINGS[page_nr] + subaddr + 0] << 24);
-	 	temp |= (DATA[4096 * MAPPINGS[page_nr] + subaddr + 1] << 16);
-	    temp |= (DATA[4096 * MAPPINGS[page_nr] + subaddr + 2] <<  8);
-	    temp |= (DATA[4096 * MAPPINGS[page_nr] + subaddr + 3] <<  0);
+	u32 temp  = (DATA[addr + 0] << 24);
+	 	temp |= (DATA[addr + 1] << 16);
+	    temp |= (DATA[addr + 2] <<  8);
+	    temp |= (DATA[addr + 3] <<  0);
 
 	return temp;
 }
 
 u64 MMU::READ_64(u64 addr, u16 proc_state)
 {
-	u16 page_nr = (addr >> 12) & 0xfff;
-	u16 subaddr = (addr & 0xfff);
+	u32 page = (addr & 0x00'ff'f0'00) >> 12;
+	addr = (MAPPINGS[page] << 12) | (addr & 0x00'00'0f'ff);
 
-	u64 temp  = (DATA[4096 * MAPPINGS[page_nr] + subaddr + 0]); temp <<= 8;
-	 	temp |= (DATA[4096 * MAPPINGS[page_nr] + subaddr + 1]); temp <<= 8;
-	    temp |= (DATA[4096 * MAPPINGS[page_nr] + subaddr + 2]); temp <<= 8;
-	    temp |= (DATA[4096 * MAPPINGS[page_nr] + subaddr + 3]); temp <<= 8;
-	 	temp |= (DATA[4096 * MAPPINGS[page_nr] + subaddr + 4]); temp <<= 8;
-	 	temp |= (DATA[4096 * MAPPINGS[page_nr] + subaddr + 5]); temp <<= 8;
-	    temp |= (DATA[4096 * MAPPINGS[page_nr] + subaddr + 6]); temp <<= 8;
-	    temp |= (DATA[4096 * MAPPINGS[page_nr] + subaddr + 7]);
+	u64 temp  = (DATA[addr + 0]); temp <<= 8;
+	 	temp |= (DATA[addr + 1]); temp <<= 8;
+	    temp |= (DATA[addr + 2]); temp <<= 8;
+	    temp |= (DATA[addr + 3]); temp <<= 8;
+	 	temp |= (DATA[addr + 4]); temp <<= 8;
+	 	temp |= (DATA[addr + 5]); temp <<= 8;
+	    temp |= (DATA[addr + 6]); temp <<= 8;
+	    temp |= (DATA[addr + 7]);
 
 	return temp;
 }
 
 void MMU::WRITE_8(u32 addr, u16 proc_state, u8 payload)
 {
+	u32 page = (addr & 0x00'ff'f0'00) >> 12;
+	addr = (MAPPINGS[page] << 12) | (addr & 0x00'00'0f'ff);
+
 	DATA[addr] = (payload >> 0) & 0xff;
 	return;
 }
 
 void MMU::WRITE_16(u32 addr, u16 proc_state, u16 payload)
 {
+	u32 page = (addr & 0x00'ff'f0'00) >> 12;
+	addr = (MAPPINGS[page] << 12) | (addr & 0x00'00'0f'ff);
 
 	DATA[addr] = (payload >> 8) & 0xff;
 	addr = (addr + 1) & 0x00ffffff;
@@ -81,6 +86,9 @@ void MMU::WRITE_16(u32 addr, u16 proc_state, u16 payload)
 
 void MMU::WRITE_24(u32 addr, u16 proc_state, u32 payload)
 {
+	u32 page = (addr & 0x00'ff'f0'00) >> 12;
+	addr = (MAPPINGS[page] << 12) | (addr & 0x00'00'0f'ff);
+
 	DATA[addr] = (payload >> 16) & 0xff;
 	addr = (addr + 1) & 0x00ffffff;
 	DATA[addr] = (payload >> 8) & 0xff;
