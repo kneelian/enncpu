@@ -114,11 +114,14 @@ struct INSN
 
 /*
 	processor state PS bitmap
-		1   - kernelmode
-		2   - has MMU
-		4   - predicated
-		8   - is WFI
-		16  - masking interrupts
+		0001  - kernelmode
+		0002  - has MMU
+		0004  - predicated
+		0008  - is WFI
+		0010  - masking interrupts
+
+		0100  - interrupt pending
+		0200  - is in interrupt
 */
 
 struct CPU
@@ -131,6 +134,7 @@ struct CPU
 	u16 XS = 0x0000; // exception state
 
 	u32 XV = 0x0000; // exception vector
+	u32 RA = 0x0000; // return address
 
 	u8 PREFIX = 0x00;
 
@@ -144,9 +148,15 @@ struct CPU
 	inline void SET_WFI() { PS |=   0x0008; }
 	inline void CLR_WFI() { PS &= (~0x0008); }
 
-	inline bool  IS_MASKED_INT() { return PS & 0x0010; }
-	inline void SET_MASKED_INT() { PS |=   0x0010; }
-	inline void CLR_MASKED_INT() { PS &= (~0x0010); }
+	inline bool   IS_MASKED_INT() { return PS & 0x0010; }
+	inline void  SET_MASKED_INT() { PS |=   0x0010;  }
+	inline void  CLR_MASKED_INT() { PS &= (~0x0010); }
+	inline bool     PENDING_INT() { return PS & 0x0100; }
+	inline void SET_PENDING_INT() { PS |=   0x0100;  }
+	inline void CLR_PENDING_INT() { PS &= (~0x0100); }
+
+	inline void SET_IN_INTERRUPT() { PS |=   0x0200;  }
+	inline void CLR_IN_INTERRUPT() { PS &= (~0x0200); }
 
 	inline u8 PREFIX_STATE()  { return PREFIX; }
 	inline void CLR_PREFIX()  { SET_PREFIX(0); }
@@ -175,7 +185,7 @@ struct CPU
 			ACTIVE_SET[i] = 0;
 			SHADOW_SET[i] = 0;
 		}
-		PS = 0x0003;
+		PS = 0x0013;
 		LINKED_MMU = new MMU;
 	}
 	~CPU()
@@ -206,12 +216,22 @@ struct CPU
 		IP += 2;
 	}
 
+	inline void IRQ()
+	{
+		RA = IP;
+		CLR_PENDING_INT();
+		SET_IN_INTERRUPT();
+		SET_MASKED_INT();
+		IP = XV;
+	}
+
 	INSN DECODE(u16);
 	i32 EXECUTE(INSN);
 	bool STEP()
 	{
-		FETCH();
 		TICKS++;
+		if(!IS_MASKED_INT() and PENDING_INT()) { IRQ(); }
+		FETCH();
 		DECODED_INSN = DECODE(FETCHED_INSN);
 		if(EXECUTE(DECODED_INSN) < 0) 
 			 return false;
