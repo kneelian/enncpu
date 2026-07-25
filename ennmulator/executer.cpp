@@ -1831,9 +1831,14 @@ int CPU::EXECUTE(const INSN insn)
 		case UNMASK:
 			CLR_MASKED_INT();
 			break;
+		case ERET:
+			IP = GET_24(SP);
+			SP += 3;
+			SP &= 0xffffff;
+			CLR_IN_INTERRUPT();
+			break;
 			
 		case WFINT:
-			//std::printf("DEBUG: WFI hit! IP: [0x%08x]\n", IP - 2);
 			SET_WFI();
 			IP -= 2;
 			break;
@@ -1858,13 +1863,6 @@ int CPU::EXECUTE(const INSN insn)
 				//std::printf("\tKERNI masked!\n");
 			}
 
-			break;
-
-		case ERET:
-			IP = GET_24(SP);
-			SP += 3;
-			SP &= 0xffffff;
-			PS &= 0xfffe;   // and remove kernel perms
 			break;
 
 		case TRAPI:

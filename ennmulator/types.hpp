@@ -134,7 +134,6 @@ struct CPU
 	u16 XS = 0x0000; // exception state
 
 	u32 XV = 0x0000; // exception vector
-	u32 RA = 0x0000; // return address
 
 	u8 PREFIX = 0x00;
 
@@ -218,10 +217,12 @@ struct CPU
 
 	inline void IRQ()
 	{
-		RA = IP;
 		CLR_PENDING_INT();
 		SET_IN_INTERRUPT();
 		SET_MASKED_INT();
+		SP -= 3;
+		SP &= 0xffffff;
+		PUT_24(SP, IP);
 		IP = XV;
 	}
 
