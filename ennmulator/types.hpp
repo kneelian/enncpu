@@ -134,6 +134,7 @@ struct CPU
 	u16 XS = 0x0000; // exception state
 
 	u32 XV = 0x0000; // exception vector
+	u32 RA = 0x0000; // return address
 
 	u8 PREFIX = 0x00;
 
@@ -154,6 +155,7 @@ struct CPU
 	inline void SET_PENDING_INT() { PS |=   0x0100;  }
 	inline void CLR_PENDING_INT() { PS &= (~0x0100); }
 
+	inline bool  IS_IN_INTERRUPT() { return PS & 0x0200; }
 	inline void SET_IN_INTERRUPT() { PS |=   0x0200;  }
 	inline void CLR_IN_INTERRUPT() { PS &= (~0x0200); }
 
@@ -205,7 +207,8 @@ struct CPU
 
 	void TRAP(u16 WHAT)
 	{
-		// if(IS_MASKED_INT()) { return; }
+		if(IS_MASKED_INT()) return;
+
 		XS = WHAT;
 		SET_PENDING_INT();
 	}
@@ -222,13 +225,24 @@ struct CPU
 
 	inline void IRQ()
 	{
+		std::printf("IRQ! PS was: 0x%04x -->", PS);
 		SET_MASKED_INT();
 		CLR_PENDING_INT();
 		SET_IN_INTERRUPT();
+
+		std::printf(" 0x%04x\n", PS);
+
+		std::printf(" > TOP OF SP IS [%06x] [%06x] [%06x] [%06x]\n", GET_24(SP+6), GET_24(SP+3), GET_24(SP), GET_24(SP-3));
+		std::printf(" > PUSHING OLD IP: 0x%06x\n", IP);
+
 		SP -= 3;
 		SP &= 0x00ff'ffff;
 		PUT_24(SP, IP);
+
 		IP = XV;
+
+		std::printf(" > NEW IP @ 0x%06x\n", IP); 
+		std::printf(" > TOP OF SP IS [%06x] [%06x] [%06x] [%06x]\n", GET_24(SP+6), GET_24(SP+3), GET_24(SP), GET_24(SP-3));
 	}
 
 	INSN DECODE(u16);
@@ -236,7 +250,10 @@ struct CPU
 	bool STEP()
 	{
 		TICKS++;
-		if(!IS_MASKED_INT() and IS_PENDING_INT()) { IRQ(); }
+		if(!IS_MASKED_INT() and IS_PENDING_INT()) 
+		{ 
+			IRQ();  
+		}
 		FETCH();
 		DECODED_INSN = DECODE(FETCHED_INSN);
 		if(EXECUTE(DECODED_INSN) < 0) 

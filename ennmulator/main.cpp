@@ -148,6 +148,11 @@ int main(int argc, char** argv)
     img.data = basic_cpu.LINKED_MMU->DATA.data() + 0x80'00'00;
     Texture2D tex;
 
+    u8* MMIO_BASE = basic_cpu.LINKED_MMU->DATA.data() + 0x87'F0'00;
+    u8* FLPY_BASE = basic_cpu.LINKED_MMU->DATA.data() + 0x87'F0'00;
+    u8* KEYB_BASE = basic_cpu.LINKED_MMU->DATA.data() + 0x87'F4'00;
+    u8* MOUS_BASE = basic_cpu.LINKED_MMU->DATA.data() + 0x87'F4'10;
+
     RenderTexture2D target;
     target = LoadRenderTexture(screenWidth, screenHeight);
 
@@ -174,6 +179,13 @@ int main(int argc, char** argv)
         EndDrawing();
 
         UnloadTexture(tex);
+    
+        int key = GetKeyPressed();
+        if(key and !basic_cpu.IS_MASKED_INT())
+        {
+        	KEYB_BASE[0] = u8(key);
+        	basic_cpu.TRAP(0x00'04);
+        }
     }
 
 	return 0;

@@ -1,4 +1,4 @@
-CXX := g++
+CXX := g++-11
 CXXFLAGS := -std=c++20 -Og -g -I./raylib
 LINKFLAGS :=  -L. -L.. -lraylib -l GL -l m -l pthread -l dl -l rt -l X11
 TARGET := cpu

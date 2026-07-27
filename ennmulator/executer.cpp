@@ -1832,9 +1832,12 @@ int CPU::EXECUTE(const INSN insn)
 			CLR_MASKED_INT();
 			break;
 		case ERET:
+			std::printf("ERET is returning to 0x%06x\n", GET_24(SP));
+
 			IP = GET_24(SP);
 			SP += 3;
 			SP &= 0xffffff;
+			
 			CLR_IN_INTERRUPT();
 			break;
 			

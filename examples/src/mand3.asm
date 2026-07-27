@@ -1,9 +1,62 @@
-.SEC %main
+.ORG 0x000
+.SEC %PGA
 
+	MASK
+
+	MOVL A, #0
+	MOVM A, #8
+	WSP  A
+
+	ADRL A, @EX_HANDLER
+	ADRM A, @EX_HANDLER
+	WXV  A
+
+	ADRL A, @START
+	ADRM A, @START
+
+	; ERR
+
+	JMR  A ;IP = RA;
+
+@EX_HANDLER
+
+	PSHS A
+	PSHS B
+	PSHS C
+	RPS  C
+	RXS  A
+
+	CNE  A, #4
+
+	WPS.P  C
+	POPS.P C
+	POPS.P B
+	POPS.P A
+	ERET.P
+
+	MOVL B, #0x00
+	MOVM B, #0xf4
+	MOVH B, #0x87
+	LDRB A, B
+
+	DBGB A
+
+	WPS  C
+	MOV  C, #0
+	WXS  C
+	POPS C
+	POPS B
+	POPS A
+
+	ERET
+
+%PGA
+
+.ORG 0x400
+.SEC %main
 @START
 
 MOVH H, #0x80
-
 MOVL E, #0x89
 MOVM E, #0x02
 MOVL F, #0x89
@@ -21,10 +74,6 @@ STRW A, H+
 DBGS H
 
 SWAP
-
-SUB  A, A
-MOVM A, #4
-WSP  A
 
 ADRL A, @CONST
 ADRM A, @CONST

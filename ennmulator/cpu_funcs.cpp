@@ -12,10 +12,7 @@ void CPU::PUT_8(u32 addr, u8 payload)
 }
 	
 void CPU::PUT_16(u32 addr, u16 payload)
-{	
-	u16 page_nr = (addr >> 12) & 0xfff;
-	u16 subaddr = (addr & 0xfff);
-
+{
 	if(LINKED_MMU != nullptr)
 	{
 		LINKED_MMU->WRITE_16(addr, PS, (payload >> 0));
@@ -26,12 +23,9 @@ void CPU::PUT_16(u32 addr, u16 payload)
 
 void CPU::PUT_24(u32 addr, u32 payload)
 {
-	u16 page_nr = (addr >> 12) & 0xfff;
-	u16 subaddr = (addr & 0xfff);
-
 	if(LINKED_MMU != nullptr)
 	{
-		LINKED_MMU->WRITE_24(addr, PS, (payload >> 0));
+		LINKED_MMU->WRITE_24(addr, PS, payload);
 		return;
 	}
 	else return;
