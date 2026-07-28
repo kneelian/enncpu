@@ -137,7 +137,7 @@ int main(int argc, char** argv)
     int screenHeight = 400;
 
     SetTraceLogLevel(LOG_NONE);
-    raylib::Window w(screenWidth, screenHeight, "Raylib C++", 0, LOG_NONE);
+    raylib::Window w(screenWidth * 2, screenHeight * 2, "Raylib C++", 0, LOG_NONE);
     SetTraceLogLevel(LOG_NONE);
     
     w.SetTargetFPS(30);
@@ -175,7 +175,15 @@ int main(int argc, char** argv)
 
         BeginDrawing();
             BeginShaderMode(s);
-                DrawTextureRec(target.texture, (Rectangle){ 0, 0, (float)target.texture.width, (float)-target.texture.height }, (Vector2){ 0, 0 }, WHITE);
+                DrawTexturePro
+                (
+                	target.texture, 
+                	(Rectangle){ 0, 0, (float)target.texture.width  , (float)-target.texture.height },  
+                	(Rectangle){ 0, 0, (float)target.texture.width*2, (float)-target.texture.height*2 }, 
+                	(Vector2){ 0, 0 }, 
+                	0.0, 
+                	WHITE
+                );
             EndShaderMode();
         EndDrawing();
 

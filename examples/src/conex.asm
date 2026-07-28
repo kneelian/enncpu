@@ -29,10 +29,10 @@
 	;	B - x position of char
 	;   C - y position of char
 
-	LSHL A, #3 ; offset in table
+	LSHL A, #4 ; offset in table
 
-	ADRL B, @FONT8x8
-	ADRM B, @FONT8x8
+	ADRL B, @FONT16x8
+	ADRM B, @FONT16x8
 
 	ADD  B, A     ; position of bitmap in font
 
@@ -55,22 +55,28 @@
 	ADD  C, E
 	ADD  C, E ; 16bpp
 
-	MOV  E, #8
+	; some fonts are reverse bit order from others
+	; instead of ADD C, #16 / STRW H, C- you need
+	; STRW H, C+ / SUB C, #16 to put pixels in
+	; RTL or LTR order, depending on the font
+
+	MOV  E, #16
 	@DRAW_OUTER
 		MOV  F, #8
 		LDRB G, B+  ; G now has full byte
+		ADD  C, #16
 		@DRAW_INNER
 			MOV   H, G
 			BAND  H, #1
 			SUB   H, #1
 			LSHR  G, #1
-			STRW  H, C+
+			INV   H, H
+			STRW  H, C-
 			SUB   F, #1
 			JMNZO F, @DRAW_INNER 
 
 		SUB   E, #1
 		ADD   C, D  ; next row
-		SUB   C, #16
 		JMNZO E, @DRAW_OUTER
 
 	SWAP
@@ -137,8 +143,8 @@
 	MOVL C, #0x90
 	MOVM C, #0x01
 	MULA A, C
-	MOV  C, #0xff
-	MOVM C, #0xff
+	MOV  C, #0x00
+	MOVM C, #0x00
 
 	@PAINT
 		STRW  C, B+
@@ -159,5 +165,7 @@
 .SEC %FONTS
 
 $include font8.enn
+
+$include font16.enn
 
 %FONTS
