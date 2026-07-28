@@ -151,11 +151,11 @@ struct CPU
 	inline bool   IS_MASKED_INT() { return PS & 0x0010; }
 	inline void  SET_MASKED_INT() { PS |=   0x0010;  }
 	inline void  CLR_MASKED_INT() { PS &= (~0x0010); }
+	
 	inline bool  IS_PENDING_INT() { return PS & 0x0100; }
 	inline void SET_PENDING_INT() { PS |=   0x0100;  }
 	inline void CLR_PENDING_INT() { PS &= (~0x0100); }
 
-	inline bool  IS_IN_INTERRUPT() { return PS & 0x0200; }
 	inline void SET_IN_INTERRUPT() { PS |=   0x0200;  }
 	inline void CLR_IN_INTERRUPT() { PS &= (~0x0200); }
 
@@ -205,14 +205,6 @@ struct CPU
 	u16 GET_16(u32);
 	u32 GET_24(u32);
 
-	void TRAP(u16 WHAT)
-	{
-		if(IS_MASKED_INT()) return;
-
-		XS = WHAT;
-		SET_PENDING_INT();
-	}
-
 	bool SYSC(u16 ID);
 
 	bool LOAD_NEW_FORMAT(std::vector<u8>& bytestream);
@@ -223,26 +215,22 @@ struct CPU
 		IP += 2;
 	}
 
+	void TRAP(u16 WHAT)
+	{
+		if(IS_MASKED_INT()) return;
+
+		XS = WHAT;
+		SET_PENDING_INT();
+	}
+
 	inline void IRQ()
 	{
-		std::printf("IRQ! PS was: 0x%04x -->", PS);
 		SET_MASKED_INT();
 		CLR_PENDING_INT();
 		SET_IN_INTERRUPT();
 
-		std::printf(" 0x%04x\n", PS);
-
-		std::printf(" > TOP OF SP IS [%06x] [%06x] [%06x] [%06x]\n", GET_24(SP+6), GET_24(SP+3), GET_24(SP), GET_24(SP-3));
-		std::printf(" > PUSHING OLD IP: 0x%06x\n", IP);
-
-		SP -= 3;
-		SP &= 0x00ff'ffff;
-		PUT_24(SP, IP);
-
+		RA = IP;
 		IP = XV;
-
-		std::printf(" > NEW IP @ 0x%06x\n", IP); 
-		std::printf(" > TOP OF SP IS [%06x] [%06x] [%06x] [%06x]\n", GET_24(SP+6), GET_24(SP+3), GET_24(SP), GET_24(SP-3));
 	}
 
 	INSN DECODE(u16);
@@ -250,12 +238,16 @@ struct CPU
 	bool STEP()
 	{
 		TICKS++;
-		if(!IS_MASKED_INT() and IS_PENDING_INT()) 
+		
+		if(IS_PENDING_INT()) 
 		{ 
 			IRQ();  
+			return true;
 		}
+
 		FETCH();
 		DECODED_INSN = DECODE(FETCHED_INSN);
+
 		if(EXECUTE(DECODED_INSN) < 0) 
 			 return false;
 		else return true;

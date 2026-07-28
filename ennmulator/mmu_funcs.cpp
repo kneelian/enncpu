@@ -92,27 +92,16 @@ void MMU::WRITE_16(u32 addr, u16 proc_state, u16 payload)
 
 void MMU::WRITE_24(u32 addr, u16 proc_state, u32 payload)
 {
-	if(proc_state & 0x0200)
-	{
-		std::printf("WRITE_24 PAYLOAD: 0x%06x\n", payload);
-		std::printf("PAYLOAD BYTES: %02x %02x %02x\n",
-			(payload >> 16) & 0xff,
-			(payload >> 8) & 0xff,
-			(payload) & 0xff
-		);
-	}
-	/*u32 page = (addr & 0x00'ff'f0'00) >> 12;
+	u32 page = (addr & 0x00'ff'f0'00) >> 12;
 	page = (MAPPINGS[page] << 12);
 	u32 subp = (addr & 0x00'00'0f'ff) >> 0;
-	addr = page | subp;*/
+	addr = page | subp;
 
-	addr += 2;
-
-	DATA[addr] = (payload) & 0xff;
-	addr--; // = (page | ((subp + 1) & 0x0fff)) & 0x00ffffff;
-	DATA[addr] = (payload >> 8) & 0xff;
-	addr--; // = (page | ((subp + 2) & 0x0fff)) & 0x00ffffff;
 	DATA[addr] = (payload >> 16) & 0xff;
+	addr = (page | ((subp + 1) & 0x0fff)) & 0x00ffffff;
+	DATA[addr] = (payload >> 8) & 0xff;
+	addr = (page | ((subp + 2) & 0x0fff)) & 0x00ffffff;
+	DATA[addr] = (payload >> 0) & 0xff;
 	return;
 }
 

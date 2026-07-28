@@ -1832,13 +1832,12 @@ int CPU::EXECUTE(const INSN insn)
 			CLR_MASKED_INT();
 			break;
 		case ERET:
-			std::printf("ERET is returning to 0x%06x\n", GET_24(SP));
+			//std::printf("ERET is returning to 0x%06x\n", GET_24(SP));
 
-			IP = GET_24(SP);
-			SP += 3;
-			SP &= 0xffffff;
+			IP = RA;
 			
 			CLR_IN_INTERRUPT();
+			CLR_MASKED_INT();
 			break;
 			
 		case WFINT:
@@ -1849,7 +1848,7 @@ int CPU::EXECUTE(const INSN insn)
 		case KERNI:
 			if(!IS_MASKED_INT()) 
 			{
-				FETCHED_INSN = 0x0000;
+ /*				FETCHED_INSN = 0x0000;
 				DECODED_INSN = {NOP, -1, -1, -32767, false, false};
 
 				SET_MASKED_INT();
@@ -1859,7 +1858,7 @@ int CPU::EXECUTE(const INSN insn)
 				PUT_24(SP, IP);
 				PS |= 0x0001;   // add kernel perms
 				IP  = XV;       // jump to exception vector
-				//std::printf("\tDEBUG: KERNI hit! XS: [0x%04x]\n", XS);
+				//std::printf("\tDEBUG: KERNI hit! XS: [0x%04x]\n", XS);*/
 			}
 			else
 			{
@@ -1911,8 +1910,6 @@ int EXEC_SYSC(u16 SYSC, CPU* me)
 
 int EXEC_JUMP(INSN insn, CPU* me) 
 {
-	me->SET_MASKED_INT();
-
 	if(insn.OPERATION & LINK)
 	{
 		me->SP -= 3;
@@ -2028,8 +2025,6 @@ int EXEC_JUMP(INSN insn, CPU* me)
 	me->IP &= 0x00ffffff;
 
 	//std::printf(" to [0x%06x]\n", me->IP);
-
-	me->CLR_MASKED_INT();
 
 	return 1; 
 }

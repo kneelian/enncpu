@@ -1,3 +1,4 @@
+
 #include <cstdio>
 #include <bit>
 #include <fstream>
@@ -181,7 +182,7 @@ int main(int argc, char** argv)
         UnloadTexture(tex);
     
         int key = GetKeyPressed();
-        if(key and !basic_cpu.IS_MASKED_INT())
+        if(key)
         {
         	KEYB_BASE[0] = u8(key);
         	basic_cpu.TRAP(0x00'04);

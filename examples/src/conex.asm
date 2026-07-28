@@ -1,0 +1,84 @@
+.ORG 0x0000
+.SEC %PGA
+	UNMASK
+
+	ADRL A, @STK
+	ADRM A, @STK
+	WSP  A
+
+	ADRL A, @EXVEC
+	ADRM A, @EXVEC
+	WXV  A
+
+	ADRL A, @MAIN
+	ADRM A, @MAIN
+
+	JMR  A
+
+@DRAW_CHAR
+	RET
+
+@KILL
+	ERR
+
+@EXVEC
+	
+	PSHS A
+	PSHS B
+
+	ADRL B, #0x00
+	ADRM B, #0xf4
+	ADRH B, #0x87
+
+	LDRB A, B
+	MOVL B, #0x51
+
+	CEQ   A, B
+	JMO.P @KILL
+	DBGB  A
+
+	POPS B
+	POPS A
+
+	ERET
+
+%PGA
+
+.ORG 0x0400
+.SEC %PROG
+
+@MAIN
+
+	ADRL B, #0x00
+	ADRM B, #0x00
+	ADRH B, #0x80
+
+	MOVL A, #0x8a
+	MOVM A, #0x02
+	MOVL C, #0x90
+	MOVM C, #0x01
+	MULA A, C
+	MOV  C, #0
+	SUB  C, #1
+
+	@WHITE
+		STRW  C, B+
+		SUB   A, #1
+		JMNZO A, @WHITE
+
+	@LOOP
+		JMO @LOOP
+
+	ERR
+
+%PROG
+
+.ORG 0x1000
+@STK
+
+.ORG 0x2000
+.SEC %FONTS
+
+$include font8.enn
+
+%FONTS

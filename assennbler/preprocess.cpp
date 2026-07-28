@@ -25,7 +25,7 @@ void PREPROCESS(std::vector<std::string>& raw_lines)
 				{
 					if(i.substr(0, 8) == "$include")
 					{
-						std::fstream f(i.substr(9, i.size()));
+						std::fstream f(i.substr(9, i.size()), std::ios_base::in);
 						if(f.is_open())
 						{
 							temp_vec.clear();
@@ -35,6 +35,10 @@ void PREPROCESS(std::vector<std::string>& raw_lines)
 							f.close();
 							i = "=";
 							in_files.push_back(temp_vec);
+						}
+						else
+						{
+							std::printf("Error opening $include: [%s]!\n", i.substr(9, i.size()).c_str());
 						}
 					}
 				}
