@@ -1,0 +1,17 @@
+$def X A
+
+$macro int48add 3
+	ADD   m0, m1
+	CGT   m1, m0
+	ADD.P m2, #1
+$endm
+
+.ORG 0x000
+.SEC %PGA
+
+	SUB A, #1
+	SUB B, #1
+
+	_int48add X, B, C
+
+%PGA

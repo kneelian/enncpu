@@ -110,6 +110,7 @@
 
 	CEQ   A, B
 	JMO.P @KILL
+	ADD.P
 
 	JLA   @DRAW_CHAR
 
