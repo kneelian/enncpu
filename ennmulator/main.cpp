@@ -181,7 +181,7 @@ int main(int argc, char** argv)
 
         UnloadTexture(tex);
     
-        int key = GetKeyPressed();
+        int key = GetCharPressed();
         if(key)
         {
         	KEYB_BASE[0] = u8(key);

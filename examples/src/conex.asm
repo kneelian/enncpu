@@ -16,11 +16,14 @@
 	JMR  A
 
 @DRAW_CHAR
-	POPS A
-
-	ERR
-
 	SWAP
+
+	ADRL A, @OFFSET
+	ADRM A, @OFFSET
+	LDRW B, A
+	ADD  B, #8
+	STRW B, A
+
 	LITE A     ; which char?
 	; in the future
 	;	B - x position of char
@@ -46,6 +49,12 @@
 	MOVL E, #200
 	ADD  C, E     ; and x offset
 
+	ADRL A, @OFFSET
+	ADRM A, @OFFSET
+	LDRW E, A
+	ADD  C, E
+	ADD  C, E ; 16bpp
+
 	MOV  E, #8
 	@DRAW_OUTER
 		MOV  F, #8
@@ -65,11 +74,6 @@
 		JMNZO E, @DRAW_OUTER
 
 	SWAP
-
-	POPS A
-
-	ERR
-
 	RET
 
 @KILL
@@ -103,8 +107,6 @@
 
 	JLA   @DRAW_CHAR
 
-	ERR
-
 	DBGB A
 
 	MOV  A, #0
@@ -113,9 +115,10 @@
 	POPS B
 	POPS A
 
-	ERR  ; it never reaches here?
-
 	ERET
+
+@OFFSET
+.INT16 0x00
 
 %PGA
 

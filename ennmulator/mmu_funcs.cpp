@@ -32,7 +32,7 @@ u32 MMU::READ_24(u32 addr, u16 proc_state)
 	u32 temp  = (DATA[addr] << 16);
 	 addr = (page | ((subp + 1) & 0x0fff)) & 0x00ffffff;
 	    temp |= (DATA[addr] <<  8);
-	 addr = (page | ((subp + 1) & 0x0fff)) & 0x00ffffff;
+	 addr = (page | ((subp + 2) & 0x0fff)) & 0x00ffffff;
 	    temp |= (DATA[addr] <<  0);
  
 	return temp;

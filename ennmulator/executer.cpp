@@ -1915,13 +1915,9 @@ int EXEC_JUMP(INSN insn, CPU* me)
 {
 	if(insn.OPERATION & LINK)
 	{
-		volatile u32 NIP = me->IP;
 		me->SP -= 3;
 		me->SP &= 0xffffff;
-		me->PUT_24(me->SP, NIP);
-		std::printf("LINK: IP = 0x%06x, SPTOP = 0x%06x\n",
-			NIP,
-			me->GET_24(me->SP));
+		me->PUT_24(me->SP, me->IP);
 	}
 
 	if(insn.OPERATION & ABSOLUTE)
