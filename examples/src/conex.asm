@@ -44,20 +44,18 @@
 	@DRAW_OUTER
 		MOV  F, #8
 		LDRB G, B+  ; G now has full byte
-		ADD  C, #16 ; drawing right to left
 		@DRAW_INNER
 			MOV   H, G
 			BAND  H, #1
 			SUB   H, #1
 			LSHR  G, #1
-			STRW  H, C-
+			STRW  H, C+
 			SUB   F, #1
-			JMNZO F, @DRAW_INNER  ; this works
-								  ; but we're drawing
-								  ; the letter in reverse...
+			JMNZO F, @DRAW_INNER 
 
 		SUB   E, #1
 		ADD   C, D  ; next row
+		SUB   C, #16
 		JMNZO E, @DRAW_OUTER
 
 	ERR
