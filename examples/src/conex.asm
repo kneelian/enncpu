@@ -16,9 +16,15 @@
 	JMR  A
 
 @DRAW_CHAR
+	POPS A
+
+	ERR
 
 	SWAP
 	LITE A     ; which char?
+	; in the future
+	;	B - x position of char
+	;   C - y position of char
 
 	LSHL A, #3 ; offset in table
 
@@ -58,6 +64,10 @@
 		SUB   C, #16
 		JMNZO E, @DRAW_OUTER
 
+	SWAP
+
+	POPS A
+
 	ERR
 
 	RET
@@ -66,9 +76,20 @@
 	ERR
 
 @EXVEC
-	
 	PSHS A
 	PSHS B
+
+	RXS    A
+	CNE    A, #4
+	POPS.P B
+	POPS.P A
+	JMO.P  @KILL
+
+	; for some reason
+	; currently enters int
+	; draws character fine
+	; but overwrites it
+	; immediately after exit?
 
 	ADRL B, #0x00
 	ADRM B, #0xf4
@@ -82,10 +103,17 @@
 
 	JLA   @DRAW_CHAR
 
-	DBGB  A
+	ERR
+
+	DBGB A
+
+	MOV  A, #0
+	WXS  A
 
 	POPS B
 	POPS A
+
+	ERR  ; it never reaches here?
 
 	ERET
 

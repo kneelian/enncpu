@@ -1838,6 +1838,9 @@ int CPU::EXECUTE(const INSN insn)
 			
 			CLR_IN_INTERRUPT();
 			CLR_MASKED_INT();
+
+			XS = 0x0000;
+
 			break;
 			
 		case WFINT:
@@ -1912,9 +1915,14 @@ int EXEC_JUMP(INSN insn, CPU* me)
 {
 	if(insn.OPERATION & LINK)
 	{
+		volatile u32 NIP = me->IP;
+		NIP <<= 8;
 		me->SP -= 3;
 		me->SP &= 0xffffff;
-		me->PUT_24(me->SP, me->IP);
+		me->PUT_24(me->SP, NIP);
+		std::printf("LINK: IP = 0x%06x, SPTOP = 0x%06x\n",
+			NIP,
+			me->GET_24(me->SP));
 	}
 
 	if(insn.OPERATION & ABSOLUTE)

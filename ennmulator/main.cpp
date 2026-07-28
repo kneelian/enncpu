@@ -142,7 +142,7 @@ int main(int argc, char** argv)
     
     w.SetTargetFPS(30);
 
-    raylib::Shader s = LoadShader(0, TextFormat("crt.fs", 330));
+    raylib::Shader s = LoadShader(0, TextFormat("crst.fs", 330));
 
     Image img = GenImageColor(650, 400, WHITE);
     ImageFormat(&img, PIXELFORMAT_UNCOMPRESSED_R5G6B5);
