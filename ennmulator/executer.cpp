@@ -1916,7 +1916,6 @@ int EXEC_JUMP(INSN insn, CPU* me)
 	if(insn.OPERATION & LINK)
 	{
 		volatile u32 NIP = me->IP;
-		NIP <<= 8;
 		me->SP -= 3;
 		me->SP &= 0xffffff;
 		me->PUT_24(me->SP, NIP);
