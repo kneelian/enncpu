@@ -254,7 +254,7 @@ LINE PARSE_THIS(
 						if(line[i].size())
 							tempstr = tempstr + " " + line[i];
 
-					tempstr = tempstr.substr(1, 33ul);
+					tempstr = tempstr.substr(1, 256ul);
 					if(result.DIREC == ASCIZ)
 						tempstr = tempstr + '\0';
 

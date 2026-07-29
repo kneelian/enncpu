@@ -324,11 +324,27 @@ FAR JLO   @DRAW_CHAR
  	STRB  B, D
 	STRB  C, E
 
-
 	POPS E
 	POPS D
 	POPS C
 	POPS B
+	RET
+
+; takes pointer to zero terminated string in A
+; prints until empty
+@PRINT_STRING
+	PSHS B
+	MOV  B, A
+
+	@PRINT_STRING_L1
+		LDRB  A, B+
+		JMZO  A, @PRINT_STRING_L1_E
+	FAR JLO   @PUTCHAR_CURSOR
+		JMO   @PRINT_STRING_L1
+	@PRINT_STRING_L1_E
+
+	POPS B
+	ERR
 	RET
 
 %PGA
@@ -356,13 +372,9 @@ FAR JLO   @DRAW_CHAR
 		SUB   A, #1
 		JMNZO A, @PAINT
 
-	MOV  B, #120
-	LSHL B, #3
-	@LOOP_CHAR
-		MOV   A, 'f'
-	FAR JLO   @PUTCHAR_CURSOR
-		SUB   B, #1
-		JMNZO B, @LOOP_CHAR
+	ADRL A, @STRING
+	ADRM A, @STRING
+FAR JLO  @PRINT_STRING
 
 	ERR
 
@@ -370,6 +382,9 @@ FAR JLO   @DRAW_CHAR
 		JMO @LOOP
 
 	ERR
+
+@STRING
+.ASCIZ This is 100% software-rendered from a string 
 
 %PROG
 
