@@ -1,3 +1,25 @@
+$macro SAVEALL 0
+	PSHS A
+	PSHS B
+	PSHS C
+	PSHS D
+	PSHS E
+	PSHS F
+	PSHS G
+	PSHS H
+$endm
+
+$macro LOADALL 0
+	POPS H
+	POPS G
+	POPS F
+	POPS E
+	POPS D
+	POPS C
+	POPS B
+	POPS A
+$endm
+
 .ORG 0x0000
 .SEC %PGA
 	UNMASK
@@ -15,6 +37,182 @@
 
 	JMR  A
 
+; A has source
+; B has target
+; C has count
+@MEMCPY
+	PSHS D
+	@MEMCPY_LOOP
+		LDRB  D, A+
+		STRB  D, B+
+		SUB   C, #1
+		JMNZO C, @MEMCPY_LOOP
+	POPS D
+	RET
+
+; A has source
+; string must be zero-term
+; return in A
+@STRLEN
+	PSHS B
+	MOV  B, A
+	MOV  A, #0
+	PSHS C
+	@STRLEN_LOOP
+		LDRB  C, B+ 
+		ADD   A, #1
+		JMNZO C, @STRLEN_LOOP
+	POPS C
+	POPS B
+	RET
+
+; A has string x
+; B has string y
+; return in A
+; 	0 if different
+;   1 if equal
+@STREQ
+	PSHS C
+	PSHS D
+	@STREQ_L1
+		LDRB  C, A+
+		LDRB  D, B+
+
+		; unequals
+		CNE   C, D
+		MOV.P A, #0
+		JMO.P @STREQ_L1_E
+
+		; reached the end?
+		CEQ   C, #0
+		MOV.P A, #1
+		JMO.P @STREQ_L1_E
+
+		JMO   @STREQ_L1
+	@STREQ_L1_E
+	POPS D
+	POPS C
+	RET
+
+@KILL
+	ERR
+
+@EXVEC
+	PSHS A
+	PSHS B
+
+	RXS    A
+	CNE    A, #4
+	POPS.P B
+	POPS.P A
+	JMO.P  @KILL
+
+	; for some reason
+	; currently enters int
+	; draws character fine
+	; but overwrites it
+	; immediately after exit?
+
+	ADRL B, #0x00
+	ADRM B, #0xf4
+	ADRH B, #0x87
+
+	LDRB A, B
+	MOVL B, #0x51
+
+	CEQ   A, B
+	JMO.P @KILL
+	ADD.P
+
+FAR JLO   @DRAW_CHAR
+
+	DBGB A
+
+	MOV  A, #0
+	WXS  A
+
+	POPS B
+	POPS A
+
+	ERET
+
+; A has colour 16bpp
+; B --> x
+; C --> y
+@DRAW_PX
+	PSHS D
+	PSHS E
+
+	ADRL D, #0x00
+	ADRH D, #0x80 ; start of framebuffer
+	MOVL E, #0x8A
+	MOVM E, #0x02
+	LSHL E, #1    ; bytes per row @ 16bpp
+
+	LSHL B, #1
+	MULA C, E
+	ADD  D, C
+	ADD  D, B
+
+	STRW A, D
+
+	POPS E
+	POPS D
+	RET
+
+; A is char
+; B --> x
+; C --> y
+@DRAW_CHAR_KERN
+	_SAVEALL
+
+	ADRL D, #0x00
+	ADRH D, #0x80 ; start of framebuffer
+	MOVL E, #0x8A
+	MOVM E, #0x02
+	LSHL E, #1    ; bytes per row @ 16bpp
+
+	LSHL B, #1
+	MULA C, E
+	ADD  D, C
+	ADD  D, B
+
+	LSHL A, #4 ; offset in table
+	ADRL B, @FONT16x8
+	ADRM B, @FONT16x8
+	ADD  B, A  ; position of bitmap in font
+
+	MOV  C, D
+	MOV  D, E
+	MOV  E, #16
+	@DRAW_OUTER_KERN
+		MOV  F, #8
+		LDRB G, B+  ; G now has full byte
+		ADD  C, #16
+		@DRAW_INNER_KERN
+			MOV   H, G
+			BAND  H, #1
+			SUB   H, #1
+			LSHR  G, #1
+			INV   H, H
+			STRW  H, C-
+			SUB   F, #1
+			JMNZO F, @DRAW_INNER_KERN
+
+		SUB   E, #1
+		ADD   C, D  ; next row
+		JMNZO E, @DRAW_OUTER_KERN
+
+	ERR
+
+	_LOADALL
+
+	RET
+
+@OFFSET
+.INT16 0x00
+; needs a rewrite
+; to avoid using shadow
 @DRAW_CHAR
 	SWAP
 
@@ -82,51 +280,6 @@
 	SWAP
 	RET
 
-@KILL
-	ERR
-
-@EXVEC
-	PSHS A
-	PSHS B
-
-	RXS    A
-	CNE    A, #4
-	POPS.P B
-	POPS.P A
-	JMO.P  @KILL
-
-	; for some reason
-	; currently enters int
-	; draws character fine
-	; but overwrites it
-	; immediately after exit?
-
-	ADRL B, #0x00
-	ADRM B, #0xf4
-	ADRH B, #0x87
-
-	LDRB A, B
-	MOVL B, #0x51
-
-	CEQ   A, B
-	JMO.P @KILL
-	ADD.P
-
-	JLA   @DRAW_CHAR
-
-	DBGB A
-
-	MOV  A, #0
-	WXS  A
-
-	POPS B
-	POPS A
-
-	ERET
-
-@OFFSET
-.INT16 0x00
-
 %PGA
 
 .ORG 0x0400
@@ -151,6 +304,15 @@
 		STRW  C, B+
 		SUB   A, #1
 		JMNZO A, @PAINT
+
+	MOV  A, 'f'
+	MOV  B, #162
+	LSHL B, #1
+	MOV  C, #100
+
+FAR JLO @DRAW_CHAR_KERN
+
+	ERR
 
 	@LOOP
 		JMO @LOOP
