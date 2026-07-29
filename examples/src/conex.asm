@@ -107,12 +107,6 @@ $endm
 	POPS.P A
 	JMO.P  @KILL
 
-	; for some reason
-	; currently enters int
-	; draws character fine
-	; but overwrites it
-	; immediately after exit?
-
 	ADRL B, #0x00
 	ADRM B, #0xf4
 	ADRH B, #0x87
@@ -211,8 +205,6 @@ FAR JLO   @DRAW_CHAR
 
 @OFFSET
 .INT16 0x00
-; needs a rewrite
-; to avoid using shadow
 @DRAW_CHAR
 	SWAP
 
