@@ -101,8 +101,13 @@ $endm
 	PSHS A
 	PSHS B
 
+	RPS    A
+	PSHS   A
+
 	RXS    A
 	CNE    A, #4
+	POPS.P A
+	WPS.P  A
 	POPS.P B
 	POPS.P A
 	JMO.P  @KILL
@@ -124,6 +129,9 @@ FAR JLO   @DRAW_CHAR
 
 	MOV  A, #0
 	WXS  A
+
+	POPS A
+	WPS  A
 
 	POPS B
 	POPS A
@@ -196,8 +204,6 @@ FAR JLO   @DRAW_CHAR
 		SUB   E, #1
 		ADD   C, D  ; next row
 		JMNZO E, @DRAW_OUTER_KERN
-
-	ERR
 
 	_LOADALL
 
@@ -272,6 +278,59 @@ FAR JLO   @DRAW_CHAR
 	SWAP
 	RET
 
+; print_next_char takes only a codepoint
+; and handles the positioning of the char
+; on the framebuffer by manipulating the
+; "cursor" variables
+@CURSOR_X
+.INT8 0
+@CURSOR_Y
+.INT8 0
+; screen is 80 chars wide (with 5 px on either side)
+; and 25 tall 
+; (640 / 8), (400 / 16)
+;
+; takes codepoint in A
+@PUTCHAR_CURSOR
+	PSHS B
+	PSHS C
+	PSHS D
+	PSHS E
+
+	ADRL  D, @CURSOR_X
+	ADRM  D, @CURSOR_X
+	ADRL  E, @CURSOR_Y
+	ADRM  E, @CURSOR_Y
+
+	LDRB  B, D
+	LDRB  C, E
+
+	LSHL B, #3  ; *8
+	LSHL C, #4  ; *16
+
+	ADD  B, #5  ; padding
+
+ FAR JLO @DRAW_CHAR_KERN
+
+	LDRB  B, D
+	LDRB  C, E
+
+ 	ADD   B, #1
+ 	MOV   A, #80
+ 	CEQ   A, B    ; B ?= 80
+ 	MOV.P B, #0
+ 	ADD.P C, #1
+
+ 	STRB  B, D
+	STRB  C, E
+
+
+	POPS E
+	POPS D
+	POPS C
+	POPS B
+	RET
+
 %PGA
 
 .ORG 0x0400
@@ -297,12 +356,13 @@ FAR JLO   @DRAW_CHAR
 		SUB   A, #1
 		JMNZO A, @PAINT
 
-	MOV  A, 'f'
-	MOV  B, #162
-	LSHL B, #1
-	MOV  C, #100
-
-FAR JLO @DRAW_CHAR_KERN
+	MOV  B, #120
+	LSHL B, #3
+	@LOOP_CHAR
+		MOV   A, 'f'
+	FAR JLO   @PUTCHAR_CURSOR
+		SUB   B, #1
+		JMNZO B, @LOOP_CHAR
 
 	ERR
 
