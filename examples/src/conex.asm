@@ -233,6 +233,9 @@ FAR JLO   @PUTCHAR_CURSOR
 	_LOADALL
 	RET
 
+@DRAW_SPRITE_16x16_GRID_ALIGNED
+	LSHL B, #4
+	LSHL C, #4
 ; A contains pointer to sprite memory
 ; B contains X pos
 ; C contains Y pos
@@ -244,6 +247,8 @@ FAR JLO   @PUTCHAR_CURSOR
 	PSHS F
 	PSHS G
 	PSHS H
+
+	ADD  B, #5 ; left padding
 
 	ADRL D, #0x00
 	ADRH D, #0x80  ; framebuffer
@@ -369,11 +374,12 @@ FAR JLO   @PUTCHAR_CURSOR
 	MOVL C, #0x90
 	MOVM C, #0x01
 	MULA A, C
-	MOV  C, #0x00
-	MOVM C, #0x55
+	
+	_888_TO_565 C, 0x30, 0x00, 0x20, D
 
 	@PAINT
 		STRW  C, B+
+
 		SUB   A, #1
 		JMNZO A, @PAINT
 
@@ -383,11 +389,11 @@ FAR JLO  @PRINT_STRING
 
 	DBGS A
 
-	MOV  B, #200
-	MOV  C, #200
+	MOV  B, #10
+	MOV  C, #10
 	ADRL A, @ICON
 	ADRM A, @ICON
-FAR JLO  @DRAW_SPRITE_16x16
+FAR JLO  @DRAW_SPRITE_16x16_GRID_ALIGNED
 
 	ERR
 
@@ -411,6 +417,6 @@ $include font8.enn
 $include font16.enn
 
 @ICON
-$include icon.enn
+$include sprite.enn
 
 %FONTS
