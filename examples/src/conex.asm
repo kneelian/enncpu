@@ -121,9 +121,8 @@ $endm
 
 	CEQ   A, B
 	JMO.P @KILL
-	ADD.P
 
-FAR JLO   @DRAW_CHAR
+FAR JLO   @PUTCHAR_CURSOR
 
 	DBGB A
 
@@ -200,6 +199,7 @@ FAR JLO   @DRAW_CHAR
 			INV.P   H, H
 			STRW.P  H, C
 			SUB     C, #2
+			; just skip bgcol bits
 			SUB     F, #1
 			JMNZO   F, @DRAW_INNER_KERN
 
@@ -210,73 +210,47 @@ FAR JLO   @DRAW_CHAR
 	_LOADALL
 	RET
 
-@OFFSET
-.INT16 0x00
-@DRAW_CHAR
-	SWAP
+; A contains pointer to sprite memory
+; B contains X pos
+; C contains Y pos
+; 	a magenta pixel is transparent
+;   i.e. 0xF81F is skipped
+@DRAW_SPRITE_16x16
+	PSHS D
+	PSHS E
+	PSHS F
+	PSHS G
+	PSHS H
 
-	ADRL A, @OFFSET
-	ADRM A, @OFFSET
-	LDRW B, A
-	ADD  B, #8
-	STRW B, A
+	ADRL D, #0x00
+	ADRH D, #0x80  ; framebuffer
+	MOVL E, #0x8A
+	MOVM E, #0x02
+	LSHL E, #1    ; bytes per row @ 16bpp
+	MULA C, E
+	LSHL B, #1
+	ADD  C, D
+	ADD  C, B     ; top left
 
-	LITE A     ; which char?
-	; in the future
-	;	B - x position of char
-	;   C - y position of char
+	MOV  B, #16
+	@DRAW_SPRITE_16x16_OUTER
+		MOV  D, #16
+		@DRAW_SPRITE_16x16_INNER
+			LDRW  G, A+  ; has pixel
+			ENDW  G, G   ; endian conversion
+			STRW  G, C+
+			SUB   D, #1
+			JMNZO D, @DRAW_SPRITE_16x16_INNER
+		SUB   C, #32
+		ADD   C, E
+		SUB   B, #1
+		JMNZO B, @DRAW_SPRITE_16x16_OUTER
 
-	LSHL A, #4 ; offset in table
-
-	ADRL B, @FONT16x8
-	ADRM B, @FONT16x8
-
-	ADD  B, A     ; position of bitmap in font
-
-	ADRL C, #0x00
-	ADRH C, #0x80 ; start of framebuffer
-
-	MOVL D, #0x8A
-	MOVM D, #0x02
-	LSHL D, #1    ; bytes per row @ 16bpp
-
-	MOVL E, #200
-	MULA E, D     ; random position top left
-	ADD  C, E     ; where in framebuffer
-	MOVL E, #200
-	ADD  C, E     ; and x offset
-
-	ADRL A, @OFFSET
-	ADRM A, @OFFSET
-	LDRW E, A
-	ADD  C, E
-	ADD  C, E ; 16bpp
-
-	; some fonts are reverse bit order from others
-	; instead of ADD C, #16 / STRW H, C- you need
-	; STRW H, C+ / SUB C, #16 to put pixels in
-	; RTL or LTR order, depending on the font
-
-	MOV  E, #16
-	@DRAW_OUTER
-		MOV  F, #8
-		LDRB G, B+  ; G now has full byte
-		ADD  C, #16
-		@DRAW_INNER
-			MOV   H, G
-			BAND  H, #1
-			SUB   H, #1
-			LSHR  G, #1
-			INV   H, H
-			STRW  H, C-
-			SUB   F, #1
-			JMNZO F, @DRAW_INNER 
-
-		SUB   E, #1
-		ADD   C, D  ; next row
-		JMNZO E, @DRAW_OUTER
-
-	SWAP
+	POPS H
+	POPS G
+	POPS F
+	POPS E
+	POPS D
 	RET
 
 ; print_next_char takes only a codepoint
