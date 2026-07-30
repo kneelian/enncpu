@@ -192,21 +192,22 @@ FAR JLO   @DRAW_CHAR
 		LDRB G, B+  ; G now has full byte
 		ADD  C, #16
 		@DRAW_INNER_KERN
-			MOV   H, G
-			BAND  H, #1
-			SUB   H, #1
-			LSHR  G, #1
-			INV   H, H
-			STRW  H, C-
-			SUB   F, #1
-			JMNZO F, @DRAW_INNER_KERN
+			MOV     H, G
+			BAND    H, #1
+			CEQ     H, #1
+			LSHR    G, #1
+			SUB.P   H, #1
+			INV.P   H, H
+			STRW.P  H, C
+			SUB     C, #2
+			SUB     F, #1
+			JMNZO   F, @DRAW_INNER_KERN
 
 		SUB   E, #1
 		ADD   C, D  ; next row
 		JMNZO E, @DRAW_OUTER_KERN
 
 	_LOADALL
-
 	RET
 
 @OFFSET
@@ -365,7 +366,7 @@ FAR JLO   @DRAW_CHAR
 	MOVM C, #0x01
 	MULA A, C
 	MOV  C, #0x00
-	MOVM C, #0x00
+	MOVM C, #0x55
 
 	@PAINT
 		STRW  C, B+
