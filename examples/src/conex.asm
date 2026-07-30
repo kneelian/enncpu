@@ -232,15 +232,20 @@ FAR JLO   @PUTCHAR_CURSOR
 	ADD  C, D
 	ADD  C, B     ; top left
 
+	MOVL H, #0x1f
+	MOVM H, #0xf8 ; magenta
+
 	MOV  B, #16
 	@DRAW_SPRITE_16x16_OUTER
 		MOV  D, #16
 		@DRAW_SPRITE_16x16_INNER
-			LDRW  G, A+  ; has pixel
-			ENDW  G, G   ; endian conversion
-			STRW  G, C+
-			SUB   D, #1
-			JMNZO D, @DRAW_SPRITE_16x16_INNER
+			LDRW   G, A+  ; has pixel
+			ENDW   G, G   ; endian conversion
+			CNE    G, H
+			STRW.P G, C
+			ADD    C, #2
+			SUB    D, #1
+			JMNZO  D, @DRAW_SPRITE_16x16_INNER
 		SUB   C, #32
 		ADD   C, E
 		SUB   B, #1
