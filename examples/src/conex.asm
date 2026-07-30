@@ -20,6 +20,29 @@ $macro LOADALL 0
 	POPS A
 $endm
 
+; m0 is the target reg
+; m1 - m3 are the colours
+; m4 is a temp register
+$macro 888_TO_565 5
+	MOV  m0, #0
+	
+	MOVL m0, #m1 
+	LSHR m0, #3
+	BOR  m4, m0
+
+	MOVL m0, #m2
+	LSHR m0, #2
+	LSHL m4, #6
+	BOR  m4, m0
+
+	MOVL m0, #m3
+	LSHR m0, #3
+	LSHL m4, #5
+	BOR  m4, m0
+
+	ENDW m0, m4
+$endm
+
 .ORG 0x0000
 .SEC %PGA
 	UNMASK
@@ -232,15 +255,15 @@ FAR JLO   @PUTCHAR_CURSOR
 	ADD  C, D
 	ADD  C, B     ; top left
 
-	MOVL H, #0x1f
-	MOVM H, #0xf8 ; magenta
+	_888_TO_565 H, 0xff, 0x00, 0xff, G
+
+	; magenta in little endian now in H
 
 	MOV  B, #16
 	@DRAW_SPRITE_16x16_OUTER
 		MOV  D, #16
 		@DRAW_SPRITE_16x16_INNER
 			LDRW   G, A+  ; has pixel
-			ENDW   G, G   ; endian conversion
 			CNE    G, H
 			STRW.P G, C
 			ADD    C, #2
@@ -328,7 +351,6 @@ FAR JLO   @PUTCHAR_CURSOR
 	@PRINT_STRING_L1_E
 
 	POPS B
-	ERR
 	RET
 
 %PGA
@@ -337,7 +359,6 @@ FAR JLO   @PUTCHAR_CURSOR
 .SEC %PROG
 
 @MAIN
-
 	ADRL B, #0x00
 	ADRM B, #0x00
 	ADRH B, #0x80
@@ -360,6 +381,14 @@ FAR JLO   @PUTCHAR_CURSOR
 	ADRM A, @STRING
 FAR JLO  @PRINT_STRING
 
+	DBGS A
+
+	MOV  B, #200
+	MOV  C, #200
+	ADRL A, @ICON
+	ADRM A, @ICON
+FAR JLO  @DRAW_SPRITE_16x16
+
 	ERR
 
 	@LOOP
@@ -379,7 +408,9 @@ FAR JLO  @PRINT_STRING
 .SEC %FONTS
 
 $include font8.enn
-
 $include font16.enn
+
+@ICON
+$include icon.enn
 
 %FONTS
