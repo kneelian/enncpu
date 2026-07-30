@@ -311,7 +311,11 @@ FAR JLO   @DRAW_CHAR
 
 	ADD  B, #5  ; padding
 
+	MOV.P D, #1
+
  FAR JLO @DRAW_CHAR_KERN
+
+ 	CEQ   D, #1
 
 	LDRB  B, D
 	LDRB  C, E
