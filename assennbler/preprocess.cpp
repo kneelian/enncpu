@@ -203,9 +203,14 @@ void PREPROCESS(std::vector<std::string>& raw_lines)
 						{
 							a = m.to[j];
 							for(int k = 0; k < m.argc; k++)
+							{
 								// disgusting gore to find mX for each numbered argument
 								if(a.find( std::string("m") + char(k + '0') ) != std::string::npos)
 									a.replace(a.find( std::string("m") + char(k + '0') ), 2, macroargs[k] );
+								// hack to allow two replacements per line for cases like ADD A, A
+								if(a.find( std::string("m") + char(k + '0') ) != std::string::npos)
+									a.replace(a.find( std::string("m") + char(k + '0') ), 2, macroargs[k] );
+							}
 							temp_vec.push_back(a);
 						}
 						for(int j = i + 1; j < raw_lines.size(); j++)
