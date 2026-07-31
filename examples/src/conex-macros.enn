@@ -1,16 +1,20 @@
 $macro SAVEALL 0
-	PSHS A
-	PSHS B
-	PSHS C
-	PSHS D
-	PSHS E
-	PSHS F
-	PSHS G
-	PSHS H
+	PSHS  A
+	PSHS  B
+	PSHS  C
+	PSHS  D
+	PSHS  E
+	PSHS  F
+	PSHS  G
+	PSHS  H
+	MOV.P A, #1
+	PSHS  A
 $endm
 
 $macro LOADALL 0
-	POPS H
+	POPS A
+	CEQ  A, #1 ; hack to preserve
+	POPS H     ; predication state
 	POPS G
 	POPS F
 	POPS E
