@@ -18,6 +18,8 @@ $include raylib-constants.enn
 
 	JMR  A
 
+.INT16 @MEMCPY
+
 ; A has source
 ; B has target
 ; C has count

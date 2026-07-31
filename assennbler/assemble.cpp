@@ -17,12 +17,10 @@ void ASSEMBLE(
 
 		if(i.OPERATION == DIRECTIVE and i.DIREC != NONE)
 		{
-
 			u32 temp = 0;
 			switch(i.DIREC)
 			{
 				case SECTION:
-
 					out_asm.push_back(0x64);
 					out_asm.push_back(0x04);
 					out_asm.push_back(i.POSITION + 8  >> 16);
