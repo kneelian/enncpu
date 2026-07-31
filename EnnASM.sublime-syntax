@@ -29,7 +29,7 @@ contexts:
         1: meta.preprocessor.macro.asm
 
     # Instructions / Opcodes (Add your architecture's instructions here)
-    - match: '\b(?:MOV(L|M|H)?|INV|END(W|S)|(F|P)?(ADD|SUB|DIV)|FMUL|MULA|MULB|LSH(L|R))\b'
+    - match: '\b(?:MOV(L|M|H)?|HALF(A|B)|INV|END(W|S)|GET(L|M|H)|(F|P)?(ADD|SUB|DIV)|FMUL|MUL(A|B)|LSH(L|R))\b'
       keyword: true
       scope: keyword.operator.asm
 
@@ -49,7 +49,7 @@ contexts:
       keyword: true
       scope: keyword.jump.asm
 
-    - match: '\b(ADR(L|M|H)|(LDR|STR|PSH|POP)(B|W|S))\b'
+    - match: '\b(ADR(L|M|H)|(LDR|STR|PSH|POP|SWV|JUNK)(B|W|S)|PSHI)\b'
       scope: keyword.storage
 
     - match: '\bERR\b'

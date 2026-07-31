@@ -8,11 +8,11 @@ $macro SAVEALL 0
 	PSHS  G
 	PSHS  H
 	MOV.P A, #1
-	PSHS  A
+	PSHB  A
 $endm
 
 $macro LOADALL 0
-	POPS A
+	POPB A
 	CEQ  A, #1 ; hack to preserve
 	POPS H     ; predication state
 	POPS G

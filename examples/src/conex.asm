@@ -104,7 +104,11 @@ $include raylib-constants.enn
 ; B --> x
 ; C --> y
 @DRAW_CHAR_KERN
-	_SAVEALL
+	PSHS D
+	PSHS E
+	PSHS F
+	PSHS G
+	PSHS H
 
 	ADRL D, @FRAMEBUFFER
 	ADRH D, @FRAMEBUFFER
@@ -146,7 +150,11 @@ $include raylib-constants.enn
 		ADD   C, D  ; next row
 		JMNZO E, @DRAW_OUTER_KERN
 
-	_LOADALL
+	POPS H
+	POPS G
+	POPS F
+	POPS E
+	POPS D
 	RET
 
 @DRAW_SPRITE_16x16_GRID_ALIGNED
@@ -292,21 +300,22 @@ $include raylib-constants.enn
 	POPS.P A
 	JMO.P  @KILL
 
-	ADRL B, @KBD_MAILBOX
-	ADRM B, @KBD_MAILBOX
-	ADRH B, @KBD_MAILBOX
+	ADRL  B, @KBD_MAILBOX
+	ADRM  B, @KBD_MAILBOX
+	ADRH  B, @KBD_MAILBOX
 
-	LDRW A, B
+	LDRW  A, B
 
-	MOVL B, KEY_Q
+	MOV   B, KEY_Q
 
 	CEQ   A, B
 	JMO.P @KILL
 
+	GETL  A, A
+
 FAR JLO   @PUTCHAR_CURSOR
 
-
-	MOV  A, #0
+	MOV  A, #0 ; clearing exception state
 	WXS  A
 
 	POPS A
