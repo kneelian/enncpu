@@ -75,51 +75,6 @@ $include raylib-constants.enn
 	POPS C
 	RET
 
-@KILL
-	ERR
-
-@EXVEC
-	PSHS A
-	PSHS B
-
-	RPS    A
-	PSHS   A
-
-	RXS    A
-	CNE    A, #4
-	POPS.P A
-	WPS.P  A
-	POPS.P B
-	POPS.P A
-	JMO.P  @KILL
-
-	ADRL B, #0x00
-	ADRM B, #0xf4
-	ADRH B, #0x87 ; mailbox address
-
-	LDRB A, B
-
-	ERR
-
-	MOVL B, #0x51
-
-	CEQ   A, B
-	JMO.P @KILL
-
-FAR JLO   @PUTCHAR_CURSOR
-
-	DBGB A
-
-	MOV  A, #0
-	WXS  A
-
-	POPS A
-	WPS  A
-
-	POPS B
-	POPS A
-
-	ERET
 
 ; A has colour 16bpp
 ; B --> x
@@ -128,10 +83,10 @@ FAR JLO   @PUTCHAR_CURSOR
 	PSHS D
 	PSHS E
 
-	ADRL D, #0x00
-	ADRH D, #0x80 ; start of framebuffer
-	MOVL E, #0x8A
-	MOVM E, #0x02
+	ADRL D, @FRAMEBUFFER
+	ADRH D, @FRAMEBUFFER
+	MOVL E, @FB_WIDTH
+	MOVM E, @FB_WIDTH
 	LSHL E, #1    ; bytes per row @ 16bpp
 
 	LSHL B, #1
@@ -151,10 +106,10 @@ FAR JLO   @PUTCHAR_CURSOR
 @DRAW_CHAR_KERN
 	_SAVEALL
 
-	ADRL D, #0x00
-	ADRH D, #0x80 ; start of framebuffer
-	MOVL E, #0x8A
-	MOVM E, #0x02
+	ADRL D, @FRAMEBUFFER
+	ADRH D, @FRAMEBUFFER
+	MOVL E, @FB_WIDTH
+	MOVM E, @FB_WIDTH
 	LSHL E, #1    ; bytes per row @ 16bpp
 
 	LSHL B, #1
@@ -211,10 +166,10 @@ FAR JLO   @PUTCHAR_CURSOR
 
 	ADD  B, #5 ; left padding
 
-	ADRL D, #0x00
-	ADRH D, #0x80  ; framebuffer
-	MOVL E, #0x8A
-	MOVM E, #0x02
+	ADRL D, @FRAMEBUFFER
+	ADRH D, @FRAMEBUFFER
+	MOVL E, @FB_WIDTH
+	MOVM E, @FB_WIDTH
 	LSHL E, #1    ; bytes per row @ 16bpp
 	MULA C, E
 	LSHL B, #1
@@ -319,21 +274,64 @@ FAR JLO   @PUTCHAR_CURSOR
 	POPS B
 	RET
 
+@KILL
+	ERR
+
+@EXVEC
+	PSHS A
+	PSHS B
+
+	RPS    A
+	PSHS   A
+
+	RXS    A
+	CNE    A, #4
+	POPS.P A
+	WPS.P  A
+	POPS.P B
+	POPS.P A
+	JMO.P  @KILL
+
+	ADRL B, @KBD_MAILBOX
+	ADRM B, @KBD_MAILBOX
+	ADRH B, @KBD_MAILBOX
+
+	LDRB A, B
+
+	MOVL B, KEY_Q
+
+	CEQ   A, B
+	JMO.P @KILL
+
+FAR JLO   @PUTCHAR_CURSOR
+
+	DBGB A
+
+	MOV  A, #0
+	WXS  A
+
+	POPS A
+	WPS  A
+
+	POPS B
+	POPS A
+
+	ERET
+
 %PGA
 
 .ORG 0x0400
 .SEC %PROG
 
 @MAIN
-	ADRL B, #0x00
-	ADRM B, #0x00
-	ADRH B, #0x80
+	ADRL B, @FRAMEBUFFER
+	ADRH B, @FRAMEBUFFER
 
-	MOVL A, #0x8a
-	MOVM A, #0x02
+	MOVL A, @FB_WIDTH
+	MOVM A, @FB_WIDTH
 
-	MOVL C, #0x90
-	MOVM C, #0x01
+	MOVL C, @FB_HEIGHT
+	MOVM C, @FB_HEIGHT
 	MULA A, C
 	
 	_888_TO_565 C, 0x30, 0x00, 0x20, D
@@ -379,3 +377,8 @@ $include font16.enn
 $include sprite.enn
 
 %FONTS
+
+.ORG 0x800000
+@FRAMEBUFFER
+.ORG 0x87f400
+@KBD_MAILBOX
