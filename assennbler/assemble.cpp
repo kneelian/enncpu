@@ -142,10 +142,6 @@ void ASSEMBLE(
 					case LD2S:  
 					case ST2SBD:
 					case LD2SBD:
-					case ST2SBI:
-					case LD2SBI:
-					case ST2SAD:
-					case LD2SAD:
 					case ST2SAI:
 					case LD2SAI:
 					{
@@ -201,14 +197,6 @@ void ASSEMBLE(
 						insn |= 0b00'10011'111'000'000; break;
 					case LD2SBD:
 						insn |= 0b00'10011'110'000'000; break;
-					case ST2SBI:
-						insn |= 0b00'10011'101'000'000; break;
-					case LD2SBI:
-						insn |= 0b00'10011'100'000'000; break;
-					case ST2SAD:
-						insn |= 0b00'10011'011'000'000; break;
-					case LD2SAD:
-						insn |= 0b00'10011'010'000'000; break;
 					case ST2SAI:
 						insn |= 0b00'10011'001'000'000; break;
 					case LD2SAI:

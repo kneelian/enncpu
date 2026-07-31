@@ -254,7 +254,7 @@ LINE PARSE_THIS(
 						if(line[i].size())
 							tempstr = tempstr + " " + line[i];
 
-					tempstr = tempstr.substr(1, 256ul);
+					tempstr = tempstr.substr(1, 33ul);
 					if(result.DIREC == ASCIZ)
 						tempstr = tempstr + '\0';
 
@@ -375,18 +375,10 @@ LINE PARSE_THIS(
 					result.OPERATION = LDRWBD; if(result.REG_A  < 0) { throw; } else { result.REG_B = temp[1] - 'A'; temp[0] = temp[1]; } break;
 				case LDRS:
 					result.OPERATION = LDRSBD; if(result.REG_A  < 0) { throw; } else { result.REG_B = temp[1] - 'A'; temp[0] = temp[1]; } break;
-				case ST2W:
-					result.OPERATION = ST2WBD; if(result.REG_A  < 0) { throw; } else { result.REG_B = temp[1] - 'A'; temp[0] = temp[1]; } break;
 				case ST2S:
 					result.OPERATION = ST2SBD; if(result.REG_A  < 0) { throw; } else { result.REG_B = temp[1] - 'A'; temp[0] = temp[1]; } break;
-				case ST3S:
-					result.OPERATION = ST3SBD; if(result.REG_A  < 0) { throw; } else { result.REG_B = temp[1] - 'A'; temp[0] = temp[1]; } break;
-				case LD2W:
-					result.OPERATION = LD2WBD; if(result.REG_A  < 0) { throw; } else { result.REG_B = temp[1] - 'A'; temp[0] = temp[1]; } break;
 				case LD2S:
 					result.OPERATION = LD2SBD; if(result.REG_A  < 0) { throw; } else { result.REG_B = temp[1] - 'A'; temp[0] = temp[1]; } break;
-				case LD3S:
-					result.OPERATION = LD3SBD; if(result.REG_A  < 0) { throw; } else { result.REG_B = temp[1] - 'A'; temp[0] = temp[1]; } break;
 				default: break;
 			}
 			temp[0] = temp[1];
@@ -407,18 +399,6 @@ LINE PARSE_THIS(
 					result.OPERATION = LDRWBI; if(result.REG_A  < 0) { throw; } else { result.REG_B = temp[1] - 'A'; temp[0] = temp[1]; } break;
 				case LDRS:
 					result.OPERATION = LDRSBI; if(result.REG_A  < 0) { throw; } else { result.REG_B = temp[1] - 'A'; temp[0] = temp[1]; } break;
-				case ST2W:
-					result.OPERATION = ST2WBI; if(result.REG_A  < 0) { throw; } else { result.REG_B = temp[1] - 'A'; temp[0] = temp[1]; } break;
-				case ST2S:
-					result.OPERATION = ST2SBI; if(result.REG_A  < 0) { throw; } else { result.REG_B = temp[1] - 'A'; temp[0] = temp[1]; } break;
-				case ST3S:
-					result.OPERATION = ST3SBI; if(result.REG_A  < 0) { throw; } else { result.REG_B = temp[1] - 'A'; temp[0] = temp[1]; } break;
-				case LD2W:
-					result.OPERATION = LD2WBI; if(result.REG_A  < 0) { throw; } else { result.REG_B = temp[1] - 'A'; temp[0] = temp[1]; } break;
-				case LD2S:
-					result.OPERATION = LD2SBI; if(result.REG_A  < 0) { throw; } else { result.REG_B = temp[1] - 'A'; temp[0] = temp[1]; } break;
-				case LD3S:
-					result.OPERATION = LD3SBI; if(result.REG_A  < 0) { throw; } else { result.REG_B = temp[1] - 'A'; temp[0] = temp[1]; } break;
 				default: break;
 			}
 			temp[0] = temp[1];
@@ -440,18 +420,6 @@ LINE PARSE_THIS(
 					result.OPERATION = LDRWAD; if(result.REG_A  < 0) { throw; } else { result.REG_B = temp[0] - 'A'; } break;
 				case LDRS:
 					result.OPERATION = LDRSAD; if(result.REG_A  < 0) { throw; } else { result.REG_B = temp[0] - 'A'; } break;
-				case ST2W:
-					result.OPERATION = ST2WAD; if(result.REG_A  < 0) { throw; } else { result.REG_B = temp[1] - 'A'; } break;
-				case ST2S:
-					result.OPERATION = ST2SAD; if(result.REG_A  < 0) { throw; } else { result.REG_B = temp[1] - 'A'; } break;
-				case ST3S:
-					result.OPERATION = ST3SAD; if(result.REG_A  < 0) { throw; } else { result.REG_B = temp[1] - 'A'; } break;
-				case LD2W:
-					result.OPERATION = LD2WAD; if(result.REG_A  < 0) { throw; } else { result.REG_B = temp[1] - 'A'; } break;
-				case LD2S:
-					result.OPERATION = LD2SAD; if(result.REG_A  < 0) { throw; } else { result.REG_B = temp[1] - 'A'; } break;
-				case LD3S:
-					result.OPERATION = LD3SAD; if(result.REG_A  < 0) { throw; } else { result.REG_B = temp[1] - 'A'; } break;
 				default: break;
 			}
 		}
@@ -472,18 +440,10 @@ LINE PARSE_THIS(
 					result.OPERATION = LDRWAI; if(result.REG_A  < 0) { throw; } else { result.REG_B = temp[0] - 'A'; } break;
 				case LDRS:
 					result.OPERATION = LDRSAI; if(result.REG_A  < 0) { throw; } else { result.REG_B = temp[0] - 'A'; } break;
-				case ST2W:
-					result.OPERATION = ST2WAI; if(result.REG_A  < 0) { throw; } else { result.REG_B = temp[1] - 'A'; } break;
 				case ST2S:
 					result.OPERATION = ST2SAI; if(result.REG_A  < 0) { throw; } else { result.REG_B = temp[1] - 'A'; } break;
-				case ST3S:
-					result.OPERATION = ST3SAI; if(result.REG_A  < 0) { throw; } else { result.REG_B = temp[1] - 'A'; } break;
-				case LD2W:
-					result.OPERATION = LD2WAI; if(result.REG_A  < 0) { throw; } else { result.REG_B = temp[1] - 'A'; } break;
 				case LD2S:
 					result.OPERATION = LD2SAI; if(result.REG_A  < 0) { throw; } else { result.REG_B = temp[1] - 'A'; } break;
-				case LD3S:
-					result.OPERATION = LD3SAI; if(result.REG_A  < 0) { throw; } else { result.REG_B = temp[1] - 'A'; } break;
 				default: break;
 			}
 		}

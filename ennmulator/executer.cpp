@@ -882,31 +882,11 @@ int CPU::EXECUTE(const INSN insn)
 			   u32(ACTIVE_SET.at(insn.FIRST_REG)));
 			break;
 
-		case ST2B:
-			PUT_8 (ACTIVE_SET.at (insn.SECOND_REG),
-			    u8(ACTIVE_SET.at (insn.FIRST_REG)));
-			PUT_8 (ACTIVE_SET.at (insn.SECOND_REG) + 1,
-			    u8(ACTIVE_SET.at((insn.FIRST_REG  + 1) & 7 )));
-			break;
-		case ST2W:
-			PUT_16(ACTIVE_SET.at (insn.SECOND_REG),
-			   u16(ACTIVE_SET.at (insn.FIRST_REG)));
-			PUT_16(ACTIVE_SET.at (insn.SECOND_REG) + 2,
-			   u16(ACTIVE_SET.at((insn.FIRST_REG  + 1) & 7 )));
-			break;
 		case ST2S:
 			PUT_24(ACTIVE_SET.at (insn.SECOND_REG),
 			   u32(ACTIVE_SET.at (insn.FIRST_REG)));
 			PUT_24(ACTIVE_SET.at (insn.SECOND_REG) + 3,
 			   u32(ACTIVE_SET.at((insn.FIRST_REG  + 1) & 7 )));
-			break;
-		case ST3S:
-			PUT_24(ACTIVE_SET.at (insn.SECOND_REG),
-			   u32(ACTIVE_SET.at (insn.FIRST_REG)));
-			PUT_24(ACTIVE_SET.at (insn.SECOND_REG) + 3,
-			   u32(ACTIVE_SET.at((insn.FIRST_REG  + 1) & 7 )));
-			PUT_24(ACTIVE_SET.at (insn.SECOND_REG) + 6,
-			   u32(ACTIVE_SET.at((insn.FIRST_REG  + 2) & 7 )));
 			break;
 
 		case STRBBI:
@@ -927,7 +907,6 @@ int CPU::EXECUTE(const INSN insn)
 			PUT_24(ACTIVE_SET.at(insn.SECOND_REG),
 			    u32(ACTIVE_SET.at(insn.FIRST_REG)));
 			break;
-
 		case STRBAI:
 			PUT_8 (ACTIVE_SET.at(insn.SECOND_REG),
 			    u8(ACTIVE_SET.at(insn.FIRST_REG) & 0x0000ff));
@@ -946,7 +925,6 @@ int CPU::EXECUTE(const INSN insn)
 			ACTIVE_SET.at(insn.SECOND_REG) += 3;
 			ACTIVE_SET.at(insn.SECOND_REG) &= 0x00ffffff;
 			break;
-
 		case STRBBD:
 			ACTIVE_SET.at(insn.SECOND_REG) -= 1;
 			ACTIVE_SET.at(insn.SECOND_REG) &= 0x00ffffff;
@@ -965,7 +943,6 @@ int CPU::EXECUTE(const INSN insn)
 			PUT_24(ACTIVE_SET.at(insn.SECOND_REG),
 			    u32(ACTIVE_SET.at(insn.FIRST_REG)));
 			break;
-
 		case STRBAD:
 			PUT_8 (ACTIVE_SET.at(insn.SECOND_REG),
 			    u8(ACTIVE_SET.at(insn.FIRST_REG) & 0x0000ff));
@@ -985,47 +962,6 @@ int CPU::EXECUTE(const INSN insn)
 			ACTIVE_SET.at(insn.SECOND_REG) &= 0x00ffffff;
 			break;
 
-		case ST2WBI:
-			ACTIVE_SET.at(insn.SECOND_REG) += 4;
-			ACTIVE_SET.at(insn.SECOND_REG) &= 0x00ffffff;
-			PUT_16(ACTIVE_SET.at (insn.SECOND_REG),
-			   u16(ACTIVE_SET.at (insn.FIRST_REG)));
-			PUT_16(ACTIVE_SET.at (insn.SECOND_REG) + 2,
-			   u16(ACTIVE_SET.at((insn.FIRST_REG  + 1) & 7 )));
-			break;
-		case ST2WBD:
-			ACTIVE_SET.at(insn.SECOND_REG) -= 4;
-			ACTIVE_SET.at(insn.SECOND_REG) &= 0x00ffffff;
-			PUT_16(ACTIVE_SET.at (insn.SECOND_REG),
-			   u16(ACTIVE_SET.at (insn.FIRST_REG)));
-			PUT_16(ACTIVE_SET.at (insn.SECOND_REG) + 2,
-			   u16(ACTIVE_SET.at((insn.FIRST_REG  + 1) & 7 )));
-			break;
-		case ST2WAI:
-			PUT_16(ACTIVE_SET.at (insn.SECOND_REG),
-			   u16(ACTIVE_SET.at (insn.FIRST_REG)));
-			PUT_16(ACTIVE_SET.at (insn.SECOND_REG) + 2,
-			   u16(ACTIVE_SET.at((insn.FIRST_REG  + 1) & 7 )));
-			ACTIVE_SET.at(insn.SECOND_REG) += 4;
-			ACTIVE_SET.at(insn.SECOND_REG) &= 0x00ffffff;
-			break;
-		case ST2WAD:
-			PUT_16(ACTIVE_SET.at (insn.SECOND_REG),
-			   u16(ACTIVE_SET.at (insn.FIRST_REG)));
-			PUT_16(ACTIVE_SET.at (insn.SECOND_REG) + 2,
-			   u16(ACTIVE_SET.at((insn.FIRST_REG  + 1) & 7 )));
-			ACTIVE_SET.at(insn.SECOND_REG) -= 4;
-			ACTIVE_SET.at(insn.SECOND_REG) &= 0x00ffffff;
-			break;
-
-		case ST2SBI:
-			ACTIVE_SET.at(insn.SECOND_REG) += 6;
-			ACTIVE_SET.at(insn.SECOND_REG) &= 0x00ffffff;
-			PUT_24(ACTIVE_SET.at (insn.SECOND_REG),
-			   u32(ACTIVE_SET.at (insn.FIRST_REG)));
-			PUT_24(ACTIVE_SET.at (insn.SECOND_REG) + 3,
-			   u32(ACTIVE_SET.at((insn.FIRST_REG  + 1) & 7 )));
-			break;
 		case ST2SBD:
 			ACTIVE_SET.at(insn.SECOND_REG) -= 6;
 			ACTIVE_SET.at(insn.SECOND_REG) &= 0x00ffffff;
@@ -1042,130 +978,14 @@ int CPU::EXECUTE(const INSN insn)
 			ACTIVE_SET.at(insn.SECOND_REG) += 6;
 			ACTIVE_SET.at(insn.SECOND_REG) &= 0x00ffffff;
 			break;
-		case ST2SAD:
-			PUT_24(ACTIVE_SET.at (insn.SECOND_REG),
-			   u32(ACTIVE_SET.at (insn.FIRST_REG)));
-			PUT_24(ACTIVE_SET.at (insn.SECOND_REG) + 3,
-			   u32(ACTIVE_SET.at((insn.FIRST_REG  + 1) & 7 )));
-			ACTIVE_SET.at(insn.SECOND_REG) -= 6;
-			ACTIVE_SET.at(insn.SECOND_REG) &= 0x00ffffff;
-			break;
 
-		case ST3SBI:
-			ACTIVE_SET.at(insn.SECOND_REG) += 9;
-			ACTIVE_SET.at(insn.SECOND_REG) &= 0x00ffffff;
-			PUT_24(ACTIVE_SET.at (insn.SECOND_REG),
-			   u32(ACTIVE_SET.at (insn.FIRST_REG)));
-			PUT_24(ACTIVE_SET.at (insn.SECOND_REG) + 3,
-			   u32(ACTIVE_SET.at((insn.FIRST_REG  + 1) & 7 )));
-			PUT_24(ACTIVE_SET.at (insn.SECOND_REG) + 6,
-			   u32(ACTIVE_SET.at((insn.FIRST_REG  + 2) & 7 )));
-			break;
-		case ST3SBD:
-			ACTIVE_SET.at(insn.SECOND_REG) -= 9;
-			ACTIVE_SET.at(insn.SECOND_REG) &= 0x00ffffff;
-			PUT_24(ACTIVE_SET.at (insn.SECOND_REG),
-			   u32(ACTIVE_SET.at (insn.FIRST_REG)));
-			PUT_24(ACTIVE_SET.at (insn.SECOND_REG) + 3,
-			   u32(ACTIVE_SET.at((insn.FIRST_REG  + 1) & 7 )));
-			PUT_24(ACTIVE_SET.at (insn.SECOND_REG) + 6,
-			   u32(ACTIVE_SET.at((insn.FIRST_REG  + 2) & 7 )));
-			break;
-		case ST3SAI:
-			PUT_24(ACTIVE_SET.at (insn.SECOND_REG),
-			   u32(ACTIVE_SET.at (insn.FIRST_REG)));
-
-			PUT_24(ACTIVE_SET.at (insn.SECOND_REG) + 3,
-			   u32(ACTIVE_SET.at((insn.FIRST_REG  + 1) & 7 )));
-
-			PUT_24(ACTIVE_SET.at (insn.SECOND_REG) + 6,
-			   u32(ACTIVE_SET.at((insn.FIRST_REG  + 2) & 7 )));
-
-			ACTIVE_SET.at(insn.SECOND_REG) += 9;
-			ACTIVE_SET.at(insn.SECOND_REG) &= 0x00ffffff;
-
-			break;
-		case ST3SAD:
-			PUT_24(ACTIVE_SET.at (insn.SECOND_REG),
-			   u32(ACTIVE_SET.at (insn.FIRST_REG)));
-			PUT_24(ACTIVE_SET.at (insn.SECOND_REG) + 3,
-			   u32(ACTIVE_SET.at((insn.FIRST_REG  + 1) & 7 )));
-			PUT_24(ACTIVE_SET.at (insn.SECOND_REG) + 6,
-			   u32(ACTIVE_SET.at((insn.FIRST_REG  + 2) & 7 )));
-			ACTIVE_SET.at(insn.SECOND_REG) -= 9;
-			ACTIVE_SET.at(insn.SECOND_REG) &= 0x00ffffff;
-			break;
-
-		case LD2B:
-			temp = ACTIVE_SET.at(insn.SECOND_REG);
-			ACTIVE_SET.at(insn.FIRST_REG) = GET_8 (temp);
-			ACTIVE_SET.at((insn.FIRST_REG  + 1) & 7 ) = 
-				GET_8 (temp + 1);
-			break;
-		case LD2W:
-			temp = ACTIVE_SET.at(insn.SECOND_REG);
-			ACTIVE_SET.at(insn.FIRST_REG) = GET_16(temp);
-			ACTIVE_SET.at((insn.FIRST_REG  + 1) & 7 ) = 
-				GET_16(temp + 2);
-			break;
 		case LD2S:
 			temp = ACTIVE_SET.at(insn.SECOND_REG);
 			ACTIVE_SET.at(insn.FIRST_REG) = GET_24(temp);
 			ACTIVE_SET.at((insn.FIRST_REG  + 1) & 7 ) = 
 				GET_24(temp + 3);
 			break;
-		case LD3S:
-			temp = ACTIVE_SET.at(insn.SECOND_REG);
-			ACTIVE_SET.at(insn.FIRST_REG) = GET_24(temp);
-			ACTIVE_SET.at((insn.FIRST_REG  + 1) & 7 ) = 
-				GET_24(temp + 3);
-			ACTIVE_SET.at((insn.FIRST_REG  + 2) & 7 ) = 
-				GET_24(temp + 6);
-			break;
 
-		case LD2WBI:
-			temp = ACTIVE_SET.at(insn.SECOND_REG);
-			ACTIVE_SET.at(insn.SECOND_REG) += 4;
-			ACTIVE_SET.at(insn.SECOND_REG) &= 0x00ffffff;
-			ACTIVE_SET.at(insn.FIRST_REG) = GET_16(ACTIVE_SET.at(insn.SECOND_REG));
-			ACTIVE_SET.at((insn.FIRST_REG  + 1) & 7 ) = 
-				GET_16(ACTIVE_SET.at(insn.SECOND_REG) + 2);
-			break;
-
-		case LD2WBD:
-			temp = ACTIVE_SET.at(insn.SECOND_REG);
-			ACTIVE_SET.at(insn.SECOND_REG) -= 4;
-			ACTIVE_SET.at(insn.SECOND_REG) &= 0x00ffffff;
-			ACTIVE_SET.at(insn.FIRST_REG) = GET_16(ACTIVE_SET.at(insn.SECOND_REG));
-			ACTIVE_SET.at((insn.FIRST_REG  + 1) & 7 ) = 
-				GET_16(ACTIVE_SET.at(insn.SECOND_REG) + 2);
-			break;
-		case LD2WAI:
-			temp = ACTIVE_SET.at(insn.SECOND_REG);
-			ACTIVE_SET.at(insn.FIRST_REG) = GET_16(temp);
-			ACTIVE_SET.at((insn.FIRST_REG  + 1) & 7 ) = 
-				GET_16(temp + 2);
-			ACTIVE_SET.at(insn.SECOND_REG) += 4;
-			ACTIVE_SET.at(insn.SECOND_REG) &= 0x00ffffff;
-			break;
-
-		case LD2WAD:
-			temp = ACTIVE_SET.at(insn.SECOND_REG);
-			ACTIVE_SET.at(insn.FIRST_REG) = GET_16(ACTIVE_SET.at(insn.SECOND_REG));
-			ACTIVE_SET.at((insn.FIRST_REG  + 1) & 7 ) = 
-				GET_16(temp + 2);
-			ACTIVE_SET.at(insn.SECOND_REG) -= 4;
-			ACTIVE_SET.at(insn.SECOND_REG) &= 0x00ffffff;
-			break;
-
-		case LD2SBI:
-			ACTIVE_SET.at(insn.SECOND_REG) += 6;
-			ACTIVE_SET.at(insn.SECOND_REG) &= 0x00ffffff;
-			temp = ACTIVE_SET.at(insn.SECOND_REG);
-			ACTIVE_SET.at(insn.FIRST_REG) = GET_24(temp);
-			ACTIVE_SET.at((insn.FIRST_REG  + 1) & 7 ) = 
-				GET_24(temp + 3);
-			break;
 		case LD2SBD:
 			ACTIVE_SET.at(insn.SECOND_REG) -= 6;
 			ACTIVE_SET.at(insn.SECOND_REG) &= 0x00ffffff;
@@ -1181,66 +1001,6 @@ int CPU::EXECUTE(const INSN insn)
 				GET_24(temp + 3);
 			ACTIVE_SET.at(insn.SECOND_REG) += 6;
 			ACTIVE_SET.at(insn.SECOND_REG) &= 0x00ffffff;
-			break;
-		case LD2SAD:
-			temp = ACTIVE_SET.at(insn.SECOND_REG);
-			ACTIVE_SET.at(insn.FIRST_REG) = GET_24(temp);
-			ACTIVE_SET.at((insn.FIRST_REG  + 1) & 7 ) = 
-				GET_24(temp + 3);
-			ACTIVE_SET.at(insn.SECOND_REG) -= 6;
-			ACTIVE_SET.at(insn.SECOND_REG) &= 0x00ffffff;
-			break;
-
-		case LD3SBI:
-			ACTIVE_SET.at(insn.SECOND_REG) += 9;
-			ACTIVE_SET.at(insn.SECOND_REG) &= 0x00ffffff;
-			temp = ACTIVE_SET.at(insn.SECOND_REG);
-			ACTIVE_SET.at(insn.FIRST_REG) = GET_24(temp);
-			ACTIVE_SET.at((insn.FIRST_REG  + 1) & 7 ) = 
-				GET_24(temp + 3);
-			ACTIVE_SET.at((insn.FIRST_REG  + 2) & 7 ) = 
-				GET_24(temp + 6);
-			break;
-		case LD3SBD:
-			ACTIVE_SET.at(insn.SECOND_REG) -= 9;
-			ACTIVE_SET.at(insn.SECOND_REG) &= 0x00ffffff;
-			temp = ACTIVE_SET.at(insn.SECOND_REG);
-			ACTIVE_SET.at(insn.FIRST_REG) = GET_24(temp);
-			ACTIVE_SET.at((insn.FIRST_REG  + 1) & 7 ) = 
-				GET_24(temp + 3);
-			ACTIVE_SET.at((insn.FIRST_REG  + 2) & 7 ) = 
-				GET_24(temp + 6);
-
-			break;
-		case LD3SAI:
-			temp = ACTIVE_SET.at(insn.SECOND_REG);
-			ACTIVE_SET.at(insn.FIRST_REG) = GET_24(temp);
-			ACTIVE_SET.at((insn.FIRST_REG  + 1) & 7 ) = 
-				GET_24(temp + 3);
-			ACTIVE_SET.at((insn.FIRST_REG  + 2) & 7 ) = 
-				GET_24(temp + 6);
-			ACTIVE_SET.at(insn.SECOND_REG) += 9;
-			ACTIVE_SET.at(insn.SECOND_REG) &= 0x00ffffff;
-			break;
-		case LD3SAD:
-			temp = ACTIVE_SET.at(insn.SECOND_REG);
-			ACTIVE_SET.at(insn.FIRST_REG) = GET_24(temp);
-			ACTIVE_SET.at((insn.FIRST_REG  + 1) & 7 ) = 
-				GET_24(temp + 3);
-			ACTIVE_SET.at((insn.FIRST_REG  + 2) & 7 ) = 
-				GET_24(temp + 6);
-			ACTIVE_SET.at(insn.SECOND_REG) -= 9;
-			ACTIVE_SET.at(insn.SECOND_REG) &= 0x00ffffff;
-			break;
-
-		case LDRBI:
-			ACTIVE_SET.at(insn.FIRST_REG) = GET_8 ((IP - 2) + insn.IMMEDIATE);
-			break;
-		case LDRWI:
-			ACTIVE_SET.at(insn.FIRST_REG) = GET_16((IP - 2) + insn.IMMEDIATE);
-			break;
-		case LDRSI:
-			ACTIVE_SET.at(insn.FIRST_REG) = GET_24((IP - 2) + insn.IMMEDIATE);
 			break;
 
 		case LDRB:
@@ -1467,7 +1227,7 @@ int CPU::EXECUTE(const INSN insn)
 
 		case SEED: // move reg to rand_state
 			RAND_STATE = 
-				(RAND_STATE << 32) | ACTIVE_SET.at(insn.FIRST_REG);
+				(RAND_STATE << 24) | ACTIVE_SET.at(insn.FIRST_REG);
 			break;
 
 		case RND:
