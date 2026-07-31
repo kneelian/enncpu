@@ -1,0 +1,68 @@
+%YAML 1.2
+---
+
+syntax: "Custom Assembly"
+hidden: false
+file_extensions: [s, asm, enn]
+scope: source.asm
+
+contexts:
+  main:
+    # Comments (usually starting with ';' or '#' or '//')
+    - match: ';.*$'
+      scope: comment.line.semicolon.asm
+
+    - match: '\b((?<=[A-Z]{3}\.)|(?<=[A-Z]{4}\.)|(?<=[A-Z]{5}\.))[A-Z]*\b'
+      scope: keyword.conditional.asm
+
+    # Labels (e.g., "loop:", "start:")
+    - match: '\s*@([a-zA-Z_][a-zA-Z0-9_]*)'
+      captures:
+        1: entity.name.function.label.asm
+
+    - match: '\s*%([a-zA-Z_][a-zA-Z0-9_]*)'
+      captures:
+        1: entity.name.function.label.asm
+
+    - match: '\s*\$([a-zA-Z_][a-zA-Z0-9_]*)'
+      captures:
+        1: meta.preprocessor.macro.asm
+
+    # Instructions / Opcodes (Add your architecture's instructions here)
+    - match: '\b(?:MOV(L|M|H)?|INV|END(W|S)|(F|P)?(ADD|SUB|DIV)|FMUL|MULA|MULB|LSH(L|R))\b'
+      keyword: true
+      scope: keyword.operator.asm
+
+    - match: '\b((W|R)(SP|XS|XV|RA|PS)|SWPR|SWAP|XCG|SHDW|LITE|(UN)?MASK)\b'
+      keyword: true
+      scope: keyword.internal.asm
+
+    - match: '\b(B(AND|OR|NOR|XOR|NAND))\b'
+      keyword: true
+      scope: keyword.logical.asm
+
+    - match: '\b((F)?C(EQ|NE|GT|LT|GE|LE|INV|AND|OR|NOR|XOR|NAND))\b'
+      keyword: true
+      scope: keyword.conditional.asm
+
+    - match: '\b(J(M|L)((N?)Z)?(A|O|R)|FAR|(E)?RET)\b'
+      keyword: true
+      scope: keyword.jump.asm
+
+    - match: '\b(ADR(L|M|H)|(LDR|STR|PSH|POP)(B|W|S))\b'
+      scope: keyword.storage
+
+    - match: '\bERR\b'
+      scope: invalid
+
+    # Registers (Add your architecture's registers here)
+    - match: '\b(A|B|C|D|E|F|G|H|AB|BC|CD|DE|EF|FG|GH|HA)\b'
+      scope: variable.register.asm
+
+    # Numbers (Hexadecimal, Binary, Decimal)
+    - match: '\b(0[xX][0-9a-fA-F]+|0[bB][01]+|[0-9]+)\b'
+      scope: constant.numeric.asm
+
+    # Strings
+    - match: '"[^"\\]*(\\.[^"\\]*)*"'
+      scope: string.quoted.double.asm
