@@ -1,12 +1,3 @@
-$def KEY_ARROW_UP #0x08
-$def KEY_ARROW_DOWN #0x09
-$def KEY_ARROW_LEFT #0x07
-$def KEY_ARROW_RIGHT #0x06
-$def KEY_RSHIFT #0x58
-$def KEY_RCTRL  #0x59
-$def KEY_LSHIFT #0x54
-$def KEY_LCTRL  #0x55
-
 $def KEY_0  #0x30
 $def KEY_1  #0x31
 $def KEY_2  #0x32
@@ -17,19 +8,6 @@ $def KEY_6  #0x36
 $def KEY_7  #0x37
 $def KEY_8  #0x38
 $def KEY_9  #0x39
-
-$def KEY_F1  #0x22
-$def KEY_F2  #0x23
-$def KEY_F3  #0x24
-$def KEY_F4  #0x25
-$def KEY_F5  #0x26
-$def KEY_F6  #0x27
-$def KEY_F7  #0x28
-$def KEY_F8  #0x29
-$def KEY_F9  #0x2a
-$def KEY_F10 #0x2b
-$def KEY_F11 #0x2c
-$def KEY_F12 #0x2d
 
 $def KEY_A #65
 $def KEY_B #66
@@ -68,6 +46,38 @@ $def KEY_COMMA      #44
 $def KEY_MINUS      #45
 $def KEY_PERIOD     #46
 $def KEY_SLASH      #47
+
+
+$def KEY_ARROW_UP #0x08	    ; these partially overlap
+$def KEY_ARROW_DOWN #0x09   ; with other keys due to
+$def KEY_ARROW_LEFT #0x07   ; exvec taking only a byte
+$def KEY_ARROW_RIGHT #0x06  ; of keyboard input
+$def KEY_RSHIFT #0x58
+$def KEY_RCTRL  #0x59       ; use second byte
+$def KEY_LSHIFT #0x54       ; as disambiguator
+$def KEY_LCTRL  #0x55
+$def KEY_F1  #0x22
+$def KEY_F2  #0x23
+$def KEY_F3  #0x24
+$def KEY_F4  #0x25
+$def KEY_F5  #0x26
+$def KEY_F6  #0x27 
+$def KEY_F7  #0x28 
+$def KEY_F8  #0x29
+$def KEY_F9  #0x2a
+$def KEY_F10 #0x2b
+$def KEY_F11 #0x2c
+$def KEY_F12 #0x2d
+$def KEY_KP_0 #0x40
+$def KEY_KP_1 #0x41
+$def KEY_KP_2 #0x42
+$def KEY_KP_3 #0x43
+$def KEY_KP_4 #0x44
+$def KEY_KP_5 #0x45
+$def KEY_KP_6 #0x46
+$def KEY_KP_7 #0x47
+$def KEY_KP_8 #0x48
+$def KEY_KP_9 #0x49
 
 ; hacky!
 ; using address resolution

@@ -192,7 +192,8 @@ int main(int argc, char** argv)
         int key = GetKeyPressed();
         if(key)
         {
-        	KEYB_BASE[0] = u8(key >> 8);
+        	KEYB_BASE[1] = u8(key &  0xff);
+        	KEYB_BASE[0] = u8(key >> 0x08);
         	basic_cpu.TRAP(0x00'04);
         }
     }

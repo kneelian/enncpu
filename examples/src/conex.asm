@@ -296,7 +296,7 @@ $include raylib-constants.enn
 	ADRM B, @KBD_MAILBOX
 	ADRH B, @KBD_MAILBOX
 
-	LDRB A, B
+	LDRW A, B
 
 	MOVL B, KEY_Q
 
@@ -305,7 +305,6 @@ $include raylib-constants.enn
 
 FAR JLO   @PUTCHAR_CURSOR
 
-	DBGB A
 
 	MOV  A, #0
 	WXS  A
@@ -346,8 +345,6 @@ FAR JLO   @PUTCHAR_CURSOR
 	ADRM A, @STRING
 FAR JLO  @PRINT_STRING
 
-	DBGS A
-
 	MOV  B, #10
 	MOV  C, #10
 	ADRL A, @ICON
@@ -360,7 +357,7 @@ FAR JLO  @DRAW_SPRITE_16x16_GRID_ALIGNED
 	ERR
 
 @STRING
-.ASCIZ This is 100% software-rendered from a string 
+.ASCIZ This is 100% software-rendered,, from a string 
 
 %PROG
 
