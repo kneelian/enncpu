@@ -189,10 +189,10 @@ int main(int argc, char** argv)
 
         UnloadTexture(tex);
     
-        int key = GetCharPressed();
+        int key = GetKeyPressed();
         if(key)
         {
-        	KEYB_BASE[0] = u8(key);
+        	KEYB_BASE[0] = u8(key >> 8);
         	basic_cpu.TRAP(0x00'04);
         }
     }

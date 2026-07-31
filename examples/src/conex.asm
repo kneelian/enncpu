@@ -1,47 +1,5 @@
-$macro SAVEALL 0
-	PSHS A
-	PSHS B
-	PSHS C
-	PSHS D
-	PSHS E
-	PSHS F
-	PSHS G
-	PSHS H
-$endm
-
-$macro LOADALL 0
-	POPS H
-	POPS G
-	POPS F
-	POPS E
-	POPS D
-	POPS C
-	POPS B
-	POPS A
-$endm
-
-; m0 is the target reg
-; m1 - m3 are the colours
-; m4 is a temp register
-$macro 888_TO_565 5
-	MOV  m0, #0
-	
-	MOVL m0, #m1 
-	LSHR m0, #3
-	BOR  m4, m0
-
-	MOVL m0, #m2
-	LSHR m0, #2
-	LSHL m4, #6
-	BOR  m4, m0
-
-	MOVL m0, #m3
-	LSHR m0, #3
-	LSHL m4, #5
-	BOR  m4, m0
-
-	ENDW m0, m4
-$endm
+$include conex-macros.enn
+$include raylib-constants.enn
 
 .ORG 0x0000
 .SEC %PGA
@@ -137,9 +95,12 @@ $endm
 
 	ADRL B, #0x00
 	ADRM B, #0xf4
-	ADRH B, #0x87
+	ADRH B, #0x87 ; mailbox address
 
 	LDRB A, B
+
+	ERR
+
 	MOVL B, #0x51
 
 	CEQ   A, B
@@ -395,8 +356,6 @@ FAR JLO  @PRINT_STRING
 	ADRM A, @ICON
 FAR JLO  @DRAW_SPRITE_16x16_GRID_ALIGNED
 
-	ERR
-
 	@LOOP
 		JMO @LOOP
 
@@ -413,7 +372,7 @@ FAR JLO  @DRAW_SPRITE_16x16_GRID_ALIGNED
 .ORG 0x2000
 .SEC %FONTS
 
-$include font8.enn
+; include font8.enn
 $include font16.enn
 
 @ICON

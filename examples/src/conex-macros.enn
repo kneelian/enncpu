@@ -1,0 +1,44 @@
+$macro SAVEALL 0
+	PSHS A
+	PSHS B
+	PSHS C
+	PSHS D
+	PSHS E
+	PSHS F
+	PSHS G
+	PSHS H
+$endm
+
+$macro LOADALL 0
+	POPS H
+	POPS G
+	POPS F
+	POPS E
+	POPS D
+	POPS C
+	POPS B
+	POPS A
+$endm
+
+; m0 is the target reg
+; m1 - m3 are the colours
+; m4 is a temp register
+$macro 888_TO_565 5
+	MOV  m0, #0
+	
+	MOVL m0, #m1 
+	LSHR m0, #3
+	BOR  m4, m0
+
+	MOVL m0, #m2
+	LSHR m0, #2
+	LSHL m4, #6
+	BOR  m4, m0
+
+	MOVL m0, #m3
+	LSHR m0, #3
+	LSHL m4, #5
+	BOR  m4, m0
+
+	ENDW m0, m4
+$endm
