@@ -47,7 +47,6 @@ $def KEY_MINUS      #45
 $def KEY_PERIOD     #46
 $def KEY_SLASH      #47
 
-
 $def KEY_ARROW_UP #0x08	    ; these partially overlap
 $def KEY_ARROW_DOWN #0x09   ; with other keys due to
 $def KEY_ARROW_LEFT #0x07   ; exvec taking only a byte

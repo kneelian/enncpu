@@ -50,6 +50,8 @@ $include raylib-constants.enn
 	FAR JMO @DRAW_SPRITE_16x16_GRID_ALIGNED_M
 @DRAW_SPRITE_16x16
 	FAR JMO @DRAW_SPRITE_16x16_M
+@GET_TIMER
+	FAR JMO @GET_TIMER_M
 $include pga.enn
 
 ; exceptions load an addr from
@@ -58,10 +60,25 @@ $include pga.enn
 ; and the interrupt routine uses
 ; this offset to find where to jump
 @EX_TABLE
-.INT16 @KILL         ; 0x00
-.INT16 @KILL         ; 0x02
-.INT16 @EX_KBD_EVENT ; 0x04
-.INT16 @KILL         ; 0x06
+.INT16 @KILL            ; 0x00
+.INT16 @EX_TIMER_EVENT  ; 0x02
+.INT16 @EX_KBD_EVENT    ; 0x04
+.INT16 @KILL            ; 0x06
+
+@EX_TIMER
+.INT24 0x00
+.INT24 0x00
+@EX_TIMER_EVENT
+	ADRL  A, @EX_TIMER
+	ADRM  A, @EX_TIMER
+	LDRS  B, A
+	ADD   B, #1
+	STRS  B, A+
+	CEQ   B, #0
+	LDRS  B, A
+	ADD.P B, #1
+	STRS  B, A
+	RET
 
 @EX_KBD_EVENT
 	ADRL  B, @KBD_MAILBOX
@@ -83,8 +100,10 @@ $include pga.enn
 	WXS  A
 	RET
 @KILL
+	JLA @GET_TIMER
 	ERR
 @EXVEC
+	MASK
 	PSHS A
 	PSHS B
 	RPS  A
@@ -101,6 +120,7 @@ $include pga.enn
 	WPS  A
 	POPS B
 	POPS A
+	UNMASK
 	ERET
 
 %PGA
@@ -122,7 +142,6 @@ $include pga.enn
 	ADRM A, @BUFFER
 
 	JLA  @HEX_TO_INT
-	ERR
 	
 	_888_TO_565 A, 0x30, 0x00, 0x20, B
 FAR JLO @CLRSCR
@@ -139,7 +158,6 @@ FAR JLO  @DRAW_SPRITE_16x16_GRID_ALIGNED
 
 	@LOOP
 		JMO @LOOP
-
 	ERR
 
 @STRING
@@ -153,7 +171,7 @@ FAR JLO  @DRAW_SPRITE_16x16_GRID_ALIGNED
 .ORG 0x1000
 @STK
 
-.ORG 0xf000
+.ORG 0x8000
 .SEC %FONTS
 
 ; include font8.enn

@@ -393,3 +393,14 @@
 	POPS E
 	POPS D
 	RET
+
+; returns hi24 in A
+;         lo24 in B
+@GET_TIMER_M
+	PSHS C
+	ADRL C, @EX_TIMER
+	ADRM C, @EX_TIMER
+	LDRS B, C+
+	LDRS A, C
+	POPS C
+	RET

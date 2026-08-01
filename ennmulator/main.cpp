@@ -164,6 +164,8 @@ int main(int argc, char** argv)
     while (!w.ShouldClose()) // Detect window close button or ESC key
     {
         float time32 = float(GetTime());
+        basic_cpu.TRAP(0x00'02);
+
         SetShaderValue(s, GetShaderLocation(s, "time"), &time32, RL_SHADER_UNIFORM_FLOAT);
 
         tex = LoadTextureFromImage(img);
