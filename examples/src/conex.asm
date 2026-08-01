@@ -18,8 +18,6 @@ $include raylib-constants.enn
 
 	JMR  A
 
-.INT16 @MEMCPY
-
 ; A has source
 ; B has target
 ; C has count
@@ -77,7 +75,6 @@ $include raylib-constants.enn
 	POPS C
 	RET
 
-
 ; A holds number to decimalise
 ; B holds pointer to string
 ;    where we want the result
@@ -113,6 +110,32 @@ $include raylib-constants.enn
 	POPS C
 	RET
 
+; A holds pointer to zero-term
+; string with a decimal number
+; (no error handling!)
+@DEC_TO_INT
+	PSHS B
+	PSHS C
+	PSHS D
+
+	MOV  D, #10
+
+	@DEC_TO_INT_L1
+		LDRB B, A+
+		JMZO B, @DEC_TO_INT_L1_E
+		SUB  B, '0'
+		MULA C, D
+		ADD  C, B
+		JMO  @DEC_TO_INT_L1
+	@DEC_TO_INT_L1_E
+
+	MOV  A, C
+
+	POPS D
+	POPS C
+	POPS B
+	RET
+
 ; A has colour 16bpp
 ; B --> x
 ; C --> y
@@ -145,7 +168,6 @@ $include raylib-constants.enn
 	PSHS E
 	PSHS F
 	PSHS G
-	PSHS H
 
 	ADRL D, @FRAMEBUFFER
 	ADRH D, @FRAMEBUFFER
@@ -171,13 +193,13 @@ $include raylib-constants.enn
 		LDRB G, B+  ; G now has full byte
 		ADD  C, #16
 		@DRAW_INNER_KERN
-			MOV     H, G
-			BAND    H, #1
-			CEQ     H, #1
+			MOV     A, G
+			BAND    A, #1
+			CEQ     A, #1
 			LSHR    G, #1
-			SUB.P   H, #1
-			INV.P   H, H
-			STRW.P  H, C
+			SUB.P   A, #1
+			INV.P   A, A
+			STRW.P  A, C
 			SUB     C, #2
 			; just skip bgcol bits
 			SUB     F, #1
@@ -187,7 +209,6 @@ $include raylib-constants.enn
 		ADD   C, D  ; next row
 		JMNZO E, @DRAW_OUTER_KERN
 
-	POPS H
 	POPS G
 	POPS F
 	POPS E
@@ -207,7 +228,6 @@ $include raylib-constants.enn
 	PSHS E
 	PSHS F
 	PSHS G
-	PSHS H
 
 	ADD  B, #5 ; left padding
 
@@ -221,17 +241,17 @@ $include raylib-constants.enn
 	ADD  C, D
 	ADD  C, B     ; top left
 
-	_888_TO_565 H, 0xff, 0x00, 0xff, G
+	_888_TO_565 G, 0xff, 0x00, 0xff, F
 
-	; magenta in little endian now in H
+	; magenta in little endian now in G
 
 	MOV  B, #16
 	@DRAW_SPRITE_16x16_OUTER
 		MOV  D, #16
 		@DRAW_SPRITE_16x16_INNER
-			LDRW   G, A+  ; has pixel
-			CNE    G, H
-			STRW.P G, C
+			LDRW   F, A+  ; has pixel
+			CNE    F, G
+			STRW.P F, C
 			ADD    C, #2
 			SUB    D, #1
 			JMNZO  D, @DRAW_SPRITE_16x16_INNER
@@ -240,7 +260,6 @@ $include raylib-constants.enn
 		SUB   B, #1
 		JMNZO B, @DRAW_SPRITE_16x16_OUTER
 
-	POPS H
 	POPS G
 	POPS F
 	POPS E
@@ -279,11 +298,7 @@ $include raylib-constants.enn
 
 	ADD  B, #5  ; padding
 
-	MOV.P D, #1
-
  FAR JLO @DRAW_CHAR_KERN
-
- 	CEQ   D, #1
 
 	LDRB  B, D
 	LDRB  C, E
@@ -378,6 +393,12 @@ FAR JLO   @PUTCHAR_CURSOR
 	ADRL B, @BUFFER
 	ADRM B, @BUFFER
 	JLA  @INT_TO_DEC
+
+	ADRL A, @BUFFER
+	ADRM A, @BUFFER
+	JLA  @DEC_TO_INT
+
+	ERR
 
 	ADRL B, @FRAMEBUFFER
 	ADRH B, @FRAMEBUFFER
