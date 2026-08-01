@@ -3,8 +3,6 @@ $include raylib-constants.enn
 
 .ORG 0x0000
 .SEC %PGA
-	UNMASK
-
 	ADRL A, @STK
 	ADRM A, @STK
 	WSP  A
@@ -18,299 +16,52 @@ $include raylib-constants.enn
 
 	JMR  A
 
-@EX_TABLE
-.INT16 @KILL
-.INT16 @KILL
-.INT16 @EX_KBD_EVENT
-.INT16 @KILL
-
-; A has source
-; B has target
-; C has count
+; PGA-reachable routines
+; suffixing all of these with _M
+; to denote "main part" of their code
+; these are just stubs
 @MEMCPY
-	PSHS D
-	@MEMCPY_LOOP
-		LDRB  D, A+
-		STRB  D, B+
-		SUB   C, #1
-		JMNZO C, @MEMCPY_LOOP
-	POPS D
-	RET
-
-; A has source
-; string must be zero-term
-; return in A
+	FAR JMO @MEMCPY_M
+@MEMSET
+	FAR JMO @MEMSET_M
 @STRLEN
-	PSHS B
-	MOV  B, A
-	MOV  A, #0
-	PSHS C
-	@STRLEN_LOOP
-		LDRB  C, B+ 
-		ADD   A, #1
-		JMNZO C, @STRLEN_LOOP
-	POPS C
-	POPS B
-	RET
-
-; A has string x
-; B has string y
-; return in A
-; 	0 if different
-;   1 if equal
+	FAR JMO @STRLEN_M
 @STREQ
-	PSHS C
-	PSHS D
-	@STREQ_L1
-		LDRB  C, A+
-		LDRB  D, B+
-
-		; unequals
-		CNE   C, D
-		MOV.P A, #0
-		JMO.P @STREQ_L1_E
-
-		; reached the end?
-		CEQ   C, #0
-		MOV.P A, #1
-		JMO.P @STREQ_L1_E
-
-		JMO   @STREQ_L1
-	@STREQ_L1_E
-	POPS D
-	POPS C
-	RET
-
-; A holds number to decimalise
-; B holds pointer to string
-;    where we want the result
-;   (must be >= 9 bytes, for
-;    8 chars of number + zero)
-; avoids use of stack
+	FAR JMO @STREQ_M
 @INT_TO_DEC
-	PSHS C
-	PSHS D
-	PSHS E
-
-	MOV  C, A
-	MOV  D, #0
-	MOV  E, #10
-	@INT_TO_DEC_L1
-		DIV   C, E
-		ADD   D, #1
-		JMNZO C, @INT_TO_DEC_L1
-	; we know how many digits to reserve
-	ADD  B, D  ; start from back
-	MOV  D, #0
-	STRB D, B-
-	@INT_TO_DEC_L2
-		MOV   C, A
-		MOD   C, E
-		ADD   C, '0'
-		STRB  C, B-
-		DIV   A, E
-		JMNZO A, @INT_TO_DEC_L2
-
-	POPS E
-	POPS D
-	POPS C
-	RET
-
-; A holds pointer to zero-term
-; string with a decimal number
-; (no error handling!)
+	FAR JMO @INT_TO_DEC_M
 @DEC_TO_INT
-	PSHS B
-	PSHS C
-	PSHS D
-
-	MOV  D, #10
-
-	@DEC_TO_INT_L1
-		LDRB B, A+
-		JMZO B, @DEC_TO_INT_L1_E
-		SUB  B, '0'
-		MULA C, D
-		ADD  C, B
-		JMO  @DEC_TO_INT_L1
-	@DEC_TO_INT_L1_E
-
-	MOV  A, C
-
-	POPS D
-	POPS C
-	POPS B
-	RET
-
-; A has colour 16bpp
-; B --> x
-; C --> y
+	FAR JMO @DEC_TO_INT_M
+@INT_TO_HEX
+	FAR JMO @INT_TO_HEX_M
+@HEX_TO_INT
+	FAR JMO @HEX_TO_INT_M
 @DRAW_PX
-	PSHS D
-	PSHS E
-
-	ADRL D, @FRAMEBUFFER
-	ADRH D, @FRAMEBUFFER
-	MOVL E, @FB_WIDTH
-	MOVM E, @FB_WIDTH
-	LSHL E, #1    ; bytes per row @ 16bpp
-
-	LSHL B, #1
-	MULA C, E
-	ADD  D, C
-	ADD  D, B
-
-	STRW A, D
-
-	POPS E
-	POPS D
-	RET
-
-; A is char
-; B --> x
-; C --> y
-@DRAW_CHAR_KERN
-	PSHS D
-	PSHS E
-	PSHS F
-	PSHS G
-
-	ADRL D, @FRAMEBUFFER
-	ADRH D, @FRAMEBUFFER
-	MOVL E, @FB_WIDTH
-	MOVM E, @FB_WIDTH
-	LSHL E, #1    ; bytes per row @ 16bpp
-
-	LSHL B, #1
-	MULA C, E
-	ADD  D, C
-	ADD  D, B
-
-	LSHL A, #4 ; offset in table
-	ADRL B, @FONT16x8
-	ADRM B, @FONT16x8
-	ADD  B, A  ; position of bitmap in font
-
-	MOV  C, D
-	MOV  D, E
-	MOV  E, #16
-	@DRAW_OUTER_KERN
-		MOV  F, #8
-		LDRB G, B+  ; G now has full byte
-		ADD  C, #16
-		@DRAW_INNER_KERN
-			MOV     A, G
-			BAND    A, #1
-			CEQ     A, #1
-			LSHR    G, #1
-			SUB.P   A, #1
-			INV.P   A, A
-			STRW.P  A, C
-			SUB     C, #2
-			; just skip bgcol bits
-			SUB     F, #1
-			JMNZO   F, @DRAW_INNER_KERN
-
-		SUB   E, #1
-		ADD   C, D  ; next row
-		JMNZO E, @DRAW_OUTER_KERN
-
-	POPS G
-	POPS F
-	POPS E
-	POPS D
-	RET
-
-; takes pointer to zero terminated string in A
-; prints until empty
+	FAR JMO @DRAW_PX_M
+@DRAW_CHAR
+	FAR JMO @DRAW_CHAR_M
 @PRINT_STRING
-	PSHS B
-	MOV  B, A
-
-	@PRINT_STRING_L1
-		LDRB  A, B+
-		JMZO  A, @PRINT_STRING_L1_E
-	FAR JLO   @PUTCHAR_CURSOR
-		JMO   @PRINT_STRING_L1
-	@PRINT_STRING_L1_E
-
-	POPS B
-	RET
-
-; print_next_char takes only a codepoint
-; and handles the positioning of the char
-; on the framebuffer by manipulating the
-; "cursor" variables
-@CURSOR_X
-.INT8 0
-@CURSOR_Y
-.INT8 0
-; screen is 80 chars wide (with 5 px on either side)
-; and 25 tall 
-; (640 / 8), (400 / 16)
-;
-; takes codepoint in A
+	FAR JMO @PRINT_STRING_M
 @PUTCHAR_CURSOR
-	PSHS B
-	PSHS C
-	PSHS D
-	PSHS E
-
-	ADRL  D, @CURSOR_X
-	ADRM  D, @CURSOR_X
-	ADRL  E, @CURSOR_Y
-	ADRM  E, @CURSOR_Y
-
-	LDRB  B, D
-	LDRB  C, E
-
-	LSHL B, #3  ; *8
-	LSHL C, #4  ; *16
-
-	ADD  B, #5  ; padding
-
- FAR JLO @DRAW_CHAR_KERN
-
-	LDRB  B, D
-	LDRB  C, E
-
- 	ADD   B, #1
- 	MOV   A, #80
- 	CEQ   A, B    ; B ?= 80
- 	MOV.P B, #0
- 	ADD.P C, #1
-
- 	STRB  B, D
-	STRB  C, E
-
-	POPS E
-	POPS D
-	POPS C
-	POPS B
-	RET
-
-; A holds colour
+	FAR JMO @PUTCHAR_CURSOR_M
 @CLRSCR
-	PSHS B
-	PSHS C
-	
-	MOVL B, @FB_WIDTH
-	MOVM B, @FB_WIDTH
+	FAR JMO @CLRSCR_M
+@DRAW_SPRITE_16x16_GRID_ALIGNED
+	FAR JMO @DRAW_SPRITE_16x16_GRID_ALIGNED_M
+@DRAW_SPRITE_16x16
+	FAR JMO @DRAW_SPRITE_16x16_M
+$include pga.enn
 
-	MOVL C, @FB_HEIGHT
-	MOVM C, @FB_HEIGHT
-	MULA C, B
-
-	ADRL B, @FRAMEBUFFER
-	ADRH B, @FRAMEBUFFER
-	@CLRSCR_L1
-		STRW  A, B+
-		SUB   C, #1
-		JMNZO C, @CLRSCR_L1
-
-	POPS C
-	POPS B
-	RET
+; exceptions load an addr from
+; this table by offset; XS contains
+; the offset to the correct handler
+; and the interrupt routine uses
+; this offset to find where to jump
+@EX_TABLE
+.INT16 @KILL         ; 0x00
+.INT16 @KILL         ; 0x02
+.INT16 @EX_KBD_EVENT ; 0x04
+.INT16 @KILL         ; 0x06
 
 @EX_KBD_EVENT
 	ADRL  B, @KBD_MAILBOX
@@ -326,63 +77,11 @@ $include raylib-constants.enn
 
 	GETL  A, A
 
-FAR JLO   @PUTCHAR_CURSOR
+	JLA   @PUTCHAR_CURSOR
 
 	MOV  A, #0 ; clearing exception state
 	WXS  A
 	RET
-
-@DRAW_SPRITE_16x16_GRID_ALIGNED
-	LSHL B, #4
-	LSHL C, #4
-; A contains pointer to sprite memory
-; B contains X pos
-; C contains Y pos
-; 	a magenta pixel is transparent
-;   i.e. 0xF81F is skipped
-@DRAW_SPRITE_16x16
-	PSHS D
-	PSHS E
-	PSHS F
-	PSHS G
-
-	ADD  B, #5 ; left padding
-
-	ADRL D, @FRAMEBUFFER
-	ADRH D, @FRAMEBUFFER
-	MOVL E, @FB_WIDTH
-	MOVM E, @FB_WIDTH
-	LSHL E, #1    ; bytes per row @ 16bpp
-	MULA C, E
-	LSHL B, #1
-	ADD  C, D
-	ADD  C, B     ; top left
-
-	_888_TO_565 G, 0xff, 0x00, 0xff, F
-
-	; magenta in little endian now in G
-
-	MOV  B, #16
-	@DRAW_SPRITE_16x16_OUTER
-		MOV  D, #16
-		@DRAW_SPRITE_16x16_INNER
-			LDRW   F, A+  ; has pixel
-			CNE    F, G
-			STRW.P F, C
-			ADD    C, #2
-			SUB    D, #1
-			JMNZO  D, @DRAW_SPRITE_16x16_INNER
-		SUB   C, #32
-		ADD   C, E
-		SUB   B, #1
-		JMNZO B, @DRAW_SPRITE_16x16_OUTER
-
-	POPS G
-	POPS F
-	POPS E
-	POPS D
-	RET
-
 @KILL
 	ERR
 @EXVEC
@@ -410,20 +109,22 @@ FAR JLO   @PUTCHAR_CURSOR
 .SEC %PROG
 
 @MAIN
+	UNMASK
 	MOVL A, #0xff
 	MOVM A, #0xff
 	MOVH A, #0xff
 	ADRL B, @BUFFER
 	ADRM B, @BUFFER
-	JLA  @INT_TO_DEC
+
+	JLA  @INT_TO_HEX
 
 	ADRL A, @BUFFER
 	ADRM A, @BUFFER
-	JLA  @DEC_TO_INT
-	
-	_888_TO_565 C, 0x30, 0x00, 0x20, D
 
-	MOV A, C
+	JLA  @HEX_TO_INT
+	ERR
+	
+	_888_TO_565 A, 0x30, 0x00, 0x20, B
 FAR JLO @CLRSCR
 
 	ADRL A, @BUFFER ; STRING
@@ -452,7 +153,7 @@ FAR JLO  @DRAW_SPRITE_16x16_GRID_ALIGNED
 .ORG 0x1000
 @STK
 
-.ORG 0x2000
+.ORG 0xf000
 .SEC %FONTS
 
 ; include font8.enn

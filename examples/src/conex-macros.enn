@@ -29,6 +29,7 @@ $endm
 ; m4 is a temp register
 $macro 888_TO_565 5
 	MOV  m0, #0
+	MOV  m4, #0
 	
 	MOVL m0, #m1 
 	LSHR m0, #3
