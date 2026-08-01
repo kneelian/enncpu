@@ -18,6 +18,12 @@ $include raylib-constants.enn
 
 	JMR  A
 
+@EX_TABLE
+.INT16 @KILL
+.INT16 @KILL
+.INT16 @EX_KBD_EVENT
+.INT16 @KILL
+
 ; A has source
 ; B has target
 ; C has count
@@ -215,55 +221,20 @@ $include raylib-constants.enn
 	POPS D
 	RET
 
-@DRAW_SPRITE_16x16_GRID_ALIGNED
-	LSHL B, #4
-	LSHL C, #4
-; A contains pointer to sprite memory
-; B contains X pos
-; C contains Y pos
-; 	a magenta pixel is transparent
-;   i.e. 0xF81F is skipped
-@DRAW_SPRITE_16x16
-	PSHS D
-	PSHS E
-	PSHS F
-	PSHS G
+; takes pointer to zero terminated string in A
+; prints until empty
+@PRINT_STRING
+	PSHS B
+	MOV  B, A
 
-	ADD  B, #5 ; left padding
+	@PRINT_STRING_L1
+		LDRB  A, B+
+		JMZO  A, @PRINT_STRING_L1_E
+	FAR JLO   @PUTCHAR_CURSOR
+		JMO   @PRINT_STRING_L1
+	@PRINT_STRING_L1_E
 
-	ADRL D, @FRAMEBUFFER
-	ADRH D, @FRAMEBUFFER
-	MOVL E, @FB_WIDTH
-	MOVM E, @FB_WIDTH
-	LSHL E, #1    ; bytes per row @ 16bpp
-	MULA C, E
-	LSHL B, #1
-	ADD  C, D
-	ADD  C, B     ; top left
-
-	_888_TO_565 G, 0xff, 0x00, 0xff, F
-
-	; magenta in little endian now in G
-
-	MOV  B, #16
-	@DRAW_SPRITE_16x16_OUTER
-		MOV  D, #16
-		@DRAW_SPRITE_16x16_INNER
-			LDRW   F, A+  ; has pixel
-			CNE    F, G
-			STRW.P F, C
-			ADD    C, #2
-			SUB    D, #1
-			JMNZO  D, @DRAW_SPRITE_16x16_INNER
-		SUB   C, #32
-		ADD   C, E
-		SUB   B, #1
-		JMNZO B, @DRAW_SPRITE_16x16_OUTER
-
-	POPS G
-	POPS F
-	POPS E
-	POPS D
+	POPS B
 	RET
 
 ; print_next_char takes only a codepoint
@@ -318,40 +289,30 @@ $include raylib-constants.enn
 	POPS B
 	RET
 
-; takes pointer to zero terminated string in A
-; prints until empty
-@PRINT_STRING
+; A holds colour
+@CLRSCR
 	PSHS B
-	MOV  B, A
+	PSHS C
+	
+	MOVL B, @FB_WIDTH
+	MOVM B, @FB_WIDTH
 
-	@PRINT_STRING_L1
-		LDRB  A, B+
-		JMZO  A, @PRINT_STRING_L1_E
-	FAR JLO   @PUTCHAR_CURSOR
-		JMO   @PRINT_STRING_L1
-	@PRINT_STRING_L1_E
+	MOVL C, @FB_HEIGHT
+	MOVM C, @FB_HEIGHT
+	MULA C, B
 
+	ADRL B, @FRAMEBUFFER
+	ADRH B, @FRAMEBUFFER
+	@CLRSCR_L1
+		STRW  A, B+
+		SUB   C, #1
+		JMNZO C, @CLRSCR_L1
+
+	POPS C
 	POPS B
 	RET
 
-@KILL
-	ERR
-
-@EXVEC
-	PSHS A
-	PSHS B
-
-	RPS    A
-	PSHS   A
-
-	RXS    A
-	CNE    A, #4
-	POPS.P A
-	WPS.P  A
-	POPS.P B
-	POPS.P A
-	JMO.P  @KILL
-
+@EX_KBD_EVENT
 	ADRL  B, @KBD_MAILBOX
 	ADRM  B, @KBD_MAILBOX
 	ADRH  B, @KBD_MAILBOX
@@ -369,22 +330,84 @@ FAR JLO   @PUTCHAR_CURSOR
 
 	MOV  A, #0 ; clearing exception state
 	WXS  A
+	RET
+
+@DRAW_SPRITE_16x16_GRID_ALIGNED
+	LSHL B, #4
+	LSHL C, #4
+; A contains pointer to sprite memory
+; B contains X pos
+; C contains Y pos
+; 	a magenta pixel is transparent
+;   i.e. 0xF81F is skipped
+@DRAW_SPRITE_16x16
+	PSHS D
+	PSHS E
+	PSHS F
+	PSHS G
+
+	ADD  B, #5 ; left padding
+
+	ADRL D, @FRAMEBUFFER
+	ADRH D, @FRAMEBUFFER
+	MOVL E, @FB_WIDTH
+	MOVM E, @FB_WIDTH
+	LSHL E, #1    ; bytes per row @ 16bpp
+	MULA C, E
+	LSHL B, #1
+	ADD  C, D
+	ADD  C, B     ; top left
+
+	_888_TO_565 G, 0xff, 0x00, 0xff, F
+
+	; magenta in little endian now in G
+
+	MOV  B, #16
+	@DRAW_SPRITE_16x16_OUTER
+		MOV  D, #16
+		@DRAW_SPRITE_16x16_INNER
+			LDRW   F, A+  ; has pixel
+			CNE    F, G
+			STRW.P F, C
+			ADD    C, #2
+			SUB    D, #1
+			JMNZO  D, @DRAW_SPRITE_16x16_INNER
+		SUB   C, #32
+		ADD   C, E
+		SUB   B, #1
+		JMNZO B, @DRAW_SPRITE_16x16_OUTER
+
+	POPS G
+	POPS F
+	POPS E
+	POPS D
+	RET
+
+@KILL
+	ERR
+@EXVEC
+	PSHS A
+	PSHS B
+	RPS  A
+	PSHS A
+
+	RXS  A
+	ADRL B, @EX_TABLE
+	ADRM B, @EX_TABLE
+	ADD  B, A
+	LDRW A, B
+	JLR  A
 
 	POPS A
 	WPS  A
-
 	POPS B
 	POPS A
-
 	ERET
 
 %PGA
 
 .ORG 0x0400
 .SEC %PROG
-
-@BUFFER
-.REP 16 0x00
 
 @MAIN
 	MOVL A, #0xff
@@ -397,26 +420,11 @@ FAR JLO   @PUTCHAR_CURSOR
 	ADRL A, @BUFFER
 	ADRM A, @BUFFER
 	JLA  @DEC_TO_INT
-
-	ERR
-
-	ADRL B, @FRAMEBUFFER
-	ADRH B, @FRAMEBUFFER
-
-	MOVL A, @FB_WIDTH
-	MOVM A, @FB_WIDTH
-
-	MOVL C, @FB_HEIGHT
-	MOVM C, @FB_HEIGHT
-	MULA A, C
 	
 	_888_TO_565 C, 0x30, 0x00, 0x20, D
 
-	@PAINT
-		STRW  C, B+
-
-		SUB   A, #1
-		JMNZO A, @PAINT
+	MOV A, C
+FAR JLO @CLRSCR
 
 	ADRL A, @BUFFER ; STRING
 	ADRM A, @BUFFER ; STRING
@@ -435,6 +443,9 @@ FAR JLO  @DRAW_SPRITE_16x16_GRID_ALIGNED
 
 @STRING
 .ASCIZ This is 100% software-rendered,, from a string 
+
+@BUFFER
+.REP 16 0x00
 
 %PROG
 
