@@ -78,6 +78,41 @@ $include raylib-constants.enn
 	RET
 
 
+; A holds number to decimalise
+; B holds pointer to string
+;    where we want the result
+;   (must be >= 9 bytes, for
+;    8 chars of number + zero)
+; avoids use of stack
+@INT_TO_DEC
+	PSHS C
+	PSHS D
+	PSHS E
+
+	MOV  C, A
+	MOV  D, #0
+	MOV  E, #10
+	@INT_TO_DEC_L1
+		DIV   C, E
+		ADD   D, #1
+		JMNZO C, @INT_TO_DEC_L1
+	; we know how many digits to reserve
+	ADD  B, D  ; start from back
+	MOV  D, #0
+	STRB D, B-
+	@INT_TO_DEC_L2
+		MOV   C, A
+		MOD   C, E
+		ADD   C, '0'
+		STRB  C, B-
+		DIV   A, E
+		JMNZO A, @INT_TO_DEC_L2
+
+	POPS E
+	POPS D
+	POPS C
+	RET
+
 ; A has colour 16bpp
 ; B --> x
 ; C --> y
@@ -333,7 +368,17 @@ FAR JLO   @PUTCHAR_CURSOR
 .ORG 0x0400
 .SEC %PROG
 
+@BUFFER
+.REP 16 0x00
+
 @MAIN
+	MOVL A, #0xff
+	MOVM A, #0xff
+	MOVH A, #0xff
+	ADRL B, @BUFFER
+	ADRM B, @BUFFER
+	JLA  @INT_TO_DEC
+
 	ADRL B, @FRAMEBUFFER
 	ADRH B, @FRAMEBUFFER
 
@@ -352,8 +397,8 @@ FAR JLO   @PUTCHAR_CURSOR
 		SUB   A, #1
 		JMNZO A, @PAINT
 
-	ADRL A, @STRING
-	ADRM A, @STRING
+	ADRL A, @BUFFER ; STRING
+	ADRM A, @BUFFER ; STRING
 FAR JLO  @PRINT_STRING
 
 	MOV  B, #10

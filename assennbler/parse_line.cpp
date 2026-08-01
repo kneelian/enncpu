@@ -116,7 +116,6 @@ LINE PARSE_THIS(
 
 	if(temp[0] == '.') // directives
 	{
-
 		std::unordered_map<std::string, DIRECTIVES> 
 			asm_directives =
 		{
