@@ -1611,7 +1611,7 @@ int CPU::EXECUTE(const INSN insn)
 			IP -= 2;
 			while(IS_WFI())
 			{
-				std::this_thread::sleep_for(std::chrono::milliseconds(5));
+				std::this_thread::sleep_for(std::chrono::milliseconds(1));
 			}
 			break;
 
