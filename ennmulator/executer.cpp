@@ -3,6 +3,9 @@
 #include <cmath>
 #include <bit>
 
+#include <chrono>
+#include <thread>
+
 #include "types.hpp"
 #include "random_module.hpp"
 extern std::unordered_map<OP, std::string> unmappings;
@@ -1606,6 +1609,10 @@ int CPU::EXECUTE(const INSN insn)
 		case WFINT:
 			SET_WFI();
 			IP -= 2;
+			while(IS_WFI())
+			{
+				std::this_thread::sleep_for(std::chrono::milliseconds(5));
+			}
 			break;
 
 		case KERNI:

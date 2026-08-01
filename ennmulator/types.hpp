@@ -219,13 +219,14 @@ struct CPU
 	{
 		if(IS_MASKED_INT()) return;
 
+		SET_MASKED_INT();
+		CLR_WFI();
 		XS = WHAT;
 		SET_PENDING_INT();
 	}
 
 	inline void IRQ()
 	{
-		SET_MASKED_INT();
 		CLR_PENDING_INT();
 		SET_IN_INTERRUPT();
 
