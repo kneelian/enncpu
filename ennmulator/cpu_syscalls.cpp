@@ -16,7 +16,7 @@ bool SYSC_1(CPU* cpu)
 		the devices in the device vector
 
 		the device number is in A
-		syscall id to device in B
+		function id to device in B
 
 		arguments to device are in C and D
 	*/

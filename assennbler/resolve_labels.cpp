@@ -41,7 +41,7 @@ void RESOLVE_LABELS(
 				if(i.DIREC == INT24) { i.RAW_DATA = i.LABEL_POS & 0xff'ffff; } else
 				if(i.DIREC == INT16) { i.RAW_DATA = i.LABEL_POS & 0x00'ffff; } else
 				continue;
-
+				
 			case MVLA:
 			case MVLB:
 			case MVLC:

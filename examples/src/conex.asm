@@ -61,6 +61,10 @@ $include raylib-constants.enn
 	FAR JMO @DRAW_RECT_M
 @DRAW_RECT_FILL
 	FAR JMO @DRAW_RECT_FILL_M
+@POLL_DEVICE
+	FAR JMO @POLL_DEVICE_M
+@GET_SECTOR
+	FAR JMO @GET_SECTOR_M
 $include pga.enn
 
 ; exceptions load an addr from
@@ -109,6 +113,23 @@ $include pga.enn
 	WXS  A
 	RET
 @KILL
+	MOV  A, #0
+	JLA @POLL_DEVICE
+
+	MOV  A, #0
+	ADRL B, @DSKBUF
+	ADRM B, @DSKBUF
+	JLA  @GET_SECTOR
+
+	ADRL B, @DSKBUF
+	ADRM B, @DSKBUF
+	MOVM A, #2
+	@KILL_L1
+		LDRB  C, B+
+		DBGC  C
+		SUB   A, #1
+		JMNZO A, @KILL_L1
+
 	JLA @GET_TIMER
 	ERR
 @EXVEC
@@ -207,12 +228,14 @@ FAR JLO  @DRAW_SPRITE_16x16_GRID_ALIGNED
 @BUFFER
 .REP 16 0x00
 
+@DSKBUF
+
 %PROG
 
 .ORG 0x1000
 @STK
 
-.ORG 0x8000
+.ORG 0x4000
 .SEC %FONTS
 
 ; include font8.enn

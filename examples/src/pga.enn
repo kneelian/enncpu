@@ -492,7 +492,7 @@
 	LITE D
 	LITE C
 	LITE B
-	
+
 	MOV  D, G
 	JLA  @DRAW_VLINE
 	LITE D
@@ -519,15 +519,13 @@
 
 	; (col, x, y, len) -> DRAW_VLINE
 	@DRAW_RECT_FILL_L1
-
 		PSHS  B
 		PSHS  C
-
 		MOV   D, G
 		JLA   @DRAW_VLINE
-
 		POPS  C
 		POPS  B
+
 		ADD   B, #1
 		SUB   F, #1
 		JMNZO F, @DRAW_RECT_FILL_L1
@@ -535,4 +533,31 @@
 	POPS H
 	POPS G
 	POPS F
+	RET
+
+; A contains device nr
+; 	asks device to identify
+;	if device missing or can't identify
+;	returns -1 in A
+; trashes B, C
+@POLL_DEVICE_M
+	MOV   B, #1 ; IDENTIFY()
+	SYSCI #1
+	RET
+
+; A contains sector number
+; B contains target address
+@GET_SECTOR_M
+	PSHS  C
+	PSHS  D
+
+	MOV   C, A
+	MOV   D, B
+	MOV   A, #0
+	MOV   B, #3  ; GIVE_SECTOR()
+
+	SYSCI #1
+
+	POPS  D
+	POPS  C
 	RET
