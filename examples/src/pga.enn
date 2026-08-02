@@ -1,5 +1,6 @@
 ; PGA utilities
 
+
 ; A has source
 ; B has target
 ; C has count
@@ -560,4 +561,93 @@
 
 	POPS  D
 	POPS  C
+	RET
+
+; takes no arguments
+@LOAD_FAT_SEC0_M
+	PSHS A
+	PSHS B
+	
+	MOV  A, #0
+	ADRL B, @FAT12_SECTOR_0
+	ADRM B, @FAT12_SECTOR_0
+	JLA  @GET_SECTOR
+
+	POPS B
+	POPS A
+	RET
+
+; input:
+;	 A -> address of sector 0 loaded into memory
+; output:
+;	 A -> nr of bytes per sector
+;    B -> nr of sectors before FAT
+;    C -> nr of FAT tables
+;    D -> nr of root dir entries
+;    E -> nr of sectors per fat table
+;    F -> start addr for root dir
+;    G -> start addr for data section
+@GET_SEC0_DATA_M
+	ADD  A, #0x0b ; start of BIOS parameter block
+
+	ADRL B, @FAT12_BYTES_PER_SECTOR ; bytes per sector
+	ADRM B, @FAT12_BYTES_PER_SECTOR ; 0x0b
+	LDRW C, A+
+	DBGW C
+	ENDW C, C
+	STRW C, B+
+
+	ADD  A, #1 ; skipping sectors per cluster
+
+	LDRW C, A+ ; nr of reserved sectors
+	ENDW C, C  ; 0x0e
+	STRW C, B+
+
+	LDRB C, A+ ; nr of FATs
+	STRB C, B+ ; 0x10
+
+	LDRW C, A+ ; root dir entries
+	ENDW C, C  ; 0x11
+	STRW C, B+
+
+	ADD  A, #3 ; skipping log. sectors and ID
+
+	LDRW C, A+ ; nr of sectors per FAT
+	ENDW C, C  ; 0x16
+	STRW C, B+
+
+	ADRL B, @FAT12_BYTES_PER_SECTOR ; bytes per sector
+	ADRM B, @FAT12_BYTES_PER_SECTOR ; 0x0b
+	LDRW B, B
+	MULA B, C  ; size of one FAT
+	LSHL B, #1 ; size of two FATs !!
+
+	MOVL C, #0
+	MOVM C, #2
+	ADD  B, C
+	ADRL A, @FAT12_ROOT_START
+	ADRM A, @FAT12_ROOT_START
+	STRS B, A
+
+	ADRL A, @FAT12_ROOT_DIR_ENTRIES
+	ADRM A, @FAT12_ROOT_DIR_ENTRIES
+	LDRW C, A
+	MOV  D, #32 ; size of one root dir entry
+	MULA C, D   ; total root dir size
+	ADD  B, C   ; start of data
+	ADRL A, @FAT12_DATA_START
+	ADRM A, @FAT12_DATA_START
+	STRS B, A
+
+	ADRL  H, @FAT12_BYTES_PER_SECTOR
+	ADRM  H, @FAT12_BYTES_PER_SECTOR
+	LDRW  A, H+
+	LDRW  B, H+
+	LDRB  C, H+
+	LDRW  D, H+
+	LDRW  E, H+
+	LDRS  F, H+
+	LDRS  G, H
+	MOV   H, #0x00
+
 	RET

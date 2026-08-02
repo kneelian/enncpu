@@ -68,6 +68,8 @@ int main(int argc, char** argv)
 
 		for(int i = 1; i < argc; i++)
 		{
+			bytes.clear();
+			bytes.resize(2880 * 512);
 			if(std::string(argv[i]) == "-b")
 			{
 				std::filesystem::path inpath{argv[i + 1]};
@@ -80,7 +82,7 @@ int main(int argc, char** argv)
 				std::printf("binary length is %d\n", length);
 				file.read(reinterpret_cast<char*>(bytes.data()), length);
 
-				if(!basic_cpu.LOAD_NEW_FORMAT(bytes))
+				if(!basic_cpu.LOAD_NEW_FORMAT(bytes, length))
 				{
 					std::printf("Could not load .bin as program!\n\n");
 					return 1;

@@ -207,7 +207,7 @@ struct CPU
 
 	bool SYSC(u16 ID);
 
-	bool LOAD_NEW_FORMAT(std::vector<u8>& bytestream);
+	bool LOAD_NEW_FORMAT(std::vector<u8>& bytestream, u32 length);
 
 	void FETCH()
 	{

@@ -46,7 +46,7 @@ u32 CPU::GET_24(u32 addr)
 	return LINKED_MMU->READ_24(addr, PS);
 }
 
-bool CPU::LOAD_NEW_FORMAT(std::vector<u8>& bstream)
+bool CPU::LOAD_NEW_FORMAT(std::vector<u8>& bstream, u32 length)
 {
 	bool reading_section = false;
 	u32  sec_start  = 0;
@@ -59,13 +59,16 @@ bool CPU::LOAD_NEW_FORMAT(std::vector<u8>& bstream)
 		return false;
 	}
 
-	for(u32 j = 2; j < bstream.size() - 6; j += 8 + sec_length)
+	printf("bitstream size is 0x%06x\n", bstream.size());
+
+	for(u32 j = 2; j < length; j += 2)
 	{
 		u16 stamp  = (bstream[j - 1] <<  0) | (bstream[j - 2] << 8); 
-			if(stamp != 0x6404) { break; }
+			if(stamp != 0x6404) { continue; }
 		sec_start  = (bstream[j + 0] << 16) | (bstream[j + 1] << 8) | (bstream[j + 2] << 0);
 		sec_length = (bstream[j + 3] << 16) | (bstream[j + 4] << 8) | (bstream[j + 5] << 0);
 		sec_base   = sec_start - 8;
+
 
 		PUT_16(sec_base + 0, 0x6404);
 		PUT_24(sec_base + 2, sec_start);
@@ -75,6 +78,7 @@ bool CPU::LOAD_NEW_FORMAT(std::vector<u8>& bstream)
 		{
 			PUT_8 (sec_start + i, bstream[i + j + 6]);
 		}
+		j += sec_length - 8;
 	}
 	return true;
 }

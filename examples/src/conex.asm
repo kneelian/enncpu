@@ -20,7 +20,9 @@ $include raylib-constants.enn
 ; PGA-reachable routines
 ; suffixing all of these with _M
 ; to denote "main part" of their code
-; these are just stubs
+; most of these are just stubs
+@DIE
+	ERR
 @MEMCPY
 	FAR JMO @MEMCPY_M
 @MEMSET
@@ -65,6 +67,11 @@ $include raylib-constants.enn
 	FAR JMO @POLL_DEVICE_M
 @GET_SECTOR
 	FAR JMO @GET_SECTOR_M
+@LOAD_FAT_SEC0
+	FAR JMO @LOAD_FAT_SEC0_M
+@GET_SEC0_DATA
+	FAR JMO @GET_SEC0_DATA_M
+
 $include pga.enn
 
 ; exceptions load an addr from
@@ -117,12 +124,12 @@ $include pga.enn
 	JLA @POLL_DEVICE
 
 	MOV  A, #0
-	ADRL B, @DSKBUF
-	ADRM B, @DSKBUF
+	ADRL B, @FAT12_DSKBUF
+	ADRM B, @FAT12_DSKBUF
 	JLA  @GET_SECTOR
 
-	ADRL B, @DSKBUF
-	ADRM B, @DSKBUF
+	ADRL B, @FAT12_DSKBUF
+	ADRM B, @FAT12_DSKBUF
 	MOVM A, #2
 	@KILL_L1
 		LDRB  C, B+
@@ -155,9 +162,6 @@ $include pga.enn
 
 %PGA
 
-.ORG 0x0600
-@DSKBUF
-
 .ORG 0x0800
 .SEC %PROG
 
@@ -189,20 +193,6 @@ FAR JLO  @PRINT_STRING
 	ADRM A, @ICON
 FAR JLO  @DRAW_SPRITE_16x16_GRID_ALIGNED
 
-;	MOV  A, #0
-;	INV  A, A
-;	MOV  B, #50
-;	MOV  C, #50
-;	MOV  D, #250
-;FAR JLO  @DRAW_HLINE
-
-;	MOV  A, #0
-;	INV  A, A
-;	MOV  B, #50
-;	MOV  C, #50
-;	MOV  D, #250
-;FAR JLO  @DRAW_VLINE
-
 	MOV  A, #0
 	INV  A, A
 	MOV  B, #250
@@ -219,6 +209,11 @@ FAR JLO  @DRAW_SPRITE_16x16_GRID_ALIGNED
 	MOV  E, #195
 	JLA  @DRAW_RECT_FILL
 
+	JLA  @LOAD_FAT_SEC0
+	ADRL A, @FAT12_SECTOR_0
+	ADRM A, @FAT12_SECTOR_0 
+	JLA  @GET_SEC0_DATA
+
 	@LOOP
 		WFI
 		JLA  @GET_TIMER
@@ -232,11 +227,50 @@ FAR JLO  @DRAW_SPRITE_16x16_GRID_ALIGNED
 .REP 16 0x00
 
 %PROG
+            ; <╟┐
+            ;   │ grows down 
+.ORG 0x1000 ;   │ from 0x1000
+@STK  ; ────────┘      
 
 .ORG 0x1000
-@STK
+.SEC %FAT12_AREA
+; --------
+; FAT-related memory
 
-.ORG 0x4000
+@FAT12_BYTES_PER_SECTOR
+.INT16 0xffff
+@FAT12_RESERVED_SECTORS
+.INT16 0xffff
+@FAT12_NR_FAT_TABLES
+.INT8  0xff
+@FAT12_ROOT_DIR_ENTRIES
+.INT16 0xffff
+@FAT12_SECTORS_PER_FAT
+.INT16 0xffff
+@FAT12_ROOT_START
+.INT24 0xffffff
+@FAT12_DATA_START
+.INT24 0xffffff
+.PAD
+
+.ORG 0x1100
+@FAT12_DSKBUF
+
+.ORG 0x1300
+@FAT12_SECTOR_0
+
+.ORG 0x1500
+@FAT12_FAT_AREA ; loading only one FAT table
+
+.ORG 0x2700
+@FAT12_ROOTDIR_AREA
+
+.ORG 0x4300 ; 0xe0 * 0x20 (0x1c00) + 0x2700
+@FAT12_END_ROOTDIR
+
+%FAT12_AREA
+
+.ORG 0x8000
 .SEC %FONTS
 
 ; include font8.enn
