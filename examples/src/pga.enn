@@ -651,3 +651,41 @@
 	MOV   H, #0x00
 
 	RET
+
+; input:
+;    A - address where to load table
+@LOAD_FAT_INTO_MEM_M
+	PSHS B
+	PSHS C
+	PSHS D
+	PSHS E
+	PSHS F
+	PSHS G
+
+	MOV  E, A
+	MOV  B, #0
+
+	ADRL F, @FAT12_BYTES_PER_SECTOR
+	ADRM F, @FAT12_BYTES_PER_SECTOR
+	LDRW F, F
+
+	ADRL D, @FAT12_SECTORS_PER_FAT
+	ADRL D, @FAT12_SECTORS_PER_FAT
+	LDRW D, D
+
+	; SYSCI 1
+	; A - 0
+	; B - 3
+	; C - which
+	; D - where
+	@LFIM_L1
+		MOV D, E
+		ADD E, C
+
+
+	POPS G
+	POPS F
+	POPS E
+	POPS D
+	POPS C
+	POPS B

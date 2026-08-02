@@ -24,7 +24,14 @@ void DSK::SYSC(u32 id, CPU* cpu)
 	{
 		case 0: break;
 		case 1: IDENTIFY(cpu); break;
-		case 2: break;
+		case 2: 
+			TAKE_SECTOR(
+				cpu->ACTIVE_SET.at(2), // C
+				cpu->ACTIVE_SET.at(3), // D
+				cpu->PS,
+				cpu->LINKED_MMU);
+			cpu->ACTIVE_SET.at(0) = 0x14;
+			break;
 		case 3: 
 			GIVE_SECTOR(
 				cpu->ACTIVE_SET.at(2), // C
@@ -33,14 +40,7 @@ void DSK::SYSC(u32 id, CPU* cpu)
 				cpu->LINKED_MMU);
 			cpu->ACTIVE_SET.at(0) = 0x24;
 			break;
-		case 4:
-			TAKE_SECTOR(
-				cpu->ACTIVE_SET.at(2), // C
-				cpu->ACTIVE_SET.at(3), // D
-				cpu->PS,
-				cpu->LINKED_MMU);
-			cpu->ACTIVE_SET.at(0) = 0x34;
-			break;
+		case 4: break;
 		default: break;
 	}
 	return;
@@ -57,7 +57,7 @@ void DSK::GIVE_SECTOR(u32 which, u32 where, u16 proc_state, MMU* mmu)
 	return;
 }
 
-void DSK::TAKE_SECTOR(u32 which, u32 where, u16 proc_state, MMU* mmu)
+void DSK::TAKE_SECTOR(u32 which, u32 whence, u16 proc_state, MMU* mmu)
 {
 	return;
 }

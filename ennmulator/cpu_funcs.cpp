@@ -61,7 +61,7 @@ bool CPU::LOAD_NEW_FORMAT(std::vector<u8>& bstream, u32 length)
 
 	printf("bitstream size is 0x%06x\n", bstream.size());
 
-	for(u32 j = 2; j < length; j += 2)
+	for(u32 j = 2; j < length; j += 8)
 	{
 		u16 stamp  = (bstream[j - 1] <<  0) | (bstream[j - 2] << 8); 
 			if(stamp != 0x6404) { continue; }
