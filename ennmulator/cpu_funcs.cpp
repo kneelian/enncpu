@@ -61,14 +61,20 @@ bool CPU::LOAD_NEW_FORMAT(std::vector<u8>& bstream, u32 length)
 
 	printf("bitstream size is 0x%06x\n", bstream.size());
 
-	for(u32 j = 2; j < length; j += 8)
+	for(u32 j = 2; j < length; j += 2)
 	{
+		//std::printf(" > j is 0x%08x\n", j);
 		u16 stamp  = (bstream[j - 1] <<  0) | (bstream[j - 2] << 8); 
 			if(stamp != 0x6404) { continue; }
 		sec_start  = (bstream[j + 0] << 16) | (bstream[j + 1] << 8) | (bstream[j + 2] << 0);
 		sec_length = (bstream[j + 3] << 16) | (bstream[j + 4] << 8) | (bstream[j + 5] << 0);
 		sec_base   = sec_start - 8;
 
+		std::printf("Loading: 0x%06x : 0x%06x, 0x%06x, from j = 0x%06x\n", 
+			sec_start, 
+			sec_length, 
+			sec_base,
+			j);
 
 		PUT_16(sec_base + 0, 0x6404);
 		PUT_24(sec_base + 2, sec_start);
@@ -78,7 +84,6 @@ bool CPU::LOAD_NEW_FORMAT(std::vector<u8>& bstream, u32 length)
 		{
 			PUT_8 (sec_start + i, bstream[i + j + 6]);
 		}
-		j += sec_length - 8;
 	}
 	return true;
 }

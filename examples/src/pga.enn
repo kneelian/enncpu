@@ -548,6 +548,7 @@
 
 ; A contains sector number
 ; B contains target address
+; no error checking even though we can
 @GET_SECTOR_M
 	PSHS  C
 	PSHS  D
@@ -662,26 +663,24 @@
 	PSHS F
 	PSHS G
 
-	MOV  E, A
-	MOV  B, #0
+	MOV  G, A ; address
+	ADRL E, @FAT12_SECTORS_PER_FAT
+	ADRM E, @FAT12_SECTORS_PER_FAT
+	LDRS E, E
 
 	ADRL F, @FAT12_BYTES_PER_SECTOR
 	ADRM F, @FAT12_BYTES_PER_SECTOR
-	LDRW F, F
+	LDRS F, F
 
-	ADRL D, @FAT12_SECTORS_PER_FAT
-	ADRL D, @FAT12_SECTORS_PER_FAT
-	LDRW D, D
-
-	; SYSCI 1
-	; A - 0
-	; B - 3
-	; C - which
-	; D - where
+	MOV  D, #1
 	@LFIM_L1
-		MOV D, E
-		ADD E, C
-
+		MOV   B, G
+		ADD   G, F ; advance pointer
+		MOV   A, D
+		JLA   @GET_SECTOR
+		ADD   D, #1
+		SUB   E, #1
+		JMNZO E, @LFIM_L1
 
 	POPS G
 	POPS F
@@ -689,3 +688,4 @@
 	POPS D
 	POPS C
 	POPS B
+	RET
