@@ -166,9 +166,10 @@ int main(int argc, char** argv)
 
     std::thread t (VM, std::ref(basic_cpu));
 
-    t.detach();
-
     imgui_running = true;
+
+    t.detach();
+    
     while (!w.ShouldClose()) // Detect window close button or ESC key
     {
         float time32 = float(GetTime());
