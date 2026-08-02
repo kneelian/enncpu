@@ -3,6 +3,7 @@ $include raylib-constants.enn
 
 .ORG 0x0000
 .SEC %PGA
+	MASK
 	ADRL A, @STK
 	ADRM A, @STK
 	WSP  A
@@ -52,6 +53,14 @@ $include raylib-constants.enn
 	FAR JMO @DRAW_SPRITE_16x16_M
 @GET_TIMER
 	FAR JMO @GET_TIMER_M
+@DRAW_HLINE
+	FAR JMO @DRAW_HLINE_M
+@DRAW_VLINE
+	FAR JMO @DRAW_VLINE_M
+@DRAW_RECT
+	FAR JMO @DRAW_RECT_M
+@DRAW_RECT_FILL
+	FAR JMO @DRAW_RECT_FILL_M
 $include pga.enn
 
 ; exceptions load an addr from
@@ -125,7 +134,7 @@ $include pga.enn
 
 %PGA
 
-.ORG 0x0400
+.ORG 0x0600
 .SEC %PROG
 
 @MAIN
@@ -156,11 +165,11 @@ FAR JLO  @PRINT_STRING
 	ADRM A, @ICON
 FAR JLO  @DRAW_SPRITE_16x16_GRID_ALIGNED
 
+	_888_TO_565 C, 0x30, 0x00, 0x20, B
+
 	@LOOP
 		WFI
 		JLA  @GET_TIMER
-		DBGS A
-		DBGS B
 		JMO  @LOOP
 	ERR
 

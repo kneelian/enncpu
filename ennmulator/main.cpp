@@ -1,4 +1,4 @@
-
+#include <atomic>
 #include <cstdio>
 #include <bit>
 #include <fstream>
@@ -19,6 +19,9 @@
 #define KPOO  "\x1B[33m"
 #define KWHT  "\x1B[37m"
 
+std::atomic<bool> CPU_running;
+std::atomic<bool> imgui_running;
+
 void __DEBUG_PRINT_STATE(CPU& cpu)
 {
 	std::printf(" ! ---\nSTATE:"
@@ -32,19 +35,23 @@ void __DEBUG_PRINT_STATE(CPU& cpu)
 		cpu.ACTIVE_SET.at(6), cpu.ACTIVE_SET.at(7)
 		);
 	std::printf("-------------------\n");
-	std::printf("\tIP: 0x%04x\tSP: 0x%04x\n\tPS: 0x%04x\tXS: 0x%04x\n",
-		cpu.IP, cpu.SP, cpu.PS, cpu.XS );
+	std::printf("\tIP: 0x%04x\tSP: 0x%04x\n\tPS: 0x%04x\tXS: 0x%04x\n\tXV: 0x%04x\tRA: 0x%04x\n",
+		cpu.IP, cpu.SP, cpu.PS, cpu.XS, cpu.XV, cpu.RA);
 	std::printf("\tFETCHED INSN: 0x%04x\n", cpu.FETCHED_INSN);
 	std::printf("\tTICKS: %ld\n", cpu.TICKS);
 }
 
 void VM(CPU& us)
 {
+	CPU_running = true;
+
 	for(u64 i = 0; i < (1ULL << 48); i++)
-		if(us.STEP() == false)
+		if((imgui_running == false) or (us.STEP() == false))
 			break;
 
 	__DEBUG_PRINT_STATE(us);
+
+	CPU_running = false;
 
 	std::printf("\n");
 }
@@ -161,6 +168,7 @@ int main(int argc, char** argv)
 
     t.detach();
 
+    imgui_running = true;
     while (!w.ShouldClose()) // Detect window close button or ESC key
     {
         float time32 = float(GetTime());
@@ -198,7 +206,11 @@ int main(int argc, char** argv)
         	KEYB_BASE[0] = u8(key >> 0x08);
         	basic_cpu.TRAP(0x00'04);
         }
+        if(CPU_running == false) { break; }
     }
+    imgui_running = false;
+
+    while(CPU_running){}
 
 	return 0;
 }
