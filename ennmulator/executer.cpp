@@ -1442,7 +1442,7 @@ int CPU::EXECUTE(const INSN insn)
 			when comapring to fp24 (~4.82). Specifically, the improvement rate between
 			fp24 --> fp48 is better (x2.3125) than the rate going from fp32 --> fp64
 			(x2.20833..), which makes logarithmic sense.
-		*/
+		
 
 		case FMOV_48:
 			ACTIVE_SET.at(insn.FIRST_REG + 0) = ACTIVE_SET.at(insn.SECOND_REG + 0);
@@ -1586,7 +1586,7 @@ int CPU::EXECUTE(const INSN insn)
 			break;
 
 		case FMADD_48:
-			break;
+			break;*/
 
 		case MASK:
 			SET_MASKED_INT();
@@ -1608,7 +1608,6 @@ int CPU::EXECUTE(const INSN insn)
 			
 		case WFINT:
 			SET_WFI();
-			IP -= 2;
 			while(IS_WFI())
 			{
 				std::this_thread::sleep_for(std::chrono::milliseconds(1));
