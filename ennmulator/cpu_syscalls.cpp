@@ -13,8 +13,8 @@ bool SYSC_1(CPU* cpu)
 {
 	/*
 		syscall 1 is for interfacing with
-		the devices in the device vector
-
+		the devices in the device vecto
+rr
 		the device number is in A
 		function id to device in B
 
@@ -27,6 +27,7 @@ bool SYSC_1(CPU* cpu)
 	}
 	catch(...)
 	{
+		cpu->ACTIVE_SET.at(0) = 0x00ffffff;
 		return false;
 	}
 
