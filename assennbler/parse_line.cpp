@@ -54,8 +54,6 @@ LINE PARSE_THIS(
 		if(line[1] == "JMO.P") line[1] = "JMFAR.P"; else
 		if(line[1] == "JLO") line[1] = "JLFAR"; else
 		if(line[1] == "JLO.P") line[1] = "JLFAR.P";
-
-		std::printf("Warning!\n");
 	}
 
 	if(line.size() > 1 and (line[0] == "FAR" or line[0] == "PRE") and line[1][0] != '#')
