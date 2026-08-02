@@ -404,3 +404,135 @@
 	LDRS A, C
 	POPS C
 	RET
+
+; A holds colour
+; B holds x start
+; C holds y start
+; D holds nr of pixels
+@DRAW_HLINE_M
+	PSHS E
+	PSHS F
+
+	ADRL E, @FRAMEBUFFER
+	ADRH E, @FRAMEBUFFER
+	MOVL F, @FB_WIDTH
+	MOVM F, @FB_WIDTH
+	LSHL F, #1    ; bytes per row @ 16bpp
+
+	LSHL B, #1
+	MULA C, F
+	ADD  E, C
+	ADD  E, B
+
+	@DRAW_HLINE_L1
+		STRW  A, E+
+		SUB   D, #1
+		JMNZO D, @DRAW_HLINE_L1
+
+	POPS F
+	POPS E
+	RET
+
+; A holds colour
+; B holds x start
+; C holds y start
+; D holds nr of pixels
+@DRAW_VLINE_M
+	PSHS E
+	PSHS F
+
+	ADRL E, @FRAMEBUFFER
+	ADRH E, @FRAMEBUFFER
+	MOVL F, @FB_WIDTH
+	MOVM F, @FB_WIDTH
+	LSHL F, #1    ; bytes per row @ 16bpp
+
+	LSHL B, #1
+	MULA C, F
+	ADD  E, C
+	ADD  E, B
+
+	@DRAW_VLINE_L1
+		STRW  A, E
+		ADD   E, F
+		SUB   D, #1
+		JMNZO D, @DRAW_VLINE_L1
+
+	POPS F
+	POPS E
+	RET
+
+; A holds colour
+; B holds x start
+; C holds y start
+; D holds x end
+; E holds y end
+@DRAW_RECT_M
+	PSHS F
+	PSHS G
+
+	MOV  F, D
+	SUB  F, B ; width
+	MOV  G, E
+	SUB  G, C ; height
+
+	; (col, x, y, len) -> DRAW_HLINE
+	SHDW B
+	SHDW C
+	SHDW D
+	MOV  D, F
+	JLA  @DRAW_HLINE
+	LITE D
+	LITE C
+	LITE B
+
+	MOV  D, F
+	ADD  C, G
+	JLA  @DRAW_HLINE
+	LITE D
+	LITE C
+	LITE B
+	
+	MOV  D, G
+	JLA  @DRAW_VLINE
+	LITE D
+	LITE C
+	LITE B
+
+	MOV  D, G
+	ADD  B, F
+	JLA  @DRAW_VLINE
+
+	POPS G
+	POPS F
+	RET
+
+@DRAW_RECT_FILL_M
+	PSHS F
+	PSHS G
+	PSHS H
+
+	MOV  F, D
+	SUB  F, B ; width
+	MOV  G, E
+	SUB  G, C ; height
+
+	; (col, x, y, len) -> DRAW_VLINE
+	@DRAW_RECT_FILL_L1
+
+		PSHS  B
+		PSHS  C
+
+		MOV   D, G
+		JLA   @DRAW_VLINE
+
+		POPS  C
+		POPS  B
+		ADD   B, #1
+		SUB   F, #1
+		JMNZO F, @DRAW_RECT_FILL_L1
+
+	POPS H
+	POPS G
+	POPS F
+	RET

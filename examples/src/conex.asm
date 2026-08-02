@@ -165,7 +165,35 @@ FAR JLO  @PRINT_STRING
 	ADRM A, @ICON
 FAR JLO  @DRAW_SPRITE_16x16_GRID_ALIGNED
 
-	_888_TO_565 C, 0x30, 0x00, 0x20, B
+;	MOV  A, #0
+;	INV  A, A
+;	MOV  B, #50
+;	MOV  C, #50
+;	MOV  D, #250
+;FAR JLO  @DRAW_HLINE
+
+;	MOV  A, #0
+;	INV  A, A
+;	MOV  B, #50
+;	MOV  C, #50
+;	MOV  D, #250
+;FAR JLO  @DRAW_VLINE
+
+	MOV  A, #0
+	INV  A, A
+	MOV  B, #250
+	MOV  C, #125
+	MOV  D, #250
+	ADD  D, B
+	MOV  E, #150
+	JLA  @DRAW_RECT
+
+	MOV  B, #250
+	MOV  C, #170
+	MOV  D, #250
+	ADD  D, B
+	MOV  E, #195
+	JLA  @DRAW_RECT_FILL
 
 	@LOOP
 		WFI
