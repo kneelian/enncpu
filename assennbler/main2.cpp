@@ -1,5 +1,6 @@
 #include <array>
 #include <cstdio>
+#include <cstring>
 #include <string>
 #include <sstream>
 #include <fstream>
@@ -13,6 +14,7 @@
 
 int main(int argc, char** argv)
 {
+	bool verbose = false;
 	if(argc < 2)
 	{
 		std::printf("This program requires you to give the filename of the .asm file to load\n");
@@ -26,6 +28,14 @@ int main(int argc, char** argv)
 		std::printf("Failed to open file %s; exiting...\n", argv[1]);
 		return 1;
 	}
+
+	if(argc == 3)
+		if(std::strcmp(argv[2], "-v") == 0)
+			verbose = true;
+
+	if(argc == 4)
+		if(std::strcmp(argv[3], "-v") == 0)
+			verbose = true;
 
 	u32 current_address = 0x0;
 	const char REG_NAMES[] = "ABCDEFGH";
@@ -48,14 +58,16 @@ int main(int argc, char** argv)
 	for(auto& i : raw_lines)
 		BREAK_LINES(broken_lines, i);
 
-	std::printf("-----------------------\n");
+	if(verbose)
+		std::printf("-----------------------\n");
 
-	for(auto& i : broken_lines)
-	{
-		for(auto& j : i)
-			std::printf("%s ", j.c_str());
-		std::printf("\n");
-	}
+	if(verbose)
+		for(auto& i : broken_lines)
+		{
+			for(auto& j : i)
+				std::printf("%s ", j.c_str());
+			std::printf("\n");
+		}
 
 	PARSE_LINES(
 		broken_lines, 
@@ -67,60 +79,63 @@ int main(int argc, char** argv)
 	RESOLVE_LABELS(parsed_lines, label_addresses);
 	SANITY_CHECK(parsed_lines);
 
-	std::printf("-----------------------\n");
-
-	for(auto& i : parsed_lines)
-	{
-		if(i.OPERATION == LABEL)
+	if(verbose)
+		std::printf("-----------------------\n");
+	if(verbose)
+		for(auto& i : parsed_lines)
 		{
-			std::printf("0x%06x: label @%s\n",
-				i.POSITION, i.LABELNAME.c_str());
-			continue;
-		}
-		if(i.OPERATION == DIRECTIVE)
-		{
-			std::unordered_map<DIRECTIVES, std::string> dirnames =
+			if(i.OPERATION == LABEL)
 			{
-				{ ASCII, "ASCII"},
-				{ FP24, "FP24"  },
-				{ FP48, "FP48"  },
-				{ INT8, "INT8"  },
-				{ INT16, "INT16"  },
-				{ INT24, "INT24"  },
-				{ INT48, "INT48"  },
-				{ ORG, "ORG"  },
-				{ NUL, "NUL"  },
-				{ PAD, "PAD"  },
-				{ SECTION, "SEC" },
-			};
-			std::printf("0x%06x:\t%s%s %lu\n",
+				std::printf("0x%06x: label @%s\n",
+					i.POSITION, i.LABELNAME.c_str());
+				continue;
+			}
+			if(i.OPERATION == DIRECTIVE)
+			{
+				std::unordered_map<DIRECTIVES, std::string> dirnames =
+				{
+					{ ASCII, "ASCII"},
+					{ FP24, "FP24"  },
+					{ FP48, "FP48"  },
+					{ INT8, "INT8"  },
+					{ INT16, "INT16"  },
+					{ INT24, "INT24"  },
+					{ INT48, "INT48"  },
+					{ ORG, "ORG"  },
+					{ NUL, "NUL"  },
+					{ PAD, "PAD"  },
+					{ SECTION, "SEC" },
+				};
+				std::printf("0x%06x:\t%s%s %lu\n",
+					i.POSITION,
+					"D .",
+					dirnames[i.DIREC].c_str(),
+					i.RAW_DATA
+					);
+			} else
+			std::printf("0x%06x:\t%s%s %c %c %c %s\n",
 				i.POSITION,
-				"D .",
-				dirnames[i.DIREC].c_str(),
-				i.RAW_DATA
-				);
-		} else
-		std::printf("0x%06x:\t%s%s %c %c %c %s\n",
-			i.POSITION,
-			unmappings[i.OPERATION].c_str(),
-			(i.PREDICATED)?".P":"",
-			(i.REG_A != -127)?i.REG_A+'A':'\0',
-			(i.REG_B != -127)?i.REG_B+'A':'\0',
-			(i.REG_C != -127)?i.REG_C+'A':'\0',
-			(i.IMMEDIATE != -1024)?std::to_string(i.IMMEDIATE).c_str():"");
-	}
+				unmappings[i.OPERATION].c_str(),
+				(i.PREDICATED)?".P":"",
+				(i.REG_A != -127)?i.REG_A+'A':'\0',
+				(i.REG_B != -127)?i.REG_B+'A':'\0',
+				(i.REG_C != -127)?i.REG_C+'A':'\0',
+				(i.IMMEDIATE != -1024)?std::to_string(i.IMMEDIATE).c_str():"");
+		}
 
 	std::vector<u8> assembly;
 	ASSEMBLE(parsed_lines, current_address, assembly);
 
-	std::printf("assembly output:\n");
+	if(verbose)
+		std::printf("assembly output:\n");
 
-	for(auto& i : assembly)
-		std::printf("%02x ", i);
+	if(verbose)
+		for(auto& i : assembly)
+			std::printf("%02x ", i);
 
 	std::printf("\n");
 
-	if(argc == 3)
+	if((argc == 3 and !verbose) or (argc == 4))
 	{
 		std::ofstream file(argv[2], std::ios_base::out | std::ios_base::binary );
 		if(!file.is_open())
