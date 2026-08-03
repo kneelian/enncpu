@@ -594,7 +594,6 @@
 	ADRL B, @FAT12_BYTES_PER_SECTOR ; bytes per sector
 	ADRM B, @FAT12_BYTES_PER_SECTOR ; 0x0b
 	LDRW C, A+
-	DBGW C
 	ENDW C, C
 	STRW C, B+
 
@@ -656,29 +655,29 @@
 ; input:
 ;    A - address where to load table
 @LOAD_FAT_INTO_MEM_M
-	PSHS B
-	PSHS C
-	PSHS D
-	PSHS E
-	PSHS F
-	PSHS G
+	PSHS  B
+	PSHS  C
+	PSHS  D
+	PSHS  E
+	PSHS  F
+	PSHS  G
 
-	MOV  G, A ; address
-	ADRL E, @FAT12_SECTORS_PER_FAT
-	ADRM E, @FAT12_SECTORS_PER_FAT
-	LDRS E, E
-
-	ADRL F, @FAT12_BYTES_PER_SECTOR
-	ADRM F, @FAT12_BYTES_PER_SECTOR
-	LDRS F, F
-
-	MOV  D, #1
+	ADRL  E, @FAT12_SECTORS_PER_FAT
+	ADRM  E, @FAT12_SECTORS_PER_FAT
+	LDRW  E, E
+	MOV   F, A
+	MOV   C, #0
+	MOVL  G, #0
+	MOVM  G, #0x02
+	
 	@LFIM_L1
-		MOV   B, G
-		ADD   G, F ; advance pointer
-		MOV   A, D
-		JLA   @GET_SECTOR
-		ADD   D, #1
+		MOV   A, #0
+		MOV   B, #3
+		ADD   C, #1
+		MOV   D, F
+		SYSCI #1
+
+		ADD   F, G
 		SUB   E, #1
 		JMNZO E, @LFIM_L1
 
