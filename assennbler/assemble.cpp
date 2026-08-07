@@ -207,14 +207,11 @@ void ASSEMBLE(
 
 			if(i.REG_A > -1 and i.REG_B > -1) // two regs
 			{
-
 				insn |= (i.REG_A << 3) | i.REG_B;
 
 			} else
 			if(i.REG_A > -1 and i.IMMEDIATE != -1024)
 			{
-
-
 				insn |= (i.REG_A << 6);
 				switch(i.OPERATION)
 				{
@@ -247,7 +244,42 @@ void ASSEMBLE(
 					case JLO:
 						insn |= std::bit_cast<u8>(i8(i.IMMEDIATE / 2)); break;
 					default:
-						insn |= std::bit_cast<u8>(i8(i.IMMEDIATE / 1)); break;
+					case MVLA:
+					case MVLB:
+					case MVLC:
+					case MVLD:
+					case MVLE:
+					case MVLF:
+					case MVLG:
+					case MVLH:
+						insn |= std::bit_cast<u8>(i8(i.IMMEDIATE));
+						break;
+					case MVMA:
+					case MVMB:
+					case MVMC:
+					case MVMD:
+					case MVME:
+					case MVMF:
+					case MVMG:
+					case MVMH:
+						if(i.IMMEDIATE > 0xff)
+							insn |= std::bit_cast<u8>(i8(i.IMMEDIATE >> 8));
+						else
+							insn |= std::bit_cast<u8>(i8(i.IMMEDIATE));
+						break;
+					case MVHA:
+					case MVHB:
+					case MVHC:
+					case MVHD:
+					case MVHE:
+					case MVHF:
+					case MVHG:
+					case MVHH:
+						if(i.IMMEDIATE > 0xff)
+							insn |= std::bit_cast<u8>(i8(i.IMMEDIATE >> 16));
+						else
+							insn |= std::bit_cast<u8>(i8(i.IMMEDIATE));
+						break;
 				}
 			} else
 			if (i.REG_A != -127 and i.IMMEDIATE == -1024) // solo

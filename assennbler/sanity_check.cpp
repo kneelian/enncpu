@@ -33,7 +33,9 @@ void SANITY_CHECK(std::vector<LINE>& lines)
 			);
 			error = 2;
 		}
-		if((i.OPERATION != JMFAR and i.OPERATION != JLFAR) and 
+		if(
+			((i.OPERATION < MVLA)  or (i.OPERATION > MVHH)) and 
+			((i.OPERATION != JMFAR) and (i.OPERATION != JLFAR)) and 
 		   (i.IMMEDIATE != -1024) and (i.IMMEDIATE >= 512 or i.IMMEDIATE <= -512))
 		{
 			std::printf("SANITY: Immediate too large in line @ 0x%06x: %s%s %c, #%d\n",

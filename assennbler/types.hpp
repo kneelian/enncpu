@@ -38,7 +38,7 @@ struct LINE
 	i8   REG_B = -127;
 	i8   REG_C = -127;
 	OP   OPERATION = NOP;
-	i16  IMMEDIATE = -1024;
+	i32  IMMEDIATE = -1024;
 	u32  POSITION = -1;
 	i32  LABEL_POS = -1;
 	i32  LABEL_OFF = -(1 << 24);

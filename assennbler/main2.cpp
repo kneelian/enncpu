@@ -138,6 +138,7 @@ int main(int argc, char** argv)
 	if((argc == 3 and !verbose) or (argc == 4))
 	{
 		std::ofstream file(argv[2], std::ios_base::out | std::ios_base::binary );
+		std::printf("Opening file %s for output...\n", argv[2]);
 		if(!file.is_open())
 		{
 			std::printf("Failed to open file %s; exiting...\n", argv[2]);
