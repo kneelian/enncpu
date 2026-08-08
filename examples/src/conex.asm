@@ -123,7 +123,9 @@ $include pga.enn
 	RET
 @KILL
 	MOV  A, #0
-	JLA @POLL_DEVICE
+	JLA  @POLL_DEVICE
+	ADD  A, #1
+	JMZO A, @NO_DEVICE
 
 	MOV  A, #0
 	ADRL B, @FAT12_DSKBUF
@@ -139,8 +141,10 @@ $include pga.enn
 		SUB   A, #1
 		JMNZO A, @KILL_L1
 
+	@NO_DEVICE
 	JLA @GET_TIMER
 	ERR
+
 @EXVEC
 	MASK
 	PSHS A

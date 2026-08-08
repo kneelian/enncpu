@@ -189,8 +189,8 @@
 
 	ADRL D, @FRAMEBUFFER
 	ADRH D, @FRAMEBUFFER
-	MOVL E, @FB_WIDTH
-	MOVM E, @FB_WIDTH
+	MOVL E, FB_WIDTH
+	MOVM E, FB_WIDTH
 	LSHL E, #1    ; bytes per row @ 16bpp
 
 	LSHL B, #1
@@ -215,8 +215,8 @@
 
 	ADRL D, @FRAMEBUFFER
 	ADRH D, @FRAMEBUFFER
-	MOVL E, @FB_WIDTH
-	MOVM E, @FB_WIDTH
+	MOVL E, FB_WIDTH
+	MOVM E, FB_WIDTH
 	LSHL E, #1    ; bytes per row @ 16bpp
 
 	LSHL B, #1
@@ -330,11 +330,11 @@
 	PSHS B
 	PSHS C
 	
-	MOVL B, @FB_WIDTH
-	MOVM B, @FB_WIDTH
+	MOVL B, FB_WIDTH
+	MOVM B, FB_WIDTH
 
-	MOVL C, @FB_HEIGHT
-	MOVM C, @FB_HEIGHT
+	MOVL C, FB_HEIGHT
+	MOVM C, FB_HEIGHT
 	MULA C, B
 
 	ADRL B, @FRAMEBUFFER
@@ -366,8 +366,8 @@
 
 	ADRL D, @FRAMEBUFFER
 	ADRH D, @FRAMEBUFFER
-	MOVL E, @FB_WIDTH
-	MOVM E, @FB_WIDTH
+	MOVL E, FB_WIDTH
+	MOVM E, FB_WIDTH
 	LSHL E, #1    ; bytes per row @ 16bpp
 	MULA C, E
 	LSHL B, #1
@@ -416,8 +416,8 @@
 
 	ADRL E, @FRAMEBUFFER
 	ADRH E, @FRAMEBUFFER
-	MOVL F, @FB_WIDTH
-	MOVM F, @FB_WIDTH
+	MOVL F, FB_WIDTH
+	MOVM F, FB_WIDTH
 	LSHL F, #1    ; bytes per row @ 16bpp
 
 	LSHL B, #1
@@ -444,8 +444,8 @@
 
 	ADRL E, @FRAMEBUFFER
 	ADRH E, @FRAMEBUFFER
-	MOVL F, @FB_WIDTH
-	MOVM F, @FB_WIDTH
+	MOVL F, FB_WIDTH
+	MOVM F, FB_WIDTH
 	LSHL F, #1    ; bytes per row @ 16bpp
 
 	LSHL B, #1
@@ -687,4 +687,15 @@
 	POPS D
 	POPS C
 	POPS B
+	RET
+
+; follows a chain of FAT entries
+; through the table
+; input:
+;		A - address of FAT table
+;		B - address where to drop chain
+;       C - starting/next sector nr
+; output:
+;		D - number of sectors in chain
+@FOLLOW_FAT12_CHAIN
 	RET

@@ -81,7 +81,5 @@ $def KEY_KP_9 #0x49
 ; hacky!
 ; using address resolution
 ; to load constants
-.ORG 0x028A
-@FB_WIDTH
-.ORG 0x0190
-@FB_HEIGHT
+$def FB_WIDTH #0x028A
+$def FB_HEIGHT #0x0190
