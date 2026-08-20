@@ -1,0 +1,439 @@
+; PGA utilities
+
+
+; A has source
+; B has target
+; C has count
+@MEMCPY_M
+	PSHS D
+	@MEMCPY_LOOP
+		LDRB  D, A+
+		STRB  D, B+
+		SUB   C, #1
+		JMNZO C, @MEMCPY_LOOP
+	POPS D
+	RET
+
+; A has target
+; B has byte
+; C has count
+@MEMSET_M
+	CEQ   C, #0
+	RET.P
+	SUB   C, #1
+	STRB  B, A+
+	JMO @MEMSET_M
+
+; A holds number to decimalise
+; B holds pointer to string
+;    where we want the result
+;   (must be >= 9 bytes, for
+;    8 chars of number + zero)
+; avoids use of stack
+@INT_TO_DEC_M
+	PSHS C
+	PSHS D
+	PSHS E
+	MOV  C, A
+	MOV  D, #0
+	MOV  E, #10
+	@INT_TO_DEC_L1
+		DIV   C, E
+		ADD   D, #1
+		JMNZO C, @INT_TO_DEC_L1
+	; we know how many digits to reserve
+	ADD  B, D  ; start from back
+	MOV  D, #0
+	STRB D, B-
+	@INT_TO_DEC_L2
+		MOV   C, A
+		MOD   C, E
+		ADD   C, '0'
+		STRB  C, B-
+		DIV   A, E
+		JMNZO A, @INT_TO_DEC_L2
+	POPS E
+	POPS D
+	POPS C
+	RET
+
+; A holds pointer to zero-term
+; string with a decimal number
+; (no error handling!)
+@DEC_TO_INT_M
+	PSHS B
+	PSHS C
+	PSHS D
+	MOV  D, #10
+	@DEC_TO_INT_L1
+		LDRB B, A+
+		JMZO B, @DEC_TO_INT_L1_E
+		SUB  B, '0'
+		MULA C, D
+		ADD  C, B
+		JMO  @DEC_TO_INT_L1
+	@DEC_TO_INT_L1_E
+	MOV  A, C
+	POPS D
+	POPS C
+	POPS B
+	RET
+
+; A holds number to hexify
+; B holds pointer to string
+;    where we want the result
+;   (must be >= 8 bytes, for
+;    6 chars of number + 0x)
+@INT_TO_HEX_M
+	PSHS C
+	PSHS D
+
+	ADD  B, #7
+	MOV  D, #6
+	
+	@INT_TO_HEX_L1
+		MOV   C, A
+		BAND  C, #0x0f
+		CGT   C, #9
+		ADD.P C, #7
+		ADD   C, '0'
+		STRB  C, B-
+		LSHR  A, #4
+		SUB   D, #1
+		JMNZO D, @INT_TO_HEX_L1
+	MOV  C, 'x'
+	STRB C, B-
+	MOV  C, '0'
+	STRB C, B-
+
+	POPS D
+	POPS C
+	RET
+
+; A holds pointer to eight-byte
+; string (doesn't have to be zero
+; terminated) with a hex number
+; prefixed with 0x (obligatory)
+@HEX_TO_INT_M
+	PSHS B
+	PSHS C
+	PSHS D
+	ADD  A, #2 ; skip 0x
+	MOV  B, #0
+	MOV  C, #6
+	@HEX_TO_INT_L1
+		LSHL  B, #4
+		LDRB  D, A+
+		SUB   C, #1
+		SUB   D, '0'
+		CGT   D, #9
+		SUB.P D, #7
+		ADD   B, D
+		JMNZO C, @HEX_TO_INT_L1
+	MOV  A, B
+	POPS D
+	POPS C
+	POPS B
+	RET
+
+; A has colour 16bpp
+; B --> x
+; C --> y
+@DRAW_PX_M
+	PSHS D
+	PSHS E
+
+	ADRL D, @FRAMEBUFFER
+	ADRH D, @FRAMEBUFFER
+	MOVL E, FB_WIDTH
+	MOVM E, FB_WIDTH
+	LSHL E, #1    ; bytes per row @ 16bpp
+
+	LSHL B, #1
+	MULA C, E
+	ADD  D, C
+	ADD  D, B
+
+	STRW A, D
+
+	POPS E
+	POPS D
+	RET
+
+; A holds colour
+@CLRSCR_M
+	PSHS B
+	PSHS C
+	
+	MOVL B, FB_WIDTH
+	MOVM B, FB_WIDTH
+
+	MOVL C, FB_HEIGHT
+	MOVM C, FB_HEIGHT
+	MULA C, B
+
+	ADRL B, @FRAMEBUFFER
+	ADRH B, @FRAMEBUFFER
+	@CLRSCR_L1
+		STRW  A, B+
+		SUB   C, #1
+		JMNZO C, @CLRSCR_L1
+
+	POPS C
+	POPS B
+	RET
+
+; returns hi24 in A
+;         lo24 in B
+@GET_TIMER_M
+	PSHS C
+	ADRL C, @EX_TIMER
+	ADRM C, @EX_TIMER
+	LDRS B, C+
+	LDRS A, C
+	POPS C
+	RET
+
+; A holds colour
+; B holds x start
+; C holds y start
+; D holds nr of pixels
+@DRAW_HLINE_M
+	PSHS E
+	PSHS F
+
+	ADRL E, @FRAMEBUFFER
+	ADRH E, @FRAMEBUFFER
+	MOVL F, FB_WIDTH
+	MOVM F, FB_WIDTH
+	LSHL F, #1    ; bytes per row @ 16bpp
+
+	LSHL B, #1
+	MULA C, F
+	ADD  E, C
+	ADD  E, B
+
+	@DRAW_HLINE_L1
+		STRW  A, E+
+		SUB   D, #1
+		JMNZO D, @DRAW_HLINE_L1
+
+	POPS F
+	POPS E
+	RET
+
+; A holds colour
+; B holds x start
+; C holds y start
+; D holds nr of pixels
+@DRAW_VLINE_M
+	PSHS E
+	PSHS F
+
+	ADRL E, @FRAMEBUFFER
+	ADRH E, @FRAMEBUFFER
+	MOVL F, FB_WIDTH
+	MOVM F, FB_WIDTH
+	LSHL F, #1    ; bytes per row @ 16bpp
+
+	LSHL B, #1
+	MULA C, F
+	ADD  E, C
+	ADD  E, B
+
+	@DRAW_VLINE_L1
+		STRW  A, E
+		ADD   E, F
+		SUB   D, #1
+		JMNZO D, @DRAW_VLINE_L1
+
+	POPS F
+	POPS E
+	RET
+
+; A holds colour
+; B holds x start
+; C holds y start
+; D holds x end
+; E holds y end
+@DRAW_RECT_M
+	PSHS F
+	PSHS G
+
+	MOV  F, D
+	SUB  F, B ; width
+	MOV  G, E
+	SUB  G, C ; height
+
+	; (col, x, y, len) -> DRAW_HLINE
+	SHDW B
+	SHDW C
+	SHDW D
+	MOV  D, F
+	JLA  @DRAW_HLINE
+	LITE D
+	LITE C
+	LITE B
+
+	MOV  D, F
+	ADD  C, G
+	JLA  @DRAW_HLINE
+	LITE D
+	LITE C
+	LITE B
+
+	MOV  D, G
+	JLA  @DRAW_VLINE
+	LITE D
+	LITE C
+	LITE B
+
+	MOV  D, G
+	ADD  B, F
+	JLA  @DRAW_VLINE
+
+	POPS G
+	POPS F
+	RET
+
+@DRAW_RECT_FILL_M
+	PSHS F
+	PSHS G
+	PSHS H
+
+	MOV  F, D
+	SUB  F, B ; width
+	MOV  G, E
+	SUB  G, C ; height
+
+	; (col, x, y, len) -> DRAW_VLINE
+	@DRAW_RECT_FILL_L1
+		PSHS  B
+		PSHS  C
+		MOV   D, G
+		JLA   @DRAW_VLINE
+		POPS  C
+		POPS  B
+
+		ADD   B, #1
+		SUB   F, #1
+		JMNZO F, @DRAW_RECT_FILL_L1
+
+	POPS H
+	POPS G
+	POPS F
+	RET
+
+; [ABC] dot [DEF]
+;  returns result in A
+@V3_DOT_V3_M
+	FMUL A, D
+	FMUL B, E
+	FMUL C, F
+	FADD A, B
+	FADD A, C
+	RET
+
+; [ABC] cross [DEF]
+;  returns result in [ABC]
+;
+; (ay bz) - (az by)
+; (az bx) - (ax bz)
+; (ax by) - (ay bx)
+@V3_CRX_V3_M
+	PSHS G
+	PSHS H
+
+	MOV  G, B
+	FMUL G, F ; aybz
+	MOV  H, C
+	FMUL H, E ; azby
+	FSUB G, H ; cx
+	PSHS G
+
+	MOV  G, C
+	FMUL G, D ; azbx
+	MOV  H, F
+	FMUL H, A ; axbz
+	FSUB G, H
+	PSHS G
+
+	MOV  G, A
+	FMUL G, E ; axby
+	MOV  H, D
+	FMUL H, B ; aybx
+	FSUB G, H ; zx
+	
+	MOV  C, G
+	POPS B
+	POPS A
+
+	POPS H
+	POPS G
+	RET
+
+@V3_LEN_M
+	FMUL A, A
+	FMUL B, B
+	FMUL C, C
+	FADD A, B
+	FADD A, C
+	FSQT A, A
+	RET
+
+; [ABC] + [DEF]
+@V3_ADD_V3_M
+	FADD A, D
+	FADD B, E
+	FADD C, F
+	RET
+
+@V3_SUB_V3_M
+	FSUB A, D
+	FSUB B, E
+	FSUB C, F
+	RET
+
+@V3_NORM_M
+	PSHS C
+	PSHS B
+	PSHS A
+
+	JLA  @V3_LEN
+	MOV  D, A
+
+	POPS A
+	POPS B
+	POPS C
+
+	_V3_OP_FP24 A, B, C, FDIV, D
+
+	RET
+
+; returns 1 if v3[ABC] is almost zero
+; otherwise returns 0
+; 	in A
+@V3_NEAR_ZERO_M
+	PSHS   D
+	;   0x3a8313 is appx 0.001
+	;   0x38d1b8 is appx 0.0001
+	; > 0x3727c6 is appx 0.00001 in fp24
+	;   0x358638 is appx 0.000001
+	;   0x33d6c0 is appx 0.0000001
+	; 	in case you want a smaller/bigger epsilon
+	MOVL   D, #0x3727c6
+	MOVM   D, #0x3727c6
+	MOVH   D, #0x3727c6
+	FABS   A, A
+	FABS   B, B
+	FABS   C, C
+
+	FCGT   D, A
+	FCGT.P D, B
+	FCGT.P D, C
+
+	MOV    A, #0
+	ADD.P  A, #1
+
+	POPS   D
+	RET
