@@ -33,8 +33,12 @@ $include raylib-constants.enn
 	FAR JMO @INT_TO_HEX_M
 @HEX_TO_INT
 	FAR JMO @HEX_TO_INT_M
-@DRAW_PX
-	FAR JMO @DRAW_PX_M
+@DRAW_CHAR
+	FAR JMO @DRAW_CHAR_M
+@PRINT_STRING
+	FAR JMO @PRINT_STRING_M
+@PUTCHAR_CURSOR
+	FAR JMO @PUTCHAR_CURSOR_M
 @CLRSCR
 	FAR JMO @CLRSCR_M
 @GET_TIMER
@@ -47,7 +51,6 @@ $include raylib-constants.enn
 	FAR JMO @DRAW_RECT_M
 @DRAW_RECT_FILL
 	FAR JMO @DRAW_RECT_FILL_M
-
 @V3_DOT_V3
 	FAR JMO @V3_DOT_V3_M
 @V3_CRX_V3
@@ -58,10 +61,14 @@ $include raylib-constants.enn
 	FAR JMO @V3_ADD_V3_M
 @V3_SUB_V3
 	FAR JMO @V3_SUB_V3_M
+@V3_SUB_V3_REVERSE
+	FAR JMO @V3_SUB_V3_REVERSE_M
 @V3_NORM
 	FAR JMO @V3_NORM_M
 @V3_NEAR_ZERO
 	FAR JMO @V3_NEAR_ZERO_M
+@SETUP_RNG
+	FAR JMO @SETUP_RNG_M
 
 $include pga.enn
 
@@ -92,11 +99,29 @@ $include pga.enn
 	RET
 
 @EX_KBD_EVENT
+	@EX_KBD_EVENT
+	ADRL  B, @KBD_MAILBOX
+	ADRM  B, @KBD_MAILBOX
+	ADRH  B, @KBD_MAILBOX
+
+	LDRW  A, B
+
+	MOV   B, KEY_Q
+
+	CEQ   A, B
+	JMO.P @KILL
+
+	ADRL  B, @CHAR_MAILBOX
+	ADRM  B, @CHAR_MAILBOX
+	STRW  A, B
+
+	MOV   A, #0 ; clearing exception state
+	WXS   A
 	RET
 
 @KILL
 	JLA @GET_TIMER
-	ERR
+	JMA @DIE
 
 @EXVEC
 	MASK
@@ -129,50 +154,138 @@ $include pga.enn
 	_888_TO_565 A, 0x30, 0x00, 0x20, B
 FAR JLO @CLRSCR
 
-	MOV  A, #0
-	INV  A, A
-	MOV  B, #250
-	MOV  C, #125
-	MOV  D, #250
-	ADD  D, B
-	MOV  E, #150
-	JLA  @DRAW_RECT
-
-	MOV  B, #250
-	MOV  C, #170
-	MOV  D, #250
-	ADD  D, B
-	MOV  E, #195
-	JLA  @DRAW_RECT_FILL
-
-	MOVL B, #0xB00BA5
-	MOVM B, #0xB00BA5
-	MOVH B, #0xB00BA5
-	SEED B
-
-	MOV  D, #0x04
-	FCNV A, D
-	FCNV B, D
-	FCNV C, D
-	FCNV D, D
-
-	_V3_OP_FP24 A, B, C, FDIV, D
-
-	FCST E, A
-
-	ERR
+	ADRL A, @STRING_1
+	ADRM A, @STRING_1
+	JLA  @PRINT_STRING_M
 
 	@LOOP
 		WFI
-		JLA  @GET_TIMER
-		JMO  @LOOP
+		ADRL  A, @CHAR_MAILBOX
+		ADRM  A, @CHAR_MAILBOX
+		LDRW  B, A
+		JMZO  B, @LOOP
+
+	_888_TO_565 A, 0x30, 0x00, 0x20, B
+FAR JLO @CLRSCR
+
+	JLA @SETUP_RNG
+
 	ERR
 
-%PROG
-            ; <╟┐
+	; we harvest entropy from the time it takes
+	; the user to hit the keyboard to continue
+	;
+	; this lets us get some nondeterministic output
+	; for reruns of this thing
+
+	; ----------- raytracer!!
+
+	; loop goes:
+	; start from pixel (0, 0) and move right and down
+	; subtract from camera centre
+	; check hit for all sphere objects in order?
+
+	MOV G, #0 ; x
+	MOV H, #0 ; y
+
+	@RAY_LOOP
+		PSHW  H
+		PSHW  G
+
+		; 
+
+
+		POPW  G
+		ADD   G, #1
+		MOVL  H, #650
+		MOVM  H, #650
+		CEQ   G, H
+		MOV.P G, #0
+		POPW  H
+		ADD.P H, #1
+	FAR JMO @RAY_LOOP
+
+
+FAR JMO @RAY_LOOP
+
+	ERR
+
+
+%PROG       ; <╟┐
             ;   │ grows down 
 .ORG 0x1000 ;   │ from 0x1000
 @STK  ; ────────┘      
+
+.ORG 0x2000
+.SEC %DATA
+
+@CHAR_MAILBOX
+.INT16 0x0000
+
+@STRING_1
+.ASCII RAYTRACER EXAMPLE
+.INT8  0x0a
+.ASCII PRESS ANY KEY TO START,, P
+.ASCIZ RESS Q TO EXIT
+
+; eyepoint is at (0, 10, 0)
+@CAM_X
+.FP24 0.0
+@CAM_Y
+.FP24 10.0
+@CAM_Z
+.FP24 0.0
+; centre of plane of vision is at (0, 10, 5)
+@FOCAL
+.FP24 5.0
+
+; these are adjusted from centre of POV
+; rather than absolute values
+; so top left corner of the pixel
+; (0,0) will actually be (-3.25, 12.0, 5.0)
+; but the centre of the pixel has to be
+; half a delta in from the corner
+@PIX_0x0_X
+.INT24 0xc04fae ; -3.245
+@PIX_0x0_Y
+.INT24 0x400052 ; +2.005
+
+; steps for pixels
+; picked for convenience
+@DELTA_WIDTH
+.INT24 0x3c23d7 ; 0.01
+@DELTA_HEIGHT
+.FP24  0x3c23d7 ; 0.01
+
+; picked to match the aspect ratio
+; of the framebuffer (650x400)
+@WIDTH_PP
+.FP24 6.5
+@HEIGHT_PP
+.FP24 4.0
+
+@WIDTH_PIX
+.INT16 650
+@HEIGHT_PIX
+.INT16 400
+
+; demo sphere
+@SPHERE1_X
+.FP24 0.0
+@SPHERE1_Y
+.FP24 10.0
+@SPHERE1_Z
+.FP24 8.0  ; POV + 3.0
+@SPHERE1_R
+.FP24 1.25 ; so it fits on the screen and doesnt clip
+
+%DATA
+
+.ORG 0x4000
+.SEC %FONTS
+$include font16.enn
+%FONTS
+
 
 .ORG 0x800000
 @FRAMEBUFFER

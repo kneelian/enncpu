@@ -160,6 +160,137 @@
 	POPS D
 	RET
 
+; A is char
+; B --> x
+; C --> y
+@DRAW_CHAR_M
+	PSHS D
+	PSHS E
+	PSHS F
+	PSHS G
+
+	ADRL D, @FRAMEBUFFER
+	ADRH D, @FRAMEBUFFER
+	MOVL E, FB_WIDTH
+	MOVM E, FB_WIDTH
+	LSHL E, #1    ; bytes per row @ 16bpp
+
+	LSHL B, #1
+	MULA C, E
+	ADD  D, C
+	ADD  D, B
+
+	LSHL A, #4 ; offset in table
+	ADRL B, @FONT16x8
+	ADRM B, @FONT16x8
+	ADD  B, A  ; position of bitmap in font
+
+	MOV  C, D
+	MOV  D, E
+	MOV  E, #16
+	@DRAW_OUTER
+		MOV  F, #8
+		LDRB G, B+  ; G now has full byte
+		ADD  C, #16
+		@DRAW_INNER
+			MOV     A, G
+			BAND    A, #1
+			CEQ     A, #1
+			LSHR    G, #1
+			SUB.P   A, #1
+			INV.P   A, A
+			STRW.P  A, C
+			SUB     C, #2
+			; just skip bgcol bits
+			SUB     F, #1
+			JMNZO   F, @DRAW_INNER
+		SUB   E, #1
+		ADD   C, D  ; next row
+		JMNZO E, @DRAW_OUTER
+	POPS G
+	POPS F
+	POPS E
+	POPS D
+	RET
+
+; takes pointer to zero terminated string in A
+; prints until empty
+@PRINT_STRING_M
+	PSHS B
+	MOV  B, A
+
+	@PRINT_STRING_L1
+		LDRB  A, B+
+		JMZO  A, @PRINT_STRING_L1_E
+	FAR JLO   @PUTCHAR_CURSOR
+		JMO   @PRINT_STRING_L1
+	@PRINT_STRING_L1_E
+
+	POPS B
+	RET
+
+; print_next_char takes only a codepoint
+; and handles the positioning of the char
+; on the framebuffer by manipulating the
+; "cursor" variables
+@CURSOR_X
+.INT8 0
+@CURSOR_Y
+.INT8 0
+; screen is 80 chars wide (with 5 px on either side)
+; and 25 tall 
+; (640 / 8), (400 / 16)
+;
+; takes codepoint in A
+@PUTCHAR_CURSOR_M
+	PSHS B
+	PSHS C
+	PSHS D
+	PSHS E
+
+	ADRL  D, @CURSOR_X
+	ADRM  D, @CURSOR_X
+	ADRL  E, @CURSOR_Y
+	ADRM  E, @CURSOR_Y
+
+	LDRB   B, D
+	LDRB   C, E
+  
+	LSHL   B, #3  ; *8
+	LSHL   C, #4  ; *16
+  
+	ADD    B, #5  ; padding
+  
+	CEQ    A, '\n'
+	LDRB.P B, E
+	ADD.P  B, #1
+	STRB.P B, E
+	MOV.P  B, #0
+	STRB.P B, D
+	JMO.P  @PUTCHAR_SKIP
+
+ FAR JLO   @DRAW_CHAR
+
+	LDRB   B, D
+	LDRB   C, E
+
+ 	ADD    B, #1
+ 	MOV    A, #80
+ 	CEQ    A, B    ; B ?= 80
+ 	MOV.P  B, #0
+ 	ADD.P  C, #1
+
+ 	STRB   B, D
+	STRB   C, E
+
+	@PUTCHAR_SKIP
+
+	POPS   E
+	POPS   D
+	POPS   C
+	POPS   B
+	RET
+
 ; A holds colour
 @CLRSCR_M
 	PSHS B
@@ -394,6 +525,11 @@
 	FSUB C, F
 	RET
 
+@V3_SUB_V3_REVERSE_M
+	FSUB D, A
+	FSUB E, B
+	FSUB F, C
+
 @V3_NORM_M
 	PSHS C
 	PSHS B
@@ -436,4 +572,15 @@
 	ADD.P  A, #1
 
 	POPS   D
+	RET
+
+; trashes A, B
+@SETUP_RNG_M
+	JLA @GET_TIMER
+	ADD  A, B
+	MOV  B, A
+	LSHL B, #4
+	BXOR A, B
+	SEED A
+
 	RET
