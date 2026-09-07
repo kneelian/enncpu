@@ -1,0 +1,80 @@
+.ORG 0x0000
+.SEC %PGA
+
+FAR JMO @START
+
+@FP24_EQU
+	FAR JMO @FP24_EQU_M
+
+%PGA
+
+.ORG 0x0210
+.SEC %PGB
+
+; tests A = B
+; trashes A
+; returns 1 if true, 0 if false
+; return in A
+@FP24_EQU_M
+	PSHS  C
+
+	CEQ    A, B
+	MOV.P  A, #1
+	POPS.P C
+	RET.P  ; trivial case
+
+	MOV    C, #0
+	FCLT   A, C  ; negative a
+	FCGT.P B, C  ; and positive b
+	MOV.P  A, #0
+	POPS.P C
+	RET.P
+
+	FCGT   A, C
+	FCLT.P B, C
+	MOV.P  A, #0
+	POPS.P C
+	RET.P
+
+	; now A and B are same sign
+	; load epsilon
+	MOVL  C, #0x3727c6
+	MOVM  C, #0x3727c6
+	MOVH  C, #0x3727c6
+
+	; can also use 0x358638
+	;          or  0x38d1b8
+
+	FSUB  A, B
+	FABS  A, A 
+	FCGT  C, A
+	MOV   A, #0
+	ADD.P A, #1
+		
+	POPS C
+	RET
+
+%PGB
+
+.ORG 0x1000
+.SEC %MAIN
+
+@START
+	MOVL A, @STK
+	MOVM A, @STK
+	WSP  A
+	MASK
+
+	MOV  A, #3
+	FCNV A, A
+	MOV  B, #3
+	FCNV B, B
+
+	JLA @FP24_EQU
+
+	ERR
+
+%MAIN
+
+.ORG 0x2000
+@STK
