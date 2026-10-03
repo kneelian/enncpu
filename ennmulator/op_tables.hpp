@@ -88,22 +88,22 @@ const OP REG_IMM_TBLB[] =
 
 const OP REG_SOLO_TBLA[] =
 {
-	PSHB, PSHW, PSHS, ERR,  // 0000xx
-	POPB, POPW, POPS, ERR,  // 0001xx
-	TPAGE,WPAGE,RND,  ZRO,  // 0010xx
-	FIL,  SWPR, SHDW, LITE, // 0011xx
-	RSP,  WSP,  RIP,  WIP,  // 0100
-	RPS,  WPS,  RXS,  WXS,  // 0101
-	JMR,  JLR,  RXV,  WXV, // 0110
-	ERR,  ERR,  SEED, ERR, // 0111
+	PSHB,     PSHW, PSHS, ERR,  // 0000xx
+	POPB,     POPW, POPS, ERR,  // 0001xx
+	TPAGE,    WPAGE,RND,  ZRO,  // 0010xx
+	FIL,      SWPR, SHDW, LITE, // 0011xx
+	RSP,      WSP,  RIP,  WIP,  // 0100
+	RPS,      WPS,  RXS,  WXS,  // 0101
+	JMR,      JLR,  RXV,  WXV,  // 0110
+	MMU_TBL,  RKS,  SEED, WKS,  // 0111
 
 	FCPI, 	FCE,  	FC0,  	FC1,  // 1000
 	FC2,  	FCSQ2,	FCPHI,	FCTAU,// 1001xx
 	CINF, 	CNAN, 	CNRM, 	ERR,  // 1010xx
 	PSH2W,  PSH2S,  ERR,    ERR,  // 1100xx
 	POP2W,  POP2S,  ERR,    ERR,  // 1101xx
-	MMU_SETRO,   // 111000
-	MMU_CHKRO,   // 111001
+	MMU_SETREAD,   // 111000
+	MMU_CHKREAD,   // 111001
 	MMU_SETUSR,  // 111010
 	MMU_CHKUSR,  // 111011 
 	PEEKB, 	PEEKW, 	PEEKS, 	ERR,  // 1111xx 

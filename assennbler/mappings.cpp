@@ -182,6 +182,8 @@ std::unordered_map<std::string, OP> mappings =
 	{ "RND",  RND },
 	{ "RSP",  RSP },
 	{ "WSP",  WSP },
+	{ "RKS",  RKS },
+	{ "WKS",  WKS },
 	{ "RIP",  RIP },
 	{ "WIP",  WIP },
 	{ "RPS",  RPS },
@@ -294,8 +296,9 @@ std::unordered_map<std::string, OP> mappings =
 	{ "HALFA", HALFA },
 	{ "HALFB", HALFB },
 
-	{ "MMU_SETRO",	MMU_SETRO }, 
-	{ "MMU_CHKRO",	MMU_CHKRO }, 
+	{ "MMU_SETREAD", MMU_SETREAD }, 
+	{ "MMU_CHKREAD", MMU_CHKREAD }, 
+	{ "MMU_TBL", MMU_TBL},
 	{ "MMU_SETUSR",	MMU_SETUSR },
 	{ "MMU_CHKUSR",	MMU_CHKUSR },
 
@@ -375,8 +378,11 @@ std::unordered_map<OP, std::string> unmappings =
 {
 	{ COMMENT, "; " },
 	{ NOP, "NOP"},
-	{ MMU_SETRO,	"MMU_SETRO" }, 
-	{ MMU_CHKRO,	"MMU_CHKRO" }, 
+	{ MMU_SETREAD, "MMU_SETREAD" }, 
+	{ MMU_CHKREAD, "MMU_CHKREAD" },
+	{ WKS, "WKS" },
+	{ RKS, "RKS" },
+	{ MMU_TBL, "MMU_TBL" }, 
 	{ MMU_SETUSR,	"MMU_SETUSR" },
 	{ MMU_CHKUSR,	"MMU_CHKUSR" },
 

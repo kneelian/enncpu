@@ -5,7 +5,7 @@
 #include <sstream>
 #include <filesystem>
 
-#include<thread>
+#include <thread>
 
 #include "types.hpp"
 #include "random_module.hpp"
@@ -35,8 +35,8 @@ void __DEBUG_PRINT_STATE(CPU& cpu)
 		cpu.ACTIVE_SET.at(6), cpu.ACTIVE_SET.at(7)
 		);
 	std::printf("-------------------\n");
-	std::printf("\tIP: 0x%04x\tSP: 0x%04x\n\tPS: 0x%04x\tXS: 0x%04x\n\tXV: 0x%04x\tRA: 0x%04x\n",
-		cpu.IP, cpu.SP, cpu.PS, cpu.XS, cpu.XV, cpu.RA);
+	std::printf("\tIP: 0x%04x\tSP: 0x%04x\n\tPS: 0x%04x\tXS: 0x%04x\n\tXV: 0x%04x\tKS: 0x%04x\n",
+		cpu.IP, cpu.SP, cpu.PS, cpu.XS, cpu.XV, cpu.KS);
 	std::printf("\tFETCHED INSN: 0x%04x\n", cpu.FETCHED_INSN);
 	std::printf("\tTICKS: %ld\n", cpu.TICKS);
 }

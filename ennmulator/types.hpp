@@ -9,6 +9,10 @@
 #include <functional>
 #include <bit>
 
+#include <thread>
+#include <chrono>
+#include <atomic>
+
 #include "operations.hpp"
 
 #define i64  int64_t
@@ -21,7 +25,7 @@
 #define u8  uint8_t
 
 struct MMU;
-struct CPU; 
+struct CPU;
 
 struct MMU
 {
@@ -31,8 +35,9 @@ struct MMU
 	/* perms are a bitmap of
 	   conditions;
 	   		b0 - usermode
-	   		b1 -
-	   		b2 - readonly
+	   		b1 - readable
+	   		b2 - writable
+	   		b3 - executable
 	*/
 	std::array<u8, 4096 * 4096 > DATA;
 
@@ -52,27 +57,47 @@ struct MMU
 	}
 
 	bool CHECK_READONLY(u16 page);
-	void CLEAR_READONLY(u16 page);
-	void   SET_READONLY(u16 page);
-
-	bool CHECK_PAGE_EXISTS(u16 page);
-
 	bool CHECK_USERPERM(u16 page);
-	void CLEAR_USERPERM(u16 page);
-	void   SET_USERPERM(u16 page);
+	bool CHECK_READABLE(u16 page);
+	bool CHECK_EXECUTABLE(u16 page);
+	bool CHECK_WRITABLE(u16 page);
 
-	u8 CHECK_MAPPING(u16 page);
+	void CLR_WRITABLE(u16 page);
+	void SET_WRITABLE(u16 page);
+
+	void CLR_USERPERM(u16 page);
+	void SET_USERPERM(u16 page);
+
+	void CLR_READABLE(u16 page);
+	void SET_READABLE(u16 page);
+
+	void CLR_EXECUTABLE(u16 page);
+	void SET_EXECUTABLE(u16 page);
+
+	u16 CHECK_MAPPING(u16 page);
 	void SET_MAPPING(u16 from, u16 to);
 
 	u16 READ_8 (u32 addr, u16 proc_state);
 	u32 READ_16(u32 addr, u16 proc_state);
 	u32 READ_24(u32 addr, u16 proc_state);
 	u32 READ_32(u32 addr, u16 proc_state);
-	u64 READ_64(u64 addr, u16 proc_state);
+	u64 READ_64(u64 addr, u16 proc_state);	
+
+	u16 READ_8_RAW (u32 addr);
+	u32 READ_16_RAW(u32 addr);
+	u32 READ_24_RAW(u32 addr);
+
+	u32 READ_16_CODE(u32 addr, u16 proc_state);
 
 	void WRITE_8 (u32 addr, u16 proc_state, u8  payload);
 	void WRITE_16(u32 addr, u16 proc_state, u16 payload);
 	void WRITE_24(u32 addr, u16 proc_state, u32 payload);
+
+	void WRITE_8_RAW (u32 addr, u8  payload);
+	void WRITE_16_RAW(u32 addr, u16 payload);
+	void WRITE_24_RAW(u32 addr, u32 payload);
+
+	void FROM_TBL(u32 addr);
 };
 
 struct DEVICE
@@ -122,6 +147,7 @@ struct INSN
 
 		0100  - interrupt pending
 		0200  - is in interrupt
+		0400  - came to interrupt from kernel
 */
 
 struct CPU
@@ -134,11 +160,15 @@ struct CPU
 	u16 XS = 0x0000; // exception state
 
 	u32 XV = 0x0000; // exception vector
-	u32 RA = 0x0000; // return address
+	u32 KS = 0x0000; // kernel stack
 
 	u8 PREFIX = 0x00;
 
 	u64 RAND_STATE = 0x12345678deadbeef;
+
+	inline bool  IS_KERNEL() { return PS & 0x0001; }
+	inline void SET_KERNEL() { PS |=  0x0001; }
+	inline void CLR_KERNEL() { PS &=(~0x0001); }
 
 	inline bool IS_COND_SET() { return PS & 0x0004; }
 	inline void SET_COND()    { PS |=  0x0004; }
@@ -156,8 +186,18 @@ struct CPU
 	inline void SET_PENDING_INT() { PS |=   0x0100;  }
 	inline void CLR_PENDING_INT() { PS &= (~0x0100); }
 
-	inline void SET_IN_INTERRUPT() { PS |=   0x0200;  }
-	inline void CLR_IN_INTERRUPT() { PS &= (~0x0200); }
+	inline void SET_IN_INTERRUPT()
+	{
+		if(PS & 0x0001) { PS |= 0x0400; }
+		PS |=   0x0201;
+		
+	}
+	inline void CLR_IN_INTERRUPT()
+	{ 
+		PS &= (~0x0201);
+		if(PS & 0x0400) { PS |= 0x0001; } // restore kernel
+		PS &= (~0x0400);
+	}
 
 	inline u8 PREFIX_STATE()  { return PREFIX; }
 	inline void CLR_PREFIX()  { SET_PREFIX(0); }
@@ -175,7 +215,7 @@ struct CPU
 
 	std::vector<DEVICE*> DEVICES;
 
-	MMU* LINKED_MMU = nullptr;
+	MMU*   LINKED_MMU = nullptr;
 
 	u8 *FALLBACK_PAGE = nullptr;
 
@@ -203,6 +243,7 @@ struct CPU
 
 	u8  GET_8 (u32);
 	u16 GET_16(u32);
+	u16 GET_16_CODE(u32);
 	u32 GET_24(u32);
 
 	bool SYSC(u16 ID);
@@ -211,7 +252,7 @@ struct CPU
 
 	void FETCH()
 	{
-		FETCHED_INSN = GET_16(IP);
+		FETCHED_INSN = GET_16_CODE(IP);
 		IP += 2;
 	}
 
@@ -230,7 +271,11 @@ struct CPU
 		CLR_PENDING_INT();
 		SET_IN_INTERRUPT();
 
-		RA = IP;
+		KS -= 3;
+		KS &= 0xffffff;
+		PUT_24(KS, IP);
+
+		// RA = IP;
 		IP = XV;
 	}
 

@@ -124,6 +124,7 @@ enum OP : uint16_t
 	RPS, WPS,
 	RXS, WXS, CXS, // and check if in an exception
 	RXV, WXV, // exception vector
+	RKS, WKS, // kernel stack
 
 	// test and write MMU page properties
 	TPAGE, WPAGE,
@@ -324,10 +325,11 @@ enum OP : uint16_t
 	DBGINS,
 	DBGINF,
 	DBGA = 0x80ff,
-	MMU_SETRO,
-	MMU_CHKRO,
+	MMU_SETREAD,
+	MMU_CHKREAD,
 	MMU_SETUSR,
 	MMU_CHKUSR,
+	MMU_TBL,    // read whole table from memory
 	SYSCI, // syscall
 	TRAPI, // exceptional
 	KERNI, // jump to kernel

@@ -41,6 +41,12 @@ u16 CPU::GET_16(u32 addr)
 {
 	return LINKED_MMU->READ_16(addr, PS);
 }
+
+u16 CPU::GET_16_CODE(u32 addr)
+{
+	return LINKED_MMU->READ_16_CODE(addr, PS);
+}
+
 u32 CPU::GET_24(u32 addr)
 {
 	return LINKED_MMU->READ_24(addr, PS);
