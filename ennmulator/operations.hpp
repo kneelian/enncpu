@@ -319,6 +319,7 @@ enum OP : uint16_t
 	DBGB, DBGW, DBGS,
 	DBGF,
 	DBGC,
+	DBGH, // halt!
 	DBGINC,
 	DBGINB,
 	DBGINW,

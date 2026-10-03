@@ -3,6 +3,7 @@ $include raylib-constants.enn
 
 .ORG 0x0000
 .SEC %PGA
+
 	MASK
 	ADRL A, @STK
 	ADRM A, @STK
@@ -10,10 +11,13 @@ $include raylib-constants.enn
 
 	ADRL A, @EXVEC
 	ADRM A, @EXVEC
+
 	WXV  A
 
 	ADRL A, @MAIN
 	ADRM A, @MAIN
+
+	DBGH
 
 	JMR  A
 

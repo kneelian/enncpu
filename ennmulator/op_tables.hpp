@@ -95,7 +95,7 @@ const OP REG_SOLO_TBLA[] =
 	RSP,      WSP,  RIP,  WIP,  // 0100
 	RPS,      WPS,  RXS,  WXS,  // 0101
 	JMR,      JLR,  RXV,  WXV,  // 0110
-	MMU_TBL,  RKS,  SEED, WKS,  // 0111
+	MMU_TBL,  RKS,  SEED, WKS,  // 0111xx
 
 	FCPI, 	FCE,  	FC0,  	FC1,  // 1000
 	FC2,  	FCSQ2,	FCPHI,	FCTAU,// 1001xx
@@ -144,7 +144,7 @@ const OP NO_REGISTERS[] =
 const std::array<OP, 64> DEBUGS =
 	{
 		DBGB,   DBGW,   DBGS,    DBGA, // 0000xx
-		DBGF,   DBGC,   ERR,     ERR,
+		DBGF,   DBGC,   DBGH,    ERR,
 		DBGINB, DBGINW, DBGINS,  ERR,
 		DBGINF, DBGINC, ERR,     ERR	
 	};

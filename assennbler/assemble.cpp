@@ -464,6 +464,7 @@ void ASSEMBLE(
 				case DBGA:   insn |= 0b0'10'0111'000'000011; break;
 				case DBGF:   insn |= 0b0'10'0111'000'000100; break;
 				case DBGC:   insn |= 0b0'10'0111'000'000101; break;
+				case DBGH:   insn |= 0b0'10'0111'000'000110; break;
 
 				case DBGINC: insn |= 0b0'10'0111'000'001101; break;
 				

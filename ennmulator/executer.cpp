@@ -64,6 +64,33 @@ int CPU::EXECUTE(const INSN insn)
 				printf("%c", char(ACTIVE_SET.at(insn.FIRST_REG) >>  0));
 				break;
 
+			case DBGH:
+				std::printf(" ! ---\n DEBUG BREAKPOINT:"
+					"\n\tA: 0x%06x\t B: 0x%06x"
+					"\n\t   A': 0x%06x\t    B': 0x%06x"
+					"\n\tC: 0x%06x\t D: 0x%06x"
+					"\n\t   C': 0x%06x\t    D': 0x%06x"
+					"\n\tE: 0x%06x\t F: 0x%06x"
+					"\n\t   E': 0x%06x\t    F': 0x%06x"
+					"\n\tG: 0x%06x\t H: 0x%06x"
+					"\n\t   G': 0x%06x\t    H': 0x%06x\n",
+					ACTIVE_SET.at(0), ACTIVE_SET.at(1),
+						SHADOW_SET.at(0), SHADOW_SET.at(1),
+					ACTIVE_SET.at(2), ACTIVE_SET.at(3),
+						SHADOW_SET.at(2), SHADOW_SET.at(3),
+					ACTIVE_SET.at(4), ACTIVE_SET.at(5),
+						SHADOW_SET.at(4), SHADOW_SET.at(5),
+					ACTIVE_SET.at(6), ACTIVE_SET.at(7),
+						SHADOW_SET.at(6), SHADOW_SET.at(7)
+					);
+				std::printf("---------------------------------\n");
+				std::printf("\tIP: 0x%06x\tPS: 0x%04x\n\tSP: 0x%06x\tXS: 0x%04x\n\tKS: 0x%06x\tXV: 0x%04x\n",
+					IP, PS, SP, XS, KS, XV);
+				std::printf("\tFETCHED INSN: 0x%04x\n", FETCHED_INSN);
+				std::printf("\tTICKS: %ld\n", TICKS);
+				std::scanf("%c");
+				break;
+
 			case DBGINC:
 				ACTIVE_SET.at(insn.FIRST_REG) = std::getchar();
 				break; //std::fgets(temp_input, 16, stdin);

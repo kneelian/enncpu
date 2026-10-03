@@ -321,6 +321,7 @@ enum OP : uint16_t
 	DBGB, DBGW, DBGS,
 	DBGF,
 	DBGC,
+	DBGH, // debug halt
 	DBGINC,
 	DBGINB,
 	DBGINW,
