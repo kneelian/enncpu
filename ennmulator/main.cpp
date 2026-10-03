@@ -26,17 +26,25 @@ void __DEBUG_PRINT_STATE(CPU& cpu)
 {
 	std::printf(" ! ---\nSTATE:"
 		"\n\tA: 0x%06x\t B: 0x%06x"
+		"\n\t   A': 0x%06x\t    B': 0x%06x"
 		"\n\tC: 0x%06x\t D: 0x%06x"
+		"\n\t   C': 0x%06x\t    D': 0x%06x"
 		"\n\tE: 0x%06x\t F: 0x%06x"
-		"\n\tG: 0x%06x\t H: 0x%06x\n",
+		"\n\t   E': 0x%06x\t    F': 0x%06x"
+		"\n\tG: 0x%06x\t H: 0x%06x"
+		"\n\t   G': 0x%06x\t    H': 0x%06x\n",
 		cpu.ACTIVE_SET.at(0), cpu.ACTIVE_SET.at(1),
+			cpu.SHADOW_SET.at(0), cpu.SHADOW_SET.at(1),
 		cpu.ACTIVE_SET.at(2), cpu.ACTIVE_SET.at(3),
+			cpu.SHADOW_SET.at(2), cpu.SHADOW_SET.at(3),
 		cpu.ACTIVE_SET.at(4), cpu.ACTIVE_SET.at(5),
-		cpu.ACTIVE_SET.at(6), cpu.ACTIVE_SET.at(7)
+			cpu.SHADOW_SET.at(4), cpu.SHADOW_SET.at(5),
+		cpu.ACTIVE_SET.at(6), cpu.ACTIVE_SET.at(7),
+			cpu.SHADOW_SET.at(6), cpu.SHADOW_SET.at(7)
 		);
-	std::printf("-------------------\n");
-	std::printf("\tIP: 0x%04x\tSP: 0x%04x\n\tPS: 0x%04x\tXS: 0x%04x\n\tXV: 0x%04x\tKS: 0x%04x\n",
-		cpu.IP, cpu.SP, cpu.PS, cpu.XS, cpu.XV, cpu.KS);
+	std::printf("---------------------------------\n");
+	std::printf("\tIP: 0x%06x\tPS: 0x%04x\n\tSP: 0x%06x\tXS: 0x%04x\n\tKS: 0x%06x\tXV: 0x%04x\n",
+		cpu.IP, cpu.PS, cpu.SP, cpu.XS, cpu.KS, cpu.XV);
 	std::printf("\tFETCHED INSN: 0x%04x\n", cpu.FETCHED_INSN);
 	std::printf("\tTICKS: %ld\n", cpu.TICKS);
 }
