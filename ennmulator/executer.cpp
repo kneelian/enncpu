@@ -831,46 +831,51 @@ int CPU::EXECUTE(const INSN insn)
 			}
 			break;
 		case MEMMAP:
-			if(PS & 0x0001)
+			if(IS_KERNEL())
 			{
 				LINKED_MMU->SET_MAPPING( 
 					ACTIVE_SET.at(insn.FIRST_REG)  & 0xfff,
 					ACTIVE_SET.at(insn.SECOND_REG) & 0xfff);
 			}
 			break;
-		case MMU_SETRO:
-			if(PS & 0x0001)
+		case MMU_SETREAD:
+			if(IS_KERNEL())
 			{
 				if(ACTIVE_SET.at(insn.FIRST_REG) & 0x1000)
-					  LINKED_MMU->SET_READONLY(ACTIVE_SET.at(insn.FIRST_REG) & 0xfff);
+					  LINKED_MMU->SET_READABLE(ACTIVE_SET.at(insn.FIRST_REG) & 0xfff);
 				else
-					LINKED_MMU->CLEAR_READONLY(ACTIVE_SET.at(insn.FIRST_REG) & 0xfff);
+					LINKED_MMU->CLR_READABLE(ACTIVE_SET.at(insn.FIRST_REG) & 0xfff);
 			}
 			break;
-		case MMU_CHKRO:
-			if(PS & 0x0001)
+		case MMU_CHKREAD:
+			if(IS_KERNEL())
 			{
 				ACTIVE_SET.at(insn.FIRST_REG) =
-					LINKED_MMU->CHECK_READONLY(ACTIVE_SET.at(insn.FIRST_REG) & 0xfff)?1:0;
+					LINKED_MMU->CHECK_READABLE(ACTIVE_SET.at(insn.FIRST_REG) & 0xfff)?1:0;
 			}
 			break;
 		case MMU_SETUSR:
-			if(PS & 0x0001)
+			if(IS_KERNEL())
 			{
 				if(ACTIVE_SET.at(insn.FIRST_REG) & 0x1000)
 					  LINKED_MMU->SET_USERPERM(ACTIVE_SET.at(insn.FIRST_REG) & 0xfff);
 				else
-					LINKED_MMU->CLEAR_USERPERM(ACTIVE_SET.at(insn.FIRST_REG) & 0xfff);
+					LINKED_MMU->CLR_USERPERM(ACTIVE_SET.at(insn.FIRST_REG) & 0xfff);
 			}
 			break;
 		case MMU_CHKUSR:
-			if(PS & 0x0001)
+			if(IS_KERNEL())
 			{
 				ACTIVE_SET.at(insn.FIRST_REG) =
 					LINKED_MMU->CHECK_USERPERM(ACTIVE_SET.at(insn.FIRST_REG) & 0xfff)?1:0;
 			}
 			break;
 
+		case MMU_TBL:
+			if(IS_KERNEL())
+				LINKED_MMU->FROM_TBL(ACTIVE_SET.at(insn.FIRST_REG));
+			
+			break;
 
 		case STRB:
 			PUT_8 (ACTIVE_SET.at(insn.SECOND_REG),
@@ -1088,140 +1093,347 @@ int CPU::EXECUTE(const INSN insn)
 			break;
 
 		case PSHI:
-			//std::printf("Entering PSHI with SP == %d\n", SP);
-			SP -= 1;
-			SP &= 0xffffff;
-			PUT_8 (SP,  u8(insn.IMMEDIATE & 0x0000ff));
-			//std::printf("Exiting PSHI with SP == %d\n", SP);
+			if(PS & 0x0001)
+			{
+				KS -= 1;
+				KS &= 0xffffff;
+				PUT_8 (KS,  u8(insn.IMMEDIATE & 0x0000ff));
+			}
+			else
+			{
+				SP -= 1;
+				SP &= 0xffffff;
+				PUT_8 (SP,  u8(insn.IMMEDIATE & 0x0000ff));
+			}
 			break;
 		case PSHB:
-			SP -= 1;
-			SP &= 0xffffff;
-			PUT_8 (SP,  u8(ACTIVE_SET.at(insn.FIRST_REG) & 0x0000ff));
+			if(PS & 0x0001)
+			{
+				KS -= 1;
+				KS &= 0xffffff;
+				PUT_8 (KS,  u8(ACTIVE_SET.at(insn.FIRST_REG) & 0x0000ff));
+			}
+			else
+			{
+				SP -= 1;
+				SP &= 0xffffff;
+				PUT_8 (SP,  u8(ACTIVE_SET.at(insn.FIRST_REG) & 0x0000ff));
+			}
 			break;
 		case PSHW:
-			SP -= 2;
-			SP &= 0xffffff;
-			PUT_16(SP, u16(ACTIVE_SET.at(insn.FIRST_REG) & 0x00ffff));
+			if(PS & 0x0001)
+			{
+				KS -= 2;
+				KS &= 0xffffff;
+				PUT_16(KS, u16(ACTIVE_SET.at(insn.FIRST_REG) & 0x00ffff));
+			}
+			else
+			{
+				SP -= 2;
+				SP &= 0xffffff;
+				PUT_16(SP, u16(ACTIVE_SET.at(insn.FIRST_REG) & 0x00ffff));
+			}
 			break;
 		case PSHS:
-			SP -= 3;
-			SP &= 0xffffff;
-			PUT_24(SP, u32(ACTIVE_SET.at(insn.FIRST_REG) & 0xffffff));
+			if(PS & 0x0001)
+			{
+				KS -= 3;
+				KS &= 0xffffff;
+				PUT_24(KS, u32(ACTIVE_SET.at(insn.FIRST_REG) & 0xffffff));
+			}
+			else
+			{
+				SP -= 2;
+				SP &= 0xffffff;
+				PUT_24(SP, u32(ACTIVE_SET.at(insn.FIRST_REG) & 0xffffff));
+			}
 			break;
 		case PSH2W:
-			SP -= 2;
-			SP &= 0xffffff;
-			PUT_16(SP, u16(ACTIVE_SET.at(insn.FIRST_REG) & 0x00ffff));
-			SP -= 2;
-			SP &= 0xffffff;
-			PUT_16(SP, u16(ACTIVE_SET.at((insn.FIRST_REG + 1) & 7)));
+			if(PS & 0x0001)
+			{
+				KS -= 2;
+				KS &= 0xffffff;
+				PUT_16(KS, u16(ACTIVE_SET.at(insn.FIRST_REG) & 0x00ffff));
+				KS -= 2;
+				KS &= 0xffffff;
+				PUT_16(KS, u16(ACTIVE_SET.at((insn.FIRST_REG + 1) & 7)));
+			}
+			else
+			{
+				SP -= 2;
+				SP &= 0xffffff;
+				PUT_16(SP, u16(ACTIVE_SET.at(insn.FIRST_REG) & 0x00ffff));
+				SP -= 2;
+				SP &= 0xffffff;
+				PUT_16(SP, u16(ACTIVE_SET.at((insn.FIRST_REG + 1) & 7)));
+			}
 			break;
 		case PSH2S:
-			SP -= 3;
-			SP &= 0xffffff;
-			PUT_24(SP, u32(ACTIVE_SET.at(insn.FIRST_REG) & 0xffffff));
-			SP -= 3;
-			SP &= 0xffffff;
-			PUT_24(SP, u32(ACTIVE_SET.at((insn.FIRST_REG + 1) & 7)));
+			if(PS & 0x0001)
+			{
+				KS -= 3;
+				KS &= 0xffffff;
+				PUT_24(KS, u32(ACTIVE_SET.at(insn.FIRST_REG) & 0xffffff));
+				KS -= 3;
+				KS &= 0xffffff;
+				PUT_24(KS, u32(ACTIVE_SET.at((insn.FIRST_REG + 1) & 7)));
+			}
+			else
+			{
+				SP -= 3;
+				SP &= 0xffffff;
+				PUT_24(SP, u32(ACTIVE_SET.at(insn.FIRST_REG) & 0xffffff));
+				SP -= 3;
+				SP &= 0xffffff;
+				PUT_24(SP, u32(ACTIVE_SET.at((insn.FIRST_REG + 1) & 7)));
+			}
 			break;
+			
 		case PSH3S:
-			SP -= 3;
-			SP &= 0xffffff;
-			PUT_24(SP, u32(ACTIVE_SET.at(insn.FIRST_REG) & 0xffffff));
-			SP -= 3;
-			SP &= 0xffffff;
-			PUT_24(SP, u32(ACTIVE_SET.at((insn.FIRST_REG + 1) & 7)));
-			SP -= 3;
-			SP &= 0xffffff;
-			PUT_24(SP, u32(ACTIVE_SET.at((insn.FIRST_REG + 2) & 7)));
+			if(PS & 0x0001)
+			{
+				KS -= 3;
+				KS &= 0xffffff;
+				PUT_24(KS, u32(ACTIVE_SET.at(insn.FIRST_REG) & 0xffffff));
+				KS -= 3;
+				KS &= 0xffffff;
+				PUT_24(KS, u32(ACTIVE_SET.at((insn.FIRST_REG + 1) & 7)));
+				KS -= 3;
+				KS &= 0xffffff;
+				PUT_24(KS, u32(ACTIVE_SET.at((insn.FIRST_REG + 2) & 7)));
+			}
+			else
+			{
+				SP -= 3;
+				SP &= 0xffffff;
+				PUT_24(SP, u32(ACTIVE_SET.at(insn.FIRST_REG) & 0xffffff));
+				SP -= 3;
+				SP &= 0xffffff;
+				PUT_24(SP, u32(ACTIVE_SET.at((insn.FIRST_REG + 1) & 7)));
+				SP -= 3;
+				SP &= 0xffffff;
+				PUT_24(SP, u32(ACTIVE_SET.at((insn.FIRST_REG + 2) & 7)));
+			}
 			break;
+			
 		case POP2W:
-			ACTIVE_SET.at((insn.FIRST_REG + 1) & 7) = GET_16(SP);
-			SP += 2;
-			SP &= 0xffffff;
-			ACTIVE_SET.at(insn.FIRST_REG) = GET_16(SP);
-			SP += 2;
-			SP &= 0xffffff;
+			if(PS & 0x0001)
+			{
+				ACTIVE_SET.at((insn.FIRST_REG + 1) & 7) = GET_16(KS);
+				KS += 2;
+				KS &= 0xffffff;
+				ACTIVE_SET.at(insn.FIRST_REG) = GET_16(KS);
+				KS += 2;
+				KS &= 0xffffff;
+			}
+			else
+			{
+				ACTIVE_SET.at((insn.FIRST_REG + 1) & 7) = GET_16(SP);
+				SP += 2;
+				SP &= 0xffffff;
+				ACTIVE_SET.at(insn.FIRST_REG) = GET_16(SP);
+				SP += 2;
+				SP &= 0xffffff;
+			}
 			break;
 		case POP2S:
-			ACTIVE_SET.at((insn.FIRST_REG + 1) & 7) = GET_24(SP);
-			SP += 3;
-			SP &= 0xffffff;
-			ACTIVE_SET.at(insn.FIRST_REG) = GET_24(SP);
-			SP += 3;
-			SP &= 0xffffff;
+			if(PS & 0x0001)
+			{
+				ACTIVE_SET.at((insn.FIRST_REG + 1) & 7) = GET_24(KS);
+				KS += 3;
+				KS &= 0xffffff;
+				ACTIVE_SET.at(insn.FIRST_REG) = GET_24(KS);
+				KS += 3;
+				KS &= 0xffffff;
+			}
+			else
+			{
+				ACTIVE_SET.at((insn.FIRST_REG + 1) & 7) = GET_24(SP);
+				SP += 3;
+				SP &= 0xffffff;
+				ACTIVE_SET.at(insn.FIRST_REG) = GET_24(SP);
+				SP += 3;
+				SP &= 0xffffff;
+			}
 			break;
 		case POP3S:
-			ACTIVE_SET.at((insn.FIRST_REG + 2) & 7) = GET_24(SP);
-			SP += 3;
-			SP &= 0xffffff;
-			ACTIVE_SET.at((insn.FIRST_REG + 1) & 7) = GET_24(SP);
-			SP += 3;
-			SP &= 0xffffff;
-			ACTIVE_SET.at(insn.FIRST_REG) = GET_24(SP);
-			SP += 3;
-			SP &= 0xffffff;
+			if(PS & 0x0001)
+			{
+				ACTIVE_SET.at((insn.FIRST_REG + 2) & 7) = GET_24(KS);
+				KS += 3;
+				KS &= 0xffffff;
+				ACTIVE_SET.at((insn.FIRST_REG + 1) & 7) = GET_24(KS);
+				KS += 3;
+				KS &= 0xffffff;
+				ACTIVE_SET.at(insn.FIRST_REG) = GET_24(KS);
+				KS += 3;
+				KS &= 0xffffff;
+			}
+			else
+			{
+				ACTIVE_SET.at((insn.FIRST_REG + 2) & 7) = GET_24(SP);
+				SP += 3;
+				SP &= 0xffffff;
+				ACTIVE_SET.at((insn.FIRST_REG + 1) & 7) = GET_24(SP);
+				SP += 3;
+				SP &= 0xffffff;
+				ACTIVE_SET.at(insn.FIRST_REG) = GET_24(SP);
+				SP += 3;
+				SP &= 0xffffff;
+			}
 			break;
 		case JUNKB: // just pops off the stack
-			SP += 1;
-			SP &= 0xffffff;
+			if(PS & 0x0001)
+			{
+				KS += 1;
+				KS &= 0x00ffffff;
+			}
+			else
+			{
+				SP += 1;
+				SP &= 0xffffff;
+			}
 			break;
 		case JUNKW: // just pops off the stack
-			SP += 2;
-			SP &= 0xffffff;
+			if(PS & 0x0001)
+			{
+				KS += 2;
+				KS &= 0x00ffffff;
+			}
+			else
+			{
+				SP += 2;
+				SP &= 0xffffff;
+			}
 			break;
 		case JUNKS: // just pops off the stack
-			SP += 3;
-			SP &= 0xffffff;
+			if(PS & 0x0001)
+			{
+				KS += 3;
+				KS &= 0x00ffffff;
+			}
+			else
+			{
+				SP += 3;
+				SP &= 0xffffff;
+			}
 			break;
 		case POPB:
-			ACTIVE_SET.at(insn.FIRST_REG) = GET_8 (SP);
-			SP += 1;
-			SP &= 0xffffff;
+			if(PS & 0x0001)
+			{
+				ACTIVE_SET.at(insn.FIRST_REG) = GET_8 (KS);
+				KS += 1;
+				KS &= 0xffffff;
+			}
+			else
+			{
+				ACTIVE_SET.at(insn.FIRST_REG) = GET_8 (SP);
+				SP += 1;
+				SP &= 0xffffff;
+			}
 			break;
 		case POPW:
-			ACTIVE_SET.at(insn.FIRST_REG) = GET_16(SP);
-			SP += 2;
-			SP &= 0xffffff;
+			if(PS & 0x0001)
+			{
+				ACTIVE_SET.at(insn.FIRST_REG) = GET_16(KS);
+				KS += 2;
+				KS &= 0xffffff;
+			}
+			else
+			{
+				ACTIVE_SET.at(insn.FIRST_REG) = GET_16(SP);
+				SP += 2;
+				SP &= 0xffffff;
+			}
 			break;
 		case POPS:
-			ACTIVE_SET.at(insn.FIRST_REG) = GET_24(SP);
-			SP += 3;
-			SP &= 0xffffff;
+			if(PS & 0x0001)
+			{
+				ACTIVE_SET.at(insn.FIRST_REG) = GET_24(KS);
+				KS += 3;
+				KS &= 0xffffff;
+			}
+			else
+			{
+				ACTIVE_SET.at(insn.FIRST_REG) = GET_24(SP);
+				SP += 3;
+				SP &= 0xffffff;
+			}
 			break;
 
 		case SWVB:
-			temp = GET_8 (SP);
-			SP += 1;
-			SP &= 0xffffff;
-			swvt = GET_8 (SP);
-			PUT_8 (SP, temp);
-			SP -= 1;
-			SP &= 0xffffff;
-			PUT_8 (SP, swvt);
+			if(PS & 0x0001)
+			{
+				temp = GET_8 (KS);
+				KS += 1;
+				KS &= 0xffffff;
+				swvt = GET_8 (KS);
+				PUT_8 (KS, temp);
+				KS -= 1;
+				KS &= 0xffffff;
+				PUT_8 (KS, swvt);
+			}
+			else
+			{
+				temp = GET_8 (SP);
+				SP += 1;
+				SP &= 0xffffff;
+				swvt = GET_8 (SP);
+				PUT_8 (SP, temp);
+				SP -= 1;
+				SP &= 0xffffff;
+				PUT_8 (SP, swvt);
+			}
 			break;
 					
 		case SWVW:
-			temp = GET_16(SP);
-			SP += 2;
-			SP &= 0xffffff;
-			swvt = GET_16(SP);
-			PUT_8 (SP, temp);
-			SP -= 2;
-			SP &= 0xffffff;
-			PUT_8 (SP, swvt);
+			if(PS & 0x0001)
+			{
+				temp = GET_16(KS);
+				KS += 2;
+				KS &= 0xffffff;
+				swvt = GET_16(KS);
+				PUT_16(KS, temp);
+				KS -= 2;
+				KS &= 0xffffff;
+				PUT_16(KS, swvt);
+			}
+			else
+			{
+				temp = GET_16(SP);
+				SP += 2;
+				SP &= 0xffffff;
+				swvt = GET_16(SP);
+				PUT_16(SP, temp);
+				SP -= 2;
+				SP &= 0xffffff;
+				PUT_16(SP, swvt);
+			}
 			break;
 		
 		case SWVS:
-			temp = GET_24(SP);
-			SP += 3;
-			SP &= 0xffffff;
-			swvt = GET_24(SP);
-			PUT_8 (SP, temp);
-			SP -= 3;
-			SP &= 0xffffff;
-			PUT_8 (SP, swvt);
+			if(PS & 0x0001)
+			{
+				temp = GET_24(KS);
+				KS += 3;
+				KS &= 0xffffff;
+				swvt = GET_24(KS);
+				PUT_24(KS, temp);
+				KS -= 3;
+				KS &= 0xffffff;
+				PUT_24(KS, swvt);
+			}
+			else
+			{
+				temp = GET_24(SP);
+				SP += 3;
+				SP &= 0xffffff;
+				swvt = GET_24(SP);
+				PUT_24(SP, temp);
+				SP -= 3;
+				SP &= 0xffffff;
+				PUT_24(SP, swvt);
+			}
 			break;
 
 		case TPAGE:
@@ -1270,12 +1482,22 @@ int CPU::EXECUTE(const INSN insn)
 					(1 << ACTIVE_SET.at(insn.SECOND_REG));
 			break;
 
+		case RKS:
+			if(PS & 0x0001)
+				ACTIVE_SET.at(insn.FIRST_REG) = KS;
+			break;
+
 		case RSP:
 			ACTIVE_SET.at(insn.FIRST_REG) = SP;
 			break;
-		case WSP:
+
+		case WKS:
 			if(PS & 0x0001)
-				SP = ACTIVE_SET.at(insn.FIRST_REG);
+				KS = ACTIVE_SET.at(insn.FIRST_REG);
+			break;
+
+		case WSP:
+			SP = ACTIVE_SET.at(insn.FIRST_REG);
 			break;
 		
 		case RIP:
@@ -1420,14 +1642,32 @@ int CPU::EXECUTE(const INSN insn)
 		/* prefix 0x01 */
 
 		case LOOP:
-			SP -= 3;
-			SP &= 0xffffff;
-			PUT_24(SP, IP);
+			if(PS & 0x0001)
+			{
+				KS -= 3;
+				KS &= 0xffffff;
+				PUT_24(KS, IP);
+			}
+			else
+			{
+				SP -= 3;
+				SP &= 0xffffff;
+				PUT_24(SP, IP);
+			}
 			break;
 		case LRET:
-			temp = GET_24(SP);
-			SP += 3;
-			SP &= 0xffffff;
+			if(PS & 0x0001)
+			{
+				temp = GET_24(KS);
+				KS += 3;
+				KS &= 0xffffff;
+			}
+			else
+			{
+				temp = GET_24(SP);
+				SP += 3;
+				SP &= 0xffffff;
+			}
 			IP = temp;
 			break;
 
@@ -1595,9 +1835,12 @@ int CPU::EXECUTE(const INSN insn)
 			CLR_MASKED_INT();
 			break;
 		case ERET:
-			//std::printf("ERET is returning to 0x%06x\n", GET_24(SP));
+			// std::printf("ERET is returning to 0x%06x\n", GET_24(SP));
 
-			IP = RA;
+			IP = GET_24(KS);
+			KS += 3;
+			KS &= 0xffffff;
+
 			
 			CLR_IN_INTERRUPT();
 			CLR_MASKED_INT();
@@ -1681,9 +1924,18 @@ int EXEC_JUMP(INSN insn, CPU* me)
 {
 	if(insn.OPERATION & LINK)
 	{
-		me->SP -= 3;
-		me->SP &= 0xffffff;
-		me->PUT_24(me->SP, me->IP);
+		if(me->PS & 0x0001)
+		{
+			me->KS -= 3;
+			me->KS &= 0xffffff;
+			me->PUT_24(me->KS, me->IP);
+		}
+		else
+		{
+			me->SP -= 3;
+			me->SP &= 0xffffff;
+			me->PUT_24(me->SP, me->IP);
+		}
 	}
 
 	if(insn.OPERATION & ABSOLUTE)
@@ -1730,10 +1982,18 @@ int EXEC_JUMP(INSN insn, CPU* me)
 	switch(insn.OPERATION)
 	{
 		case RET:
-			
-			temp = me->GET_24(me->SP);
-			me->SP += 3;
-			me->SP &= 0xffffff;
+			if(me->PS & 0x0001)
+			{
+				temp = me->GET_24(me->KS);
+				me->KS += 3;
+				me->KS &= 0xffffff;
+			}
+			else
+			{
+				temp = me->GET_24(me->SP);
+				me->SP += 3;
+				me->SP &= 0xffffff;
+			}
 			me->IP = temp;
 			break;
 

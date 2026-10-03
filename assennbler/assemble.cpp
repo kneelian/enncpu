@@ -526,8 +526,12 @@ void ASSEMBLE(
 				case RXV:  insn |= 0b0'01'0110'000'011010; break;
 				case WXV:  insn |= 0b0'01'0110'000'011011; break;
 
-				case SEED: insn |= 0b0'01'0110'000'011110; break;
-				case RND:  insn |= 0b0'01'0110'000'001010; break;
+				case MMU_TBL: insn |= 0b0'01'0110'000'011100; break;
+				case RKS:     insn |= 0b0'01'0110'000'011101; break;
+				case SEED:    insn |= 0b0'01'0110'000'011110; break;
+				case WKS:     insn |= 0b0'01'0110'000'011111; break;
+
+				case RND:     insn |= 0b0'01'0110'000'001010; break;
 
 				case FCPI:	insn |= 0b0'01'0110'000'100000; break;
 				case FCE:	insn |= 0b0'01'0110'000'100001; break;
@@ -541,10 +545,10 @@ void ASSEMBLE(
 				case CNAN:  insn |= 0b0'01'0110'000'101001; break;
 				case CNRM:  insn |= 0b0'01'0110'000'101010; break;
 
-				case MMU_SETRO:  insn |= 0b0'01'0110'000'111000; break;
-				case MMU_CHKRO:  insn |= 0b0'01'0110'000'111001; break;
-				case MMU_SETUSR: insn |= 0b0'01'0110'000'111010; break;
-				case MMU_CHKUSR: insn |= 0b0'01'0110'000'111011; break;
+				case MMU_SETREAD: insn |= 0b0'01'0110'000'111000; break;
+				case MMU_CHKREAD: insn |= 0b0'01'0110'000'111001; break;
+				case MMU_SETUSR:  insn |= 0b0'01'0110'000'111010; break;
+				case MMU_CHKUSR:  insn |= 0b0'01'0110'000'111011; break;
 				case PEEKB:  insn |= 0b0'01'0110'000'111100; break;
 				case PEEKW:  insn |= 0b0'01'0110'000'111101; break;
 				case PEEKS:  insn |= 0b0'01'0110'000'111110; break;

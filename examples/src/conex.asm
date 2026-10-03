@@ -6,7 +6,7 @@ $include raylib-constants.enn
 	MASK
 	ADRL A, @STK
 	ADRM A, @STK
-	WSP  A
+	WKS  A
 
 	ADRL A, @EXVEC
 	ADRM A, @EXVEC

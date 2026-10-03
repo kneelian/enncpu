@@ -29,11 +29,11 @@ contexts:
         1: meta.preprocessor.macro.asm
 
     # Instructions / Opcodes (Add your architecture's instructions here)
-    - match: '\b(?:MOV(L|M|H)?|HALF(A|B)|INV|END(W|S)|GET(L|M|H)|(F|P)?(ADD|SUB|DIV)|FMUL|MUL(A|B)|LSH(L|R))\b'
+    - match: '\b(?:MOV(L|M|H)?|HALF(A|B)|INV|END(W|S)|GET(L|M|H)|(F|P)?(ADD|SUB|MOD|DIV)|F(MUL|ABS|REC|NEG|CGT|CLT|MOD|CNV|CST)|MUL(A|B)|LSH(L|R))\b'
       keyword: true
       scope: keyword.operator.asm
 
-    - match: '\b((W|R)(SP|XS|XV|RA|PS)|SWPR|SWAP|XCG|SHDW|LITE|(UN)?MASK)\b'
+    - match: '\b((W|R)(SP|XS|XV|KS|PS)|SWPR|SWAP|WFI|XCG|SHDW|LITE|(UN)?MASK|MMU_(TBL|(SET|CHK)(READ|USR)))\b'
       keyword: true
       scope: keyword.internal.asm
 
