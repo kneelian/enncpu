@@ -86,9 +86,11 @@ int CPU::EXECUTE(const INSN insn)
 				std::printf("---------------------------------\n");
 				std::printf("\tIP: 0x%06x\tPS: 0x%04x\n\tSP: 0x%06x\tXS: 0x%04x\n\tKS: 0x%06x\tXV: 0x%04x\n",
 					IP, PS, SP, XS, KS, XV);
-				std::printf("\tFETCHED INSN: 0x%04x\n", FETCHED_INSN);
 				std::printf("\tTICKS: %ld\n", TICKS);
-				std::scanf("%c");
+				{
+					char throwaway;
+					std::scanf("%c", &throwaway);					
+				}
 				break;
 
 			case DBGINC:
