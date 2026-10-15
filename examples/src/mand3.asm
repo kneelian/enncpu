@@ -5,7 +5,7 @@
 
 	MOVL A, #0
 	MOVM A, #8
-	WSP  A
+	WKS  A
 
 	ADRL A, @EX_HANDLER
 	ADRM A, @EX_HANDLER
@@ -52,7 +52,7 @@
 
 %PGA
 
-.ORG 0x400
+.ORG 0x100
 .SEC %main
 @START
 
@@ -155,7 +155,7 @@ SUB  B, B
 		@LoopNEnd
 
 		SWPR H
-		INV  A, A
+	;	INV  A, A
 		STRW A, H+
 		SWPR H
 	
@@ -178,6 +178,8 @@ ADD.P  B, #1
 JMO.P  @LoopX
 
 SWPR H
+
+DBGINC A
 
 ERR
 
