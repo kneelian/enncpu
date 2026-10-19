@@ -1,6 +1,7 @@
 .ORG 0x0000
 .SEC %PGA
 
+	MASK
 	ADRL A, @PROG
 	ADRM A, @PROG
 	JMR  A
@@ -168,12 +169,12 @@
 ; to avoid setting up AB +/- CD
 @INC_I48
     ADD   B, #1
-    CLT   B, #1
+    CEQ   B, #0
     ADD.P A, #1
     RET
 @DEC_I48
+	CEQ   B, #0
     SUB   B, #1
-    CLT   B, #1
     SUB.P A, #1
     RET
 
@@ -264,22 +265,22 @@
     MOV   D, #1
     LSHL  D, #23
 
-@ISQRT_LOOP
-    MOV   E, C
-    BOR   E, D
-    
-    MOV   F, E
-    MULA  F, E
-    MOV   H, E
-    MULB  H, E
+	@ISQRT_LOOP
+	    MOV   E, C
+	    BOR   E, D
+	    
+	    MOV   F, E
+	    MULA  F, E
+	    MOV   H, E
+	    MULB  H, E
 
-	CEQ   H, A
-    CLE.P F, B
- OR CLT   H, A
-    MOV.P C, E
+		CEQ   H, A
+	    CLE.P F, B
+	 OR CLT   H, A
+	    MOV.P C, E
 
-    LSHR  D, #1
-    JMNZO D, @ISQRT_LOOP
+	    LSHR  D, #1
+	    JMNZO D, @ISQRT_LOOP
 
     MOV   B, C
     MOV   A, #0
@@ -298,7 +299,7 @@
 
 	ADRL A, @STK
 	ADRM A, @STK
-	WSP  A
+	WKS  A
 
 	MOVL A, #0xf4
 	MOVM A, #0x24
