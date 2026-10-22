@@ -50,6 +50,8 @@
 	FAR JMO @NORMALISE_FP48_M
 @ADD_FP48
 	FAR JMO @ADD_FP48_M
+@SUB_FP48
+	FAR JMO @SUB_FP48_M
 
 ; takes int48 in AB and CD
 ; (big endian)
@@ -60,6 +62,7 @@
 	ADD   B, D
 	CGT   D, B
 	ADD.P A, #1
+
 	RET
 
 ; AB - CD
@@ -378,16 +381,16 @@
 	RET
 
 @NORMALISE_FP48_M
-	CEQ   C, #0
-	CEQ.P D, #0
-	MOV.P A, #0 ; zero normalises
+	CEQ    C, #0
+	CEQ.P  D, #0
+	MOV.P  A, #0 ; zero normalises
 	; to exp = 0x0000
 	RET.P ; early return
 
-	PSHS E
+	PSHS   E
 
-	LEAD E, C
-	CEQ  E, #16
+	LEAD   E, C
+	CEQ    E, #16
 	POPS.P E
 	RET.P  ; early return
 	; the float is already
@@ -453,7 +456,7 @@
 	POPS E
 	RET
 
-; [ABCD] + [EFGH]
+; [A.B.CD] + [E.F.GH]
 ; running a tight ship
 ; with no registers to spare
 @ADD_FP48_M
@@ -464,80 +467,99 @@
 	XCG.P D, H ; now the first is bigger
 
 	SWAP
+	; shadow registry is full volatile
 
 	LITE  A
 	LITE  E
-
 	SUB   A, E
-	CGT   A, #31
-	RET.P
-	; second is too small to influence
-	; the value of the first here
-	; so we return the first
+	CGT   A, #32
+	RET.P ; second too small to change first
 
-	MOV   C, A ; the second can influence first
-
+	MOV   C, A
 	LITE  G
 	MOV   A, G
 	LITE  H
 	MOV   B, H
-	JLA   @LSHR_I48
 
-	LITE  B
-	LITE  F
-	BXOR  F, B
-	; we need to know whether it's
-	; addition or actually subtraction
-	; since our routines are unsigned
+	JLA   @LSHR_I48 ; adjust mantissa
 
-	ERR
+	SWAP
+	CEQ   B, F
+
+	SWAP  ; we need to know if we're adding
+	MOV   H, #0
+	MOV.P H, #1 ; store flag because 
+	; @ADC_I48 overwrites conditionals
+
+	LITE  C
+	LITE  D
+
+	XCG   A, C
+	XCG   B, D
+
+	CEQ H, #1
+	JLA.P @ADC_I48
+	CNE H, #1
+	JLA.P @SBC_I48
+
+	CBIT  A, #23
+	INV.P A, A
+	INV.P B, B
+	MOV.P H, #2
+	JLA.P @INC_I48
+
+	MOV   C, A
+	MOV   D, B
+	SWAP
+	LITE  C
+	LITE  D
+
+	LITE  H
+	CEQ   H, #2
+	TGL.P B, #0
+
+	JLA   @NORMALISE_FP48
+	RET
+
+@SUB_FP48_M
+	TGL F, #0
+	JMA  @ADD_FP48
 
 %PGA
 
-.ORG 0x0400
-.SEC %PGB
-
-%PGB
-
-.ORG 0x1000
+.ORG 0x0600
 .SEC %PGC
 	@PROG
 
 	ADRL A, @STK
 	ADRM A, @STK
 	WKS  A
+	
+	MOVL A, #0x800140 ; 6.0
+	MOVM A, #0x800140
+	MOVH A, #0x800140
+	MOVL B, #0x000000
 
-;	MOVL A, #0x23458f
-;	MOVM A, #0x23458f
-;	MOVH A, #0x23458f
-;	MOVL B, #0xabcdef
-;	MOVM B, #0xabcdef
-;	MOVH B, #0xabcdef
-;	JLA @UNPACK_FP48
-;	JLA @PACK_FP48
+	JLA @UNPACK_FP48
 
-	MOVL A, #0x2000
-	MOVM A, #0x2000
-	MOVL B, #0
-	MOVL C, #0x045678
-	MOVM C, #0x045678
-	MOVH C, #0x045678
-	MOVL D, #0xabcdef
-	MOVM D, #0xabcdef
-	MOVH D, #0xabcdef
+	MOV  E, A
+	MOV  F, B
+	MOV  G, C
+	MOV  H, D
 
-	JLA @NORMALISE_FP48
-	JLA @PACK_FP48
+	MOVL A, #0x800160 ; 7.0
+	MOVM A, #0x800160
+	MOVH A, #0x800160 
+	MOVL B, #0x000000
+	
+	JLA @UNPACK_FP48
 
-	MOVL A, #0x2000
-	MOVM A, #0x2000
-	MOVL B, #0
-	MOVL C, #0x000000
-	MOVL D, #0xf34567
-	MOVM D, #0xf34567
-	MOVH D, #0xf34567
+	DBGH
 
-	JLA @NORMALISE_FP48
+	JLA @SUB_FP48
+	
+	DBGH
+
 	JLA @PACK_FP48
 
 	ERR

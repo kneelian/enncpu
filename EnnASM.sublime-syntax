@@ -29,7 +29,7 @@ contexts:
         1: meta.preprocessor.macro.asm
 
     # Instructions / Opcodes (Add your architecture's instructions here)
-    - match: '\b(?:MOV(L|M|H)?|HALF(A|B)|INV|END(W|S)|GET(L|M|H)|(F|P)?(ADD|SUB|MOD|DIV)|F(MUL|ABS|REC|NEG|CGT|CLT|MOD|CNV|CST)|MUL(A|B)|LSH(L|R))\b'
+    - match: '\b(?:MOV(L|M|H)?|HALF(A|B)|CLR|SET|TGL|LEAD|TAIL|INV|END(W|S)|GET(L|M|H)|(F|P)?(ADD|SUB|MOD|DIV)|F(MUL|ABS|REC|NEG|CGT|CLT|MOD|CNV|CST)|MUL(A|B)|LSH(L|R))\b'
       keyword: true
       scope: keyword.operator.asm
 
@@ -41,7 +41,7 @@ contexts:
       keyword: true
       scope: keyword.logical.asm
 
-    - match: '\b((F)?C(EQ|NE|GT|LT|GE|LE|INV|AND|OR|NOR|XOR|NAND))\b'
+    - match: '\b((F)?C(EQ|NE|GT|LT|GE|LE|INV|AND|OR|NOR|XOR|NAND|BIT))\b'
       keyword: true
       scope: keyword.conditional.asm
 
