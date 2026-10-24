@@ -52,6 +52,8 @@
 	FAR JMO @ADD_FP48_M
 @SUB_FP48
 	FAR JMO @SUB_FP48_M
+@MUL_FP48
+	FAR JMO @MUL_FP48_M
 
 ; takes int48 in AB and CD
 ; (big endian)
@@ -96,7 +98,6 @@
 	ADD   E, F
 	CLT   E, F
 	ADD.P H, #1
-
 	MOV   G, #0
 	MULB  D, A
 	ADD   D, H
@@ -111,7 +112,6 @@
 	ADD   B, H
 	CLT   B, H
 	ADD.P G, #1
-
 	MULB  A, C
 	ADD   A, G
 	MOV   C, E
@@ -381,11 +381,14 @@
 	RET
 
 @NORMALISE_FP48_M
+	CEQ    A, #0
+	RET.P  ; early return
+	; no normalisation for specials
 	CEQ    C, #0
 	CEQ.P  D, #0
-	MOV.P  A, #0 ; zero normalises
-	; to exp = 0x0000
+	MOV.P  A, #0
 	RET.P ; early return
+	; normalises to exp = 0x0000
 
 	PSHS   E
 
@@ -393,8 +396,7 @@
 	CEQ    E, #16
 	POPS.P E
 	RET.P  ; early return
-	; the float is already
-	; normalised (clz = 16)
+	; float is already ok (clz = 16)
 
 	PSHS F
 
@@ -409,11 +411,9 @@
 	LITE   C
 	LITE   D
 	LITE   F
-
 	MOV    A, C
 	MOV    B, D
 	MOV    C, F
-
 	JLA    @LSHR_I48
 	MOV    C, A
 	MOV    D, B
@@ -439,11 +439,9 @@
 	LITE   C
 	LITE   D
 	LITE   E
-
 	MOV    A, C
 	MOV    B, D
 	MOV    C, E
-
 	JLA @LSHL_I48
 	MOV    C, A
 	MOV    D, B
@@ -525,6 +523,55 @@
 	TGL F, #0
 	JMA  @ADD_FP48
 
+@MUL_FP48_M
+	BXOR  B, F ; we just need the sign xor
+	; this gives us a temp reg in F
+	MOV   F, E
+	BAND  F, A
+	CEQ   F, #0
+	MOV.P A, #0
+	MOV.P C, #0
+	MOV.P D, #0
+	RET.P ; early escape
+	; mul with zero or special
+
+	ADD   A, E
+	MOVL  F, #0x7fff
+	MOVM  F, #0x7fff
+	SUB   A, F
+	; exponents summed
+
+	SWAP
+	LITE  C
+	LITE  D
+	LITE  G
+	MOV   A, G
+	LITE  H
+	MOV   B, H
+	JLA   @MUL_I48
+
+	MOV   A, B
+	MOV   B, C
+	MOV   C, #7
+	JLA   @LSHR_I48
+	CBIT  A, #8
+	MOV.P C, #1
+	MOV   H, #0
+	MOV.P H, #1
+	JLA.P @LSHR_I48
+
+	MOV   C, A
+	MOV   D, B
+	SWAP
+	LITE  C
+	LITE  D
+	LITE  H
+	ADD   A, H ; if we had to readjust exp
+
+	JLA   @NORMALISE_FP48
+	RET
+
+
 %PGA
 
 .ORG 0x0600
@@ -556,7 +603,7 @@
 
 	DBGH
 
-	JLA @SUB_FP48
+	JLA @MUL_FP48
 	
 	DBGH
 
