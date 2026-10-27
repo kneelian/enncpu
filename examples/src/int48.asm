@@ -571,6 +571,46 @@
 	JLA   @NORMALISE_FP48
 	RET
 
+; abandon all hope
+; ye who enter here
+@DIV_FP48_M
+	BXOR B, F ; sign
+	PSHB B
+
+	SWAP
+
+	LITE E
+	MOVL A, #0xfffe
+	MOVM A, #0xfffe
+	SUB  A, E ; new exponent
+
+	PSHS A
+	MOVL A, #0x800000
+	MOVH A, #0x800000
+	MOV  B, #0
+
+	LITE G
+	MOV C, G
+	LITE H
+	MOV D, H
+
+	JLA @DIV_I48
+	MOV C, #16
+	JLA @LSHL_I48
+
+	PSHS A
+	PSHS B
+
+	SWAP
+
+	POPS H
+	POPS G
+	POPS E
+	MOV B, #0
+	MOV F, #0 ; pretending it's pos/pos
+
+	POPB B
+	RET
 
 %PGA
 
