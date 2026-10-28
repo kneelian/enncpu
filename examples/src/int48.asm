@@ -54,6 +54,8 @@
 	FAR JMO @SUB_FP48_M
 @MUL_FP48
 	FAR JMO @MUL_FP48_M
+@DIV_FP48
+	FAR JMO @DIV_FP48_M
 
 ; takes int48 in AB and CD
 ; (big endian)
@@ -527,8 +529,8 @@
 	BXOR  B, F ; we just need the sign xor
 	; this gives us a temp reg in F
 	MOV   F, E
-	BAND  F, A
 	CEQ   F, #0
+ OR CEQ   A, #0
 	MOV.P A, #0
 	MOV.P C, #0
 	MOV.P D, #0
@@ -538,7 +540,9 @@
 	ADD   A, E
 	MOVL  F, #0x7fff
 	MOVM  F, #0x7fff
+
 	SUB   A, F
+
 	; exponents summed
 
 	SWAP
@@ -573,43 +577,80 @@
 
 ; abandon all hope
 ; ye who enter here
+;
+; division of x/y is equivalent to
+; x * 1/y
+;
+; steps:
+;   > calculate 1/y to 16 bits
+;   > shift result up by 16 bits
+;   > do another division of 1/r
+;   > BOR 1/r with (1/y << 16)
 @DIV_FP48_M
-	BXOR B, F ; sign
-	PSHB B
 
-	SWAP
+	PSHS A ; dividend x
+	PSHS B
+	PSHS C
+	PSHS D
 
-	LITE E
+	MOV  B, #0
+	MOV  F, #0
+
+	; we first want to calculate
+	; 1.0 / y
+
 	MOVL A, #0xfffe
-	MOVM A, #0xfffe
-	SUB  A, E ; new exponent
-
+	MOVM A, #0xfffe ; 2 * bias
+	SUB  A, E ; new exponent estimate
 	PSHS A
 	MOVL A, #0x800000
 	MOVH A, #0x800000
-	MOV  B, #0
+	MOV  B, #0x000000
 
-	LITE G
 	MOV C, G
-	LITE H
 	MOV D, H
-
 	JLA @DIV_I48
-	MOV C, #16
+	; B has quotient
+	; EF have remainder
+	; CD still have divisor
+
+	PSHW B
+
+	PSHS C
+	PSHS D
+
+	MOV A, E
+	MOV B, F
+	MOV C, #15
 	JLA @LSHL_I48
 
-	PSHS A
-	PSHS B
+	POPS D
+	POPS C
 
-	SWAP
+	JLA @DIV_I48
+
+	POPW C
+	PSHW B
+	MOV B, C
+	MOV C, #15
+	JLA @LSHL_I48
+	POPW C
+	BOR B, C
+
+	MOV C, A
+	MOV D, B
+	MOV B, #0
+	POPS A
+
+	JLA @NORMALISE_FP48
 
 	POPS H
 	POPS G
+	POPS F
 	POPS E
-	MOV B, #0
-	MOV F, #0 ; pretending it's pos/pos
 
-	POPB B
+	JLA @MUL_FP48
+
 	RET
 
 %PGA
@@ -622,9 +663,9 @@
 	ADRM A, @STK
 	WKS  A
 	
-	MOVL A, #0x800140 ; 6.0
-	MOVM A, #0x800140
-	MOVH A, #0x800140
+	MOVL A, #0x800160  ; 7.0
+	MOVM A, #0x800160
+	MOVH A, #0x800160 
 	MOVL B, #0x000000
 
 	JLA @UNPACK_FP48
@@ -634,19 +675,15 @@
 	MOV  G, C
 	MOV  H, D
 
-	MOVL A, #0x800160 ; 7.0
-	MOVM A, #0x800160
-	MOVH A, #0x800160 
+	MOVL A, #0x7fff00 ; 1.0
+	MOVM A, #0x7fff00 
+	MOVH A, #0x7fff00  
 	MOVL B, #0x000000
 	
 	JLA @UNPACK_FP48
 
-	DBGH
-
-	JLA @MUL_FP48
+	JLA @DIV_FP48
 	
-	DBGH
-
 	JLA @PACK_FP48
 
 	ERR
