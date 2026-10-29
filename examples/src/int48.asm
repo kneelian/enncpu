@@ -56,6 +56,8 @@
 	FAR JMO @MUL_FP48_M
 @DIV_FP48
 	FAR JMO @DIV_FP48_M
+@SQRT_FP48
+	FAR JMO @SQRT_FP48_M
 
 ; takes int48 in AB and CD
 ; (big endian)
@@ -126,47 +128,48 @@
 ; returns int48 quotient in AB (big endian)
 ; returns int48 remainder in EF (big endian)
 @DIV_I48_M
-	CEQ   C, #0
-	CEQ.P D, #0
-	RET.P
+    CEQ   C, #0
+    CEQ.P D, #0
+    RET.P
 
     MOV   E, #0
     MOV   F, #0
-
     MOV   G, #48
 
-	@DIV_LOOP
-	    MOV   H, F
-	    LSHR  H, #23
-	    LSHL  E, #1
-	    BOR   E, H
+@DIV_LOOP
+    MOV   H, F
+    LSHR  H, #23
+    LSHL  E, #1
+    BOR   E, H
 
-	    MOV   H, A
-	    LSHR  H, #23
-	    LSHL  F, #1
-	    BOR   F, H
+    MOV   H, A
+    LSHR  H, #23
+    LSHL  F, #1
+    BOR   F, H
 
-	    MOV   H, B
-	    LSHR  H, #23
-	    LSHL  A, #1
-	    BOR   A, H
+    MOV   H, B
+    LSHR  H, #23
+    LSHL  A, #1
+    BOR   A, H
 
-	    LSHL  B, #1
+    LSHL  B, #1
 
-	    CLT   E, C
-	 OR CLT   F, D
-	    JMO.P @DIV_SKIP
-
-	    CLT   F, D 
-	    SUB   F, D
-	    SUB   E, C 
-	    SUB.P E, #1 
-	    ADD   B, #1
-
-	@DIV_SKIP
-	    SUB   G, #1
-	    CGT   G, #0
-	    JMO.P @DIV_LOOP
+    CLT   E, C
+    JMO.P @DIV_SKIP
+    CGT   E, C
+    JMO.P @DIV_SUB
+    CLT   F, D
+    JMO.P @DIV_SKIP
+@DIV_SUB
+    CLT   F, D  
+    SUB   F, D
+    SUB   E, C  
+    SUB.P E, #1  
+    ADD   B, #1
+@DIV_SKIP
+    SUB   G, #1
+    CGT   G, #0
+    JMO.P @DIV_LOOP
 
     RET
 
@@ -362,6 +365,7 @@
 ;   C - mantissa high byte
 ;   D - mantissa low sesqui
 @UNPACK_FP48_M
+
 	MOV  C, A
 	LSHR A, #8 ; now holds raw exponent
 	MOV  D, B  ; no adjustment needed
@@ -578,78 +582,146 @@
 ; abandon all hope
 ; ye who enter here
 ;
-; division of x/y is equivalent to
-; x * 1/y
-;
-; steps:
-;   > calculate 1/y to 16 bits
-;   > shift result up by 16 bits
-;   > do another division of 1/r
-;   > BOR 1/r with (1/y << 16)
+; since we have int48 division
+; that gives us the upper 16 bits
+; and we can extract the lower 16
+; by dividing the remainder with
+; the same divisor and readjusting
 @DIV_FP48_M
+	BXOR B, F
+	PSHB B
 
-	PSHS A ; dividend x
-	PSHS B
-	PSHS C
-	PSHS D
+	; sign
+	MOVL F, #0x7fff
+	MOVM F, #0x7fff
 
-	MOV  B, #0
-	MOV  F, #0
+	ADD A, F
+	SUB A, E
+	PSHW A
+	; exponent
 
-	; we first want to calculate
-	; 1.0 / y
-
-	MOVL A, #0xfffe
-	MOVM A, #0xfffe ; 2 * bias
-	SUB  A, E ; new exponent estimate
-	PSHS A
-	MOVL A, #0x800000
-	MOVH A, #0x800000
-	MOV  B, #0x000000
-
-	MOV C, G
-	MOV D, H
-	JLA @DIV_I48
-	; B has quotient
-	; EF have remainder
-	; CD still have divisor
-
-	PSHW B
-
-	PSHS C
-	PSHS D
-
-	MOV A, E
-	MOV B, F
+	MOV A, C
+	MOV B, D
+	PSHS G
+	PSHS H
 	MOV C, #15
 	JLA @LSHL_I48
 
 	POPS D
 	POPS C
-
 	JLA @DIV_I48
 
-	POPW C
-	PSHW B
-	MOV B, C
+	PSHS C
+	PSHS D
+	PSHS E
+	PSHS F
+	MOV C, #16
+	JLA @LSHL_I48
+
+	POPS H
+	POPS G ; remainder
+	POPS D
+	POPS C ; divisor
+
+	PSHS A
+	PSHS B ; upper 16 bits
+
+	MOV A, G
+	MOV B, H
+
+	PSHS C
+	PSHS D
 	MOV C, #15
 	JLA @LSHL_I48
-	POPW C
-	BOR B, C
+	POPS D
+	POPS C
+	JLA @DIV_I48
+
+	POPS E
+	BOR B, E
+	POPS A
 
 	MOV C, A
 	MOV D, B
-	MOV B, #0
-	POPS A
+	POPW A
+	POPB B
 
 	JLA @NORMALISE_FP48
 
+	RET
+
+; sqrt(2^e * m) = 
+;	= 2^(e/2) * sqrt(m)
+;		--> if e is even
+;   = sqrt(2) * 2^((e-1)/2) * sqrt(m)
+;		--> if e is odd
+@SQRT_FP48_M
+	CNE    B, #0
+	MOV.P  A, #0
+	MOVL.P C, #0xff
+	MOVL.P D, #0xff
+	RET.P
+	; no root for negative number
+	; early return
+	CEQ    A, #0
+	RET.P
+	; return for specials and zero
+
+	PSHS A
+	PSHS C
+	PSHS D ; save arg
+
+	MOV  E, #1
+	BXOR E, A
+	MOVL F, #0x7fff
+	MOVM F, #0x7fff
+	SUB  A, F
+	LSHR A, #1
+	ADD  A, F
+	PSHS A
+	; exponent
+
+	MOV A, C
+	MOV B, D
+	MOV C, #15
+	JLA @LSHL_I48
+	JLA @ISQRT_I48
+	MOV C, #8
+	JLA @LSHL_I48
+
+	MOV C, A
+	MOV D, B
+	POPS A
+	MOV B, #0
+
+	; first approximation of √n
+
 	POPS H
 	POPS G
-	POPS F
+	MOV F, #0
+	POPS E ; arg
+
+	XCG A, E
+	XCG B, F
+	XCG C, G
+	XCG D, H
+
+	PSHS E
+	PSHS G
+	PSHS H
+
+	JLA @DIV_FP48
+
+	POPS H
+	POPS G
+	MOV F, #0
 	POPS E
 
-	JLA @MUL_FP48
+	JLA @ADD_FP48
+
+	SUB A, #1
+
+	ERR
 
 	RET
 
@@ -662,29 +734,43 @@
 	ADRL A, @STK
 	ADRM A, @STK
 	WKS  A
-	
+
+;	MOVL A, #0x800029  ; √7.0
+;	MOVM A, #0x800029
+;	MOVH A, #0x800029 
+;	MOVL B, #0x53fd00
+;	MOVM B, #0x53fd00
+;	MOVH B, #0x53fd00
+;
+;	DBGFP48 A
+;	
+;	JLA @UNPACK_FP48
+;
+;	MOV E, A
+;	MOV F, B
+;	MOV G, C
+;	MOV H, D
+
 	MOVL A, #0x800160  ; 7.0
 	MOVM A, #0x800160
 	MOVH A, #0x800160 
 	MOVL B, #0x000000
-
 	JLA @UNPACK_FP48
 
-	MOV  E, A
-	MOV  F, B
-	MOV  G, C
-	MOV  H, D
+	JLA @SQRT_FP48
 
-	MOVL A, #0x7fff00 ; 1.0
-	MOVM A, #0x7fff00 
-	MOVH A, #0x7fff00  
-	MOVL B, #0x000000
-	
-	JLA @UNPACK_FP48
+	ERR
 
-	JLA @DIV_FP48
-	
+	MOV E, A
+	MOV F, B
+	MOV G, C
+	MOV H, D
+
+	JLA @MUL_FP48
+
 	JLA @PACK_FP48
+
+	DBGFP48 A
 
 	ERR
 
