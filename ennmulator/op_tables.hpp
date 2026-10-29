@@ -144,7 +144,7 @@ const OP NO_REGISTERS[] =
 const std::array<OP, 64> DEBUGS =
 	{
 		DBGB,   DBGW,   DBGS,    DBGA, // 0000xx
-		DBGF,   DBGC,   DBGH,    ERR,
+		DBGF,   DBGC,   DBGH,    DBGFP48,
 		DBGINB, DBGINW, DBGINS,  ERR,
 		DBGINF, DBGINC, ERR,     ERR	
 	};
@@ -446,6 +446,8 @@ std::unordered_map<OP, std::string> unmappings =
 	{ DBGS,  "DBGS" }, 
 	{ DBGF,  "DBGF" }, 
 	{ DBGA,  "DBGA" }, 
+	{ DBGH, "DBGH" },
+	{ DBGFP48, "DBGFP48" },
 	{ SYSCI,  "SYSCI" }, 
 	{ TRAPI,  "TRAPI" }, 
 	{ KILL,  "KILL" }, 

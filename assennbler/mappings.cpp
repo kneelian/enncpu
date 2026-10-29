@@ -284,6 +284,7 @@ std::unordered_map<std::string, OP> mappings =
 	{ "DBGA",  DBGA },
 	{ "DBGC",  DBGC },
 	{ "DBGH",  DBGH },
+	{ "DBGFP48", DBGFP48 },
 	{ "DBGINC", DBGINC },
 	{ "SYSCI",  SYSCI },
 	{ "TRAPI",  TRAPI },
@@ -473,6 +474,7 @@ std::unordered_map<OP, std::string> unmappings =
 	{ LDRSAD, "LDRSAD" },
 
 	{ DBGINC, "DBGINC" },
+	{ DBGFP48, "DBGFP48" },
 
 	{ JMFAR, "JMFAR" },
 	{ JLFAR, "JLFAR" },

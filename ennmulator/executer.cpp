@@ -92,6 +92,43 @@ int CPU::EXECUTE(const INSN insn)
 					std::scanf("%c", &throwaway);					
 				}
 				break;
+			case DBGFP48:
+			{
+				double temp = 0.0;
+
+				u64 utemp1 = ACTIVE_SET.at(insn.FIRST_REG);
+				utemp1 <<= 24;
+				utemp1 |= ACTIVE_SET.at((insn.FIRST_REG + 1) % 7);
+
+				u64 utemp2 = 0;
+				u64 utemp3 = 0;
+
+				utemp3 = utemp1 >> 32;
+				utemp3 &= 0xffff;
+				utemp3 -= 0x7fff;
+				utemp3 &= 0x7ff;
+				utemp3 += 0x3ff;
+
+				utemp2 |= (utemp3 << 52);
+
+				utemp2 |= (utemp1 & 0xffff'ffff) << 21;
+
+				if(utemp1 & 0x000080'000000)
+					utemp2 |= 0x80000000'00000000;
+				else
+					utemp2 &= 0x7fffffff'ffffffff;
+
+				temp = std::bit_cast<double>(utemp2);
+
+				// std::printf("0x%lx, 0x%lx, 0x%lx\n", utemp1, utemp2, utemp3);
+			
+				std::printf("DEBUG: %c%c = %.12f\n",
+					REG_NAMES[insn.FIRST_REG],
+					REG_NAMES[(insn.FIRST_REG + 1) % 7],
+					temp
+				);
+				break;
+			}
 
 			case DBGINC:
 				ACTIVE_SET.at(insn.FIRST_REG) = std::getchar();
