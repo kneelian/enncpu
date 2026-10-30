@@ -1209,7 +1209,7 @@ int CPU::EXECUTE(const INSN insn)
 			}
 			else
 			{
-				SP -= 2;
+				SP -= 3;
 				SP &= 0xffffff;
 				PUT_24(SP, u32(ACTIVE_SET.at(insn.FIRST_REG) & 0xffffff));
 			}
