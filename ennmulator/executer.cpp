@@ -111,7 +111,7 @@ int CPU::EXECUTE(const INSN insn)
 
 				utemp2 |= (utemp3 << 52);
 
-				utemp2 |= (utemp1 & 0xffff'ffff) << 21;
+				utemp2 |= (utemp1 & 0x7fff'ffff) << 21;
 
 				if(utemp1 & 0x000080'000000)
 					utemp2 |= 0x80000000'00000000;
