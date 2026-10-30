@@ -6,6 +6,84 @@
 	ADRM A, @PROG
 	JMR  A
 
+$macro f48push 0
+	PSHS A
+	PSHS B
+	PSHS C
+	PSHS D
+$endm
+
+$macro f48pop 0
+	POPS D
+	POPS C
+	POPS B
+	POPS A
+$endm
+
+$macro f48dup 0
+	MOV  E, A
+	MOV  F, B
+	MOV  G, C
+	MOV  H, D
+$endm
+
+$macro f48drop 0
+	JUNKS
+	JUNKS
+	JUNKS
+	JUNKS
+$endm
+
+$macro f48exp 2
+	MOVL m0, #m1
+	MOVM m0, #m1
+	MOVH m0, #0x00
+$endm
+
+$macro f48abcd 4
+	MOVL A, #m0
+	MOVM A, #m0
+	MOVH A, #0x00
+	MOV  B, #m1
+	MOV  C, #m2
+	MOVL D, #m3
+	MOVM D, #m3
+	MOVH D, #m3
+$endm
+
+$macro f48efgh 4
+	MOVL E, #m0
+	MOVM E, #m0
+	MOVH E, #0x00
+	MOV  F, #m1
+	MOV  G, #m2
+	MOVL H, #m3
+	MOVM H, #m3
+	MOVH H, #m3
+$endm
+
+; one Horner step: acc = acc*P + c
+$macro f48step 4
+	POPS H
+	POPS G
+	POPS F
+	POPS E
+	PSHS E
+	PSHS F
+	PSHS G
+	PSHS H
+	JLA  @MUL_FP48
+	MOVL E, #m0
+	MOVM E, #m0
+	MOVH E, #0x00
+	MOV  F, #m1
+	MOV  G, #m2
+	MOVL H, #m3
+	MOVM H, #m3
+	MOVH H, #m3
+	JLA  @ADD_FP48
+$endm
+
 @ADC_I48
 	FAR JMO @ADC_I48_M
 @SBC_I48
@@ -58,6 +136,14 @@
 	FAR JMO @DIV_FP48_M
 @SQRT_FP48
 	FAR JMO @SQRT_FP48_M
+@FP48_I16
+	FAR JMO @FP48_I16_M
+@FP48_U16
+	FAR JMO @FP48_U16_M
+@LN_FP48
+	FAR JMO @LN_FP48_M
+@SIN_FP48
+	FAR JMO @SIN_FP48_M
 
 ; takes int48 in AB and CD
 ; (big endian)
@@ -66,16 +152,15 @@
 @ADC_I48_M
 	ADD   A, C
 	ADD   B, D
-	CGT   D, B
+	CGE   D, B
 	ADD.P A, #1
-
 	RET
 
 ; AB - CD
 ; returns AB
 @SBC_I48_M
+	CLT   B, D
 	SUB   B, D
-	CGT   B, D
 	SUB   A, C
 	SUB.P A, #1
 	RET
@@ -501,8 +586,10 @@
 	XCG   A, C
 	XCG   B, D
 
+	PSHB H
 	CEQ H, #1
 	JLA.P @ADC_I48
+	POPB H
 	CNE H, #1
 	JLA.P @SBC_I48
 
@@ -648,8 +735,108 @@
 	POPB B
 
 	JLA @NORMALISE_FP48
-
 	RET
+
+; helper functions for logarithm and sine
+@FP48_U16_M
+	MOV  C, E
+	LSHR C, #8 
+	MOV  D, E
+	LSHL D, #16
+	_f48exp A 0x800e
+	JLA  @NORMALISE_FP48
+	RET
+@FP48_I16_M
+	MOV  B, #0
+	CBIT E, #15
+	JMO.P @FP48_I16_NEG 
+	JLO @FP48_U16_M
+	RET
+@FP48_I16_NEG
+	_f48exp H 0xffff
+	SUB  H, E           
+	ADD  H, #1
+	MOV  E, H
+	JLO @FP48_U16_M
+	MOV  B, #1
+	RET
+
+@LN_FP48_M
+		CNE  B, #0
+		FAR JMO.P @LN_NAN  
+		CEQ  A, #0
+		FAR JMO.P @LN_ZERO 
+		_f48exp F 0x7fff
+		SUB  A, F           
+		PSHW A              
+		CGE  C, #0xb5
+		FAR JMO.P @LN_HALVE 
+		MOV  E, #0
+		FAR JMO  @LN_QRDY
+	@LN_HALVE
+		MOV  E, #1
+	@LN_QRDY
+		POPW H
+		ADD  H, E
+		PSHW H
+		_f48exp F 0x7fff
+		SUB  F, E
+		MOV  A, F
+		MOV  B, #0
+
+		_f48efgh 0x7fff 0 0x80 0x000000  
+		JLA  @SUB_FP48
+		_f48push
+		_f48efgh 0x8000 0 0x80 0x000000 
+		JLA  @ADD_FP48 
+		_f48dup         
+		_f48pop         
+		JLA  @DIV_FP48 
+
+		_f48push
+		_f48dup
+		JLA  @MUL_FP48 
+		_f48push        
+
+		_f48abcd 0x7ffb 0 0x9d 0x89d89e     ; 1/13
+		_f48step 0x7ffb 0 0xba 0x2e8ba3     ; 1/11
+		_f48step 0x7ffb 0 0xe3 0x8e38e4     ; 1/9
+		_f48step 0x7ffc 0 0x92 0x492492     ; 1/7
+		_f48step 0x7ffc 0 0xcc 0xcccccd     ; 1/5
+		_f48step 0x7ffd 0 0xaa 0xaaaaab     ; 1/3
+		_f48step 0x7fff 0 0x80 0x000000     ; 1
+
+		_f48dup            
+		_f48drop           
+		_f48pop            
+		JLA  @MUL_FP48    
+		CNE  A, #0
+		ADD.P A, #1
+		POPW H            
+		_f48push           
+		CEQ  H, #0
+		FAR JMO.P @LN_TAIL
+
+		MOV  E, H
+		JLA @FP48_I16    ; fp48(q)
+		_f48dup           ; EFGH = q
+		_f48abcd 0x7ffe 0 0xb1 0x7217f8     
+						 ; ln2   ^
+		JLA  @MUL_FP48   ; q*ln2
+		_f48dup           ; EFGH = q*ln2
+		_f48pop           ; ABCD = ln m
+		JLA  @ADD_FP48   ; ln x
+		RET
+
+	@LN_TAIL
+		_f48pop
+		RET
+	@LN_NAN
+		_f48abcd 0x0000 0 0xff 0xffffff
+		RET
+	@LN_ZERO
+		_f48abcd 0x0000 1 0x00 0x000000
+		RET
 
 ; sqrt(2^e * m) = 
 ;	= 2^(e/2) * sqrt(m)
@@ -725,9 +912,106 @@
 
 	RET
 
+@SIN_FP48_M
+	CEQ  A, #0
+	FAR JMO.P @SIN_ZERO
+
+	PSHB B
+	MOV  B, #0 
+	_f48push    
+	_f48efgh 0x7ffd 0 0xa2 0xf9836e
+	JLA  @MUL_FP48
+
+	_f48exp F 0x7ffe
+	SUB  A, F               
+	CBIT A, #15
+	FAR JMO.P @SIN_SMALL    
+	CGT  A, #15
+	FAR JMO.P @SIN_RANGE    
+
+	MOV  H, C
+	LSHL H, #8
+	MOV  C, D
+	LSHR C, #16
+	BOR  H, C              
+	MOV  G, #16
+	SUB  G, A              
+	MOV  C, G
+	SUB  C, #1
+	MOV  E, #1
+	LSHL E, C              
+	ADD  E, H
+	MOV  H, E
+	LSHR H, G              
+
+	_f48pop                 
+	POPB G                 
+	CBIT H, #0
+	TGL.P G, #0            
+	PSHB G                 
+	MOV  B, #0             
+	_f48push                
+	PSHW H                 
+
+	POPW E                 
+	PSHW E
+	JLA  @FP48_U16           
+	_f48efgh 0x8000 0 0xc9 0x0f0000
+	JLA  @MUL_FP48
+	_f48dup          
+	POPW G
+	_f48pop          
+	PSHW G          
+	JLA  @SUB_FP48  
+
+	POPW E          
+	_f48push            
+	JLA  @FP48_U16
+	_f48efgh 0x7ff0 0 0xda 0xa22169
+	JLA  @MUL_FP48
+	_f48dup  
+	_f48pop
+	JLA  @SUB_FP48      
+	FAR JMO  @SIN_SERIES
+
+@SIN_SMALL
+	_f48pop        
+
+@SIN_SERIES
+	_f48push       
+	_f48dup
+	JLA  @MUL_FP48
+	_f48push       
+	_f48abcd 0x7fd6 1 0xd7 0x3f9f3a ; seed
+	_f48step 0x7fde 0 0xb0 0x92309d ; 1/13!
+	_f48step 0x7fe5 1 0xd7 0x322b40 ; 1/11!
+	_f48step 0x7fec 0 0xb8 0xef1d2b ; 1/9!
+	_f48step 0x7ff2 1 0xd0 0x0d00d0 ; 1/7!
+	_f48step 0x7ff8 0 0x88 0x888889 ; 1/5!
+	_f48step 0x7ffc 1 0xaa 0xaaaaab ; 1/3!
+	_f48step 0x7fff 0 0x80 0x000000 ; 1
+
+	_f48dup        
+	_f48drop       
+	_f48pop        
+	JLA  @MUL_FP48
+	POPB G        
+	CNE  G, #0
+	TGL.P B, #0   
+	RET
+
+@SIN_ZERO
+	_f48abcd 0x0000 0 0x00 0x000000
+	RET
+@SIN_RANGE
+	_f48drop
+	POPB A
+	_f48abcd 0x0000 0 0xff 0xffffff
+	RET
+
 %PGA
 
-.ORG 0x0600
+.ORG 0x0a00
 .SEC %PGC
 	@PROG
 
@@ -751,12 +1035,16 @@
 ;	MOV G, C
 ;	MOV H, D
 
-	MOVL A, #0x800260  ; 14.0
-	MOVM A, #0x800260
-	MOVH A, #0x800260 
+	MOVL A, #0x7ffe00  ; 0.5
+	MOVM A, #0x7ffe00
+	MOVH A, #0x7ffe00 
 	MOVL B, #0x000000
+
+	DBGFP48 A
+
 	JLA @UNPACK_FP48
-	JLA @SQRT_FP48
+	JLA @SIN_FP48
+	JLA @NORMALISE_FP48
 	JLA @PACK_FP48
 
 	DBGFP48 A
