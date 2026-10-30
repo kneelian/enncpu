@@ -638,6 +638,7 @@
 	JLA @DIV_I48
 
 	POPS E
+	LSHL B, #1
 	BOR B, E
 	POPS A
 
@@ -671,11 +672,11 @@
 	PSHS C
 	PSHS D ; save arg
 
-	MOV  E, #1
-	BXOR E, A
 	MOVL F, #0x7fff
 	MOVM F, #0x7fff
 	SUB  A, F
+	MOV  E, #1
+	BAND E, A
 	LSHR A, #1
 	ADD  A, F
 	PSHS A
@@ -684,6 +685,7 @@
 	MOV A, C
 	MOV B, D
 	MOV C, #15
+	ADD C, E
 	JLA @LSHL_I48
 	JLA @ISQRT_I48
 	MOV C, #8
@@ -721,8 +723,6 @@
 
 	SUB A, #1
 
-	ERR
-
 	RET
 
 %PGA
@@ -751,23 +751,12 @@
 ;	MOV G, C
 ;	MOV H, D
 
-	MOVL A, #0x800160  ; 7.0
-	MOVM A, #0x800160
-	MOVH A, #0x800160 
+	MOVL A, #0x800260  ; 14.0
+	MOVM A, #0x800260
+	MOVH A, #0x800260 
 	MOVL B, #0x000000
 	JLA @UNPACK_FP48
-
 	JLA @SQRT_FP48
-
-	ERR
-
-	MOV E, A
-	MOV F, B
-	MOV G, C
-	MOV H, D
-
-	JLA @MUL_FP48
-
 	JLA @PACK_FP48
 
 	DBGFP48 A
