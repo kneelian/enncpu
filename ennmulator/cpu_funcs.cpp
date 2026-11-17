@@ -67,14 +67,27 @@ bool CPU::LOAD_NEW_FORMAT(std::vector<u8>& bstream, u32 length)
 
 	printf("bitstream size is 0x%06x\n", bstream.size());
 
-	for(u32 j = 2; j < length; j += 2)
+	u32 j = 0;
+
+	while(j + 8 <= length)
 	{
-		//std::printf(" > j is 0x%08x\n", j);
-		u16 stamp  = (bstream[j - 1] <<  0) | (bstream[j - 2] << 8); 
-			if(stamp != 0x6404) { continue; }
-		sec_start  = (bstream[j + 0] << 16) | (bstream[j + 1] << 8) | (bstream[j + 2] << 0);
-		sec_length = (bstream[j + 3] << 16) | (bstream[j + 4] << 8) | (bstream[j + 5] << 0);
+		if(bstream[j] != 0x64 or bstream[j + 1] != 0x04)
+		{
+			std::printf("No section header at 0x%06x (found %02x %02x)\n",
+				j, bstream[j], bstream[j + 1]);
+			return false;
+		}
+
+		sec_start  = (bstream[j + 2] << 16) | (bstream[j + 3] << 8) | (bstream[j + 4] << 0);
+		sec_length = (bstream[j + 5] << 16) | (bstream[j + 6] << 8) | (bstream[j + 7] << 0);
 		sec_base   = sec_start - 8;
+
+		if(j + 8 + sec_length > length)
+		{
+			std::printf("Section at 0x%06x runs 0x%06x bytes past the file\n",
+				sec_start, j + 8 + sec_length - length);
+			return false;
+		}
 
 		std::printf("Loading: 0x%06x : 0x%06x, 0x%06x, from j = 0x%06x\n", 
 			sec_start, 
@@ -88,8 +101,10 @@ bool CPU::LOAD_NEW_FORMAT(std::vector<u8>& bstream, u32 length)
 		
 		for(u32 i = 0; i < sec_length; i++)
 		{
-			PUT_8 (sec_start + i, bstream[i + j + 6]);
+			PUT_8 (sec_start + i, bstream[j + 8 + i]);
 		}
+
+		j += 8 + sec_length;
 	}
 	return true;
 }
