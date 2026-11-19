@@ -165,61 +165,6 @@ const std::array<OP, 16> IMM8_B =
 	SYSCI, KERNI,PSHI, PREF, // prefix
 };
 
-/*
-const std::array<OP, 32> FP48_TYPE =
-{
-	NOP, NOP, NOP, NOP,
-
-	FADD_48,  FSUB_48,  FMUL_48,  FDIV_48,
-	FABS_48,  FNEG_48,  FREC_48,  FSQT_48,
-	FLOG_48,  FLN_48,   FSIN_48,  FCOS_48,
-	FMOV_48,  FCGT_48,  FCLT_48,  FEXP_48,
-
-	NOP,      NOP,      NOP,      NOP,
-	NOP,      NOP,      NOP,      NOP,
-	NOP,      NOP,      NOP,      NOP
-};
-
-const std::array<OP, 8> PRE_1_FP24_OPS_A =
-{
-	FADD, FSUB, FMUL, FDIV,
-	FSQT, FLOG, FNEG, FMOD,
-};
-
-const std::array<OP, 8> PRE_1_FP24_OPS_B =
-{
-	FCGT, FCLT, FCNV, FCST,
-	NOP,  NOP,  NOP,  NOP
-};
-
-const std::array<OP, 8> PRE_1_MEM_OPS_A =
-{
-	LDRS, STRS, LD2S, ST2S,
-	NOP, NOP, PSHS, POPS,
-};
-
-const std::array<OP, 8> PRE_1_MEM_OPS_B =
-{
-	LDRSAI, STRSAI, LDRSAD, STRSAD,
-	LDRSBI, STRSBI, LDRSBD, STRSBD,
-};
-
-
-const std::array<OP, 8> PRE_1_MEM_OPS_C =
-{
-	LD2SAI, ST2SAI, LD2SAD, ST2SAD,
-	LD2SBI, ST2SBI, LD2SBD, ST2SBD,
-};
-
-
-const std::array<OP, 8> PRE_1_MEM_OPS_D =
-{
-	NOP, NOP, NOP, NOP,
-	NOP, NOP, NOP, NOP,
-};
-*/
-
-
 std::unordered_map<OP, std::string> unmappings =
 { 
 	{ JMFAR, "JMFAR" },
@@ -410,36 +355,12 @@ std::unordered_map<OP, std::string> unmappings =
  	{ JLO ,   "JLO"}, 
  	{ JMR ,   "JMR"}, 
  	{ JLR ,   "JLR"}, 
- 	{ JMD ,   "JMD"}, 
- 	{ JLD ,   "JLD"}, 
- 	{ JMPD,  "JMPD" }, 
-	{ JLPD,  "JLPD" }, 
-	{ JMSD,  "JMSD" }, 
-	{ JLSD,  "JLSD" }, 
 	{ JMRO ,   "JMRO"}, 
  	{ JLRO ,   "JLRO"}, 
  	{ JMZO ,   "JMZO"}, 
  	{ JLZO ,   "JLZO"}, 
  	{ JMNZO,  "JMNZO" }, 
 	{ JLNZO,  "JLNZO" }, 
-	{ JMRD ,  "JMRD"}, 
- 	{ JLRD ,  "JLRD"}, 
- 	{ JMZD,  "JMZD" }, 
-	{ JLZD,  "JLZD" }, 
-	{ JMNZD ,  "JMNZD"}, 
- 	{ JLNZD ,  "JLNZD"}, 
- 	{ JMRPD ,  "JMRPD"}, 
- 	{ JLRPD ,  "JLRPD"}, 
- 	{ JMRSD ,  "JMRSD"}, 
- 	{ JLRSD ,  "JLRSD"}, 
- 	{ JMZPD,  "JMZPD" }, 
-	{ JLZPD,  "JLZPD" }, 
-	{ JMZSD,  "JMZSD" }, 
-	{ JLZSD,  "JLZSD" }, 
-	{ JMNZPD,  "JMNZPD" }, 
-	{ JLNZPD,  "JLNZPD" }, 
-	{ JMNZSD,  "JMNZSD" }, 
-	{ JLNZSD,  "JLNZSD" }, 
 	{ DBG ,  "DBG"}, 
  	{ DBGB,  "DBGB" }, 
 	{ DBGW,  "DBGW" }, 
