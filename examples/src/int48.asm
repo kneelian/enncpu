@@ -861,10 +861,14 @@ $endm
 
 	MOVL F, #0x7fff
 	MOVM F, #0x7fff
+
 	SUB  A, F
+
 	MOV  E, #1
 	BAND E, A
 	LSHR A, #1
+	CBIT   A, #22
+	MOVH.P A, #0xff ; negative exponent fix
 	ADD  A, F
 	PSHS A
 	; exponent
@@ -909,6 +913,7 @@ $endm
 	JLA @ADD_FP48
 
 	SUB A, #1
+
 
 	RET
 
@@ -1043,8 +1048,9 @@ $endm
 	DBGFP48 A
 
 	JLA @UNPACK_FP48
-	JLA @SIN_FP48
-	JLA @NORMALISE_FP48
+	DBGH
+	JLA @SQRT_FP48
+	DBGH
 	JLA @PACK_FP48
 
 	DBGFP48 A
