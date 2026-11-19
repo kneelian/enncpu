@@ -100,6 +100,7 @@ const OP REG_SOLO_TBLA[] =
 	FCPI, 	FCE,  	FC0,  	FC1,  // 1000
 	FC2,  	FCSQ2,	FCPHI,	FCTAU,// 1001xx
 	CINF, 	CNAN, 	CNRM, 	ERR,  // 1010xx
+	ERR,    ERR,    ERR,    ERR,  // 1011xx
 	PSH2W,  PSH2S,  ERR,    ERR,  // 1100xx
 	POP2W,  POP2S,  ERR,    ERR,  // 1101xx
 	MMU_SETREAD,   // 111000
