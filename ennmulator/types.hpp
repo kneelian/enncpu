@@ -49,7 +49,11 @@ struct MMU
 		{ 
 			PERMS[i] = 0x0; 
 			MAPPINGS[i] = i;
-		} 
+		}
+		for(u8& i : DATA)
+		{
+			i = 0x00;
+		}
 		MMU_VALID = true;
 	}
 	~MMU()
