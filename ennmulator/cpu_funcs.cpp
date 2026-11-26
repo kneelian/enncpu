@@ -82,13 +82,6 @@ bool CPU::LOAD_NEW_FORMAT(std::vector<u8>& bstream, u32 length)
 		sec_length = (bstream[j + 5] << 16) | (bstream[j + 6] << 8) | (bstream[j + 7] << 0);
 		sec_base   = sec_start - 8;
 
-		if(j + 8 + sec_length > length)
-		{
-			std::printf("Section at 0x%06x runs 0x%06x bytes past the file\n",
-				sec_start, j + 8 + sec_length - length);
-			return false;
-		}
-
 		std::printf("Loading: 0x%06x : 0x%06x, 0x%06x, from j = 0x%06x\n", 
 			sec_start, 
 			sec_length, 

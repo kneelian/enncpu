@@ -87,14 +87,6 @@ struct MMU
 	u32 READ_32(u32 addr, u16 proc_state);
 	u64 READ_64(u64 addr, u16 proc_state);
 
-	u16 READ_8_NEW (u32 addr, u16 proc_state);
-	u32 READ_16_NEW(u32 addr, u16 proc_state);
-	u32 READ_24_NEW(u32 addr, u16 proc_state);
-
-	u16 READ_8_RAW (u32 addr);
-	u32 READ_16_RAW(u32 addr);
-	u32 READ_24_RAW(u32 addr);
-
 	u32 READ_16_CODE(u32 addr, u16 proc_state);
 
 	void WRITE_8 (u32 addr, u16 proc_state, u8  payload);

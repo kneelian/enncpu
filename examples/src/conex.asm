@@ -17,8 +17,6 @@ $include raylib-constants.enn
 	ADRL A, @MAIN
 	ADRM A, @MAIN
 
-	DBGH
-
 	JMR  A
 
 ; PGA-reachable routines
@@ -201,6 +199,7 @@ FAR JLO  @PRINT_STRING
 	MOV  C, #10
 	ADRL A, @ICON
 	ADRM A, @ICON
+	ADRH A, @ICON
 FAR JLO  @DRAW_SPRITE_16x16_GRID_ALIGNED
 
 	MOV  A, #0
@@ -219,28 +218,28 @@ FAR JLO  @DRAW_SPRITE_16x16_GRID_ALIGNED
 	MOV  E, #195
 	JLA  @DRAW_RECT_FILL
 
-	JLA  @LOAD_FAT_SEC0
-	ADRL A, @FAT12_SECTOR_0
-	ADRM A, @FAT12_SECTOR_0 
-	JLA  @GET_SEC0_DATA
-
-	ADRL A, @FAT12_FAT_AREA
-	ADRM A, @FAT12_FAT_AREA
-	JLA  @LOAD_FAT_INTO_MEM
-
-	ADRL A, @FAT12_FAT_AREA
-	ADRM A, @FAT12_FAT_AREA
-	MOV  B, #0x01
-	LSHL B, #5
-	@LOOPY
-		LDRS  C, A+
-		ENDS  C, C
-		HALFA D, C
-		HALFB E, C
-		DBGW  D
-		DBGW  E
-		SUB   B, #1
-		JMNZO B, @LOOPY
+;	JLA  @LOAD_FAT_SEC0
+;	ADRL A, @FAT12_SECTOR_0
+;	ADRM A, @FAT12_SECTOR_0 
+;	JLA  @GET_SEC0_DATA
+;
+;	ADRL A, @FAT12_FAT_AREA
+;	ADRM A, @FAT12_FAT_AREA
+;	JLA  @LOAD_FAT_INTO_MEM
+;
+;	ADRL A, @FAT12_FAT_AREA
+;	ADRM A, @FAT12_FAT_AREA
+;	MOV  B, #0x01
+;	LSHL B, #5
+;	@LOOPY
+;		LDRS  C, A+
+;		ENDS  C, C
+;		HALFA D, C
+;		HALFB E, C
+;		DBGW  D
+;		DBGW  E
+;		SUB   B, #1
+;		JMNZO B, @LOOPY
 	@LOOP
 		WFI
 		JLA  @GET_TIMER
@@ -256,10 +255,10 @@ FAR JLO  @DRAW_SPRITE_16x16_GRID_ALIGNED
 %PROG
             ; <╟┐
             ;   │ grows down 
-.ORG 0x1000 ;   │ from 0x1000
+.ORG 0x2000 ;   │ from 0x2000
 @STK  ; ────────┘      
 
-.ORG 0x1000
+.ORG 0x2000
 .SEC %FAT12_AREA
 ; --------
 ; FAT-related memory
@@ -299,14 +298,15 @@ FAR JLO  @DRAW_SPRITE_16x16_GRID_ALIGNED
 
 .ORG 0x8000
 .SEC %FONTS
-
 ; include font8.enn
 $include font16.enn
+%FONTS
 
+.ORG 0x010000
+.SEC %ICONS
 @ICON
 $include sprite.enn
-
-%FONTS
+%ICONS
 
 .ORG 0x800000
 @FRAMEBUFFER

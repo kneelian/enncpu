@@ -928,62 +928,62 @@ $endm
 	JLA  @MUL_FP48
 
 	_f48exp F 0x7ffe
-	SUB  A, F               
+	SUB  A, F
 	CBIT A, #15
-	FAR JMO.P @SIN_SMALL    
+	FAR JMO.P @SIN_SMALL
 	CGT  A, #15
-	FAR JMO.P @SIN_RANGE    
+	FAR JMO.P @SIN_RANGE
 
 	MOV  H, C
 	LSHL H, #8
 	MOV  C, D
 	LSHR C, #16
-	BOR  H, C              
+	BOR  H, C  
 	MOV  G, #16
-	SUB  G, A              
+	SUB  G, A  
 	MOV  C, G
 	SUB  C, #1
 	MOV  E, #1
-	LSHL E, C              
+	LSHL E, C  
 	ADD  E, H
 	MOV  H, E
-	LSHR H, G              
+	LSHR H, G
 
-	_f48pop                 
-	POPB G                 
+	_f48pop
+	POPB G 
 	CBIT H, #0
-	TGL.P G, #0            
-	PSHB G                 
-	MOV  B, #0             
-	_f48push                
-	PSHW H                 
+	TGL.P G, #0
+	PSHB G
+	MOV  B, #0 
+	_f48push   
+	PSHW H
 
-	POPW E                 
+	POPW E
 	PSHW E
-	JLA  @FP48_U16           
+	JLA  @FP48_U16
 	_f48efgh 0x8000 0 0xc9 0x0f0000
 	JLA  @MUL_FP48
-	_f48dup          
+	_f48dup
 	POPW G
-	_f48pop          
-	PSHW G          
+	_f48pop
+	PSHW G 
 	JLA  @SUB_FP48  
 
-	POPW E          
-	_f48push            
+	POPW E
+	_f48push
 	JLA  @FP48_U16
 	_f48efgh 0x7ff0 0 0xda 0xa22169
 	JLA  @MUL_FP48
 	_f48dup  
 	_f48pop
-	JLA  @SUB_FP48      
+	JLA  @SUB_FP48
 	FAR JMO  @SIN_SERIES
 
 @SIN_SMALL
-	_f48pop        
+	_f48pop
 
 @SIN_SERIES
-	_f48push       
+	_f48push 
 	_f48dup
 	JLA  @MUL_FP48
 	_f48push       
@@ -1016,7 +1016,7 @@ $endm
 
 %PGA
 
-.ORG 0x0a00
+.ORG 0x1000
 .SEC %PGC
 	@PROG
 
@@ -1059,5 +1059,5 @@ $endm
 
 %PGC
 
-.ORG 0x4000
+.ORG 0x3ff4
 @STK

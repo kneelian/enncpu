@@ -6,165 +6,94 @@ struct addr_t
 	u32 byte : 12;
 };
 
-u16 MMU::READ_8_NEW(u32 addr, u16 proc_state)
-{
-	addr_t a;
-	a.page = (addr >> 12);
-	a.byte = (addr >>  0);
-
-	if((proc_state & 0x0001) == 0) // usermode perms
-		a.page = MAPPINGS[a.page];    // mean mmu translation
-
-	u16 payload = 0;
-
-	payload = DATA[(a.page << 12) | (a.byte)];
-
-	return payload;
-}
-
-u32 MMU::READ_16_NEW(u32 addr, u16 proc_state)
-{
-	addr_t a;
-	a.page = (addr >> 12);
-	a.byte = (addr >>  0);
-
-	if((proc_state & 0x0001) == 0) // usermode perms
-		a.page = MAPPINGS[a.page];    // mean mmu translation
-
-	u32 payload = 0;
-
-	payload = DATA[(a.page << 12) | (a.byte)];
-	payload = payload << 8;
-	a.byte++;
-	payload = DATA[(a.page << 12) | (a.byte)];
-
-	return payload;
-}
-
-u32 MMU::READ_24_NEW(u32 addr, u16 proc_state)
-{
-	addr_t a;
-	a.page = (addr >> 12);
-	a.byte = (addr >>  0);
-
-	if((proc_state & 0x0001) == 0) // usermode perms
-		a.page = MAPPINGS[a.page];    // mean mmu translation
-
-	u32 payload = 0;
-
-	payload = DATA[(a.page << 12) | (a.byte)];
-	payload = payload << 8;
-	a.byte++;
-	payload = DATA[(a.page << 12) | (a.byte)];
-	payload = payload << 8;
-	a.byte++;
-	payload = DATA[(a.page << 12) | (a.byte)];
-
-	return payload;
-}
-
-// raw reads that bypass MMU remapping
-
-u16 MMU::READ_8_RAW (u32 addr) 
-{
-	addr &= 0x00'ff'ff'ff;
-	return DATA[addr];
-}
-
-u32 MMU::READ_16_RAW(u32 addr)
-{
-	addr &= 0x00'ff'ff'ff;
-	u16 temp = u16(DATA[addr]) << 8;
-	addr = (addr + 1) & 0x00'ff'ff'ff;
-		temp |= (DATA[addr] << 0);
-	return temp;
-}
-
-u32 MMU::READ_24_RAW(u32 addr)
-{
-	addr &= 0x00'ff'ff'ff;
-	u32 temp = u32(DATA[addr]) << 16;
-	addr = (addr + 1) & 0x00'ff'ff'ff;
-		temp |= (DATA[addr] << 8);
-	addr = (addr + 1) & 0x00'ff'ff'ff;
-		temp |= (DATA[addr] << 0);
-	return temp;
-}
-
-// permission-checked reads with mapping
-
 u16 MMU::READ_8(u32 addr, u16 proc_state)
-{	
-	if(proc_state & 0x0001)
-		return READ_8_RAW(addr);
+{
+	addr_t a;
+	a.page = (addr >> 12);
+	a.byte = (addr >>  0);
 
-	u32 page = (addr & 0x00'ff'f0'00) >> 12;
-	addr = (u32(MAPPINGS[page]) << 12) | (addr & 0x00'00'0f'ff);
+	if((proc_state & 0x0001) == 0)    // usermode perms
+		a.page = MAPPINGS[a.page];    // mean mmu translation
 
-	if( (PERMS[MAPPINGS[page]] & 0b0011) == 0b0011) // userperm and readable
-		return DATA[addr];
-	else return 0x0000;
+	if((proc_state & 0x0001) or (CHECK_USERPERM(a.page) and CHECK_READABLE(a.page)))
+	{
+		u16 payload = 0;
+		payload = DATA[(a.page << 12) | (a.byte)];
+		return payload;
+	}
+	else return 0xffff;
 }
 
 u32 MMU::READ_16(u32 addr, u16 proc_state)
 {
-	if(proc_state & 0x0001)
-		return READ_16_RAW(addr);
+	addr_t a;
+	a.page = (addr >> 12);
+	a.byte = (addr >>  0);
 
-	u32 page = (addr & 0x00'ff'f0'00) >> 12;
-	addr = (u32(MAPPINGS[page]) << 12) | (addr & 0x00'00'0f'ff);
-	u16 subp = addr & 0x0fff;
+	if((proc_state & 0x0001) == 0)    // usermode perms
+		a.page = MAPPINGS[a.page];    // mean mmu translation
 
-	if( (PERMS[MAPPINGS[page]] & 0b0011) == 0b0011) // userperm and readable
+	if((proc_state & 0x0001) or (CHECK_USERPERM(a.page) and CHECK_READABLE(a.page)))
 	{
-		u16 temp  = (DATA[addr] << 8);
-		 addr = (page | ((subp + 1) & 0x0fff)) & 0x00ffffff;
-		    temp |= (DATA[addr] << 0);
-		return temp;
+		u32 payload = 0;
+		payload |= DATA[(u32(a.page) << 12) | (a.byte)];
+		payload = payload << 8;
+		a.byte++;
+		payload |= DATA[(u32(a.page) << 12) | (a.byte)];
+		return payload;
 	}
-	else return 0x0000;
+	else return 0xffffffff;
 }
 
 u32 MMU::READ_24(u32 addr, u16 proc_state)
 {
-	if(proc_state & 0x0001)
-		return READ_24_RAW(addr);
+	addr_t a;
+	a.page = (addr >> 12);
+	a.byte = (addr >>  0);
 
-	u32 page = (addr & 0x00'ff'f0'00) >> 12;
-	addr = (u32(MAPPINGS[page]) << 12) | (addr & 0x00'00'0f'ff);
-	u16 subp = addr & 0x0fff;
+	if((proc_state & 0x0001) == 0)    // usermode perms
+		a.page = MAPPINGS[a.page];    // mean mmu translation
 
-	if( (PERMS[MAPPINGS[page]] & 0b0011) == 0b0011) // userperm and readable
+	if((proc_state & 0x0001) or (CHECK_USERPERM(a.page) and CHECK_READABLE(a.page)))
 	{
-		u32 temp  = (DATA[addr] << 16);
-		 addr = (page | ((subp + 1) & 0x0fff)) & 0x00ffffff;
-		    temp |= (DATA[addr] <<  8);
-		 addr = (page | ((subp + 2) & 0x0fff)) & 0x00ffffff;
-		    temp |= (DATA[addr] <<  0);
-		return temp;
+		u32 payload = 0;
+		payload |= DATA[(a.page << 12) | (a.byte)];
+		payload = payload << 8;
+		a.byte++;
+		payload |= DATA[(a.page << 12) | (a.byte)];
+		payload = payload << 8;
+		a.byte++;
+		payload |= DATA[(a.page << 12) | (a.byte)];
+		return payload;
 	}
-	else return 0x0000;
+	else return 0xffffffff;
 }
 
 // executable code reads
 
 u32 MMU::READ_16_CODE(u32 addr, u16 proc_state)
 {
-	if(proc_state & 0x0001)
-		return READ_16_RAW(addr);
+	addr_t a;
+	a.page = (addr >> 12);
+	a.byte = (addr >>  0);
 
-	u32 page = (addr & 0x00'ff'f0'00) >> 12;
-	addr = (u32(MAPPINGS[page]) << 12) | (addr & 0x00'00'0f'ff);
-	u16 subp = addr & 0x0fff;
+	if((proc_state & 0x0001) == 0)    // usermode perms
+		a.page = MAPPINGS[a.page];    // mean mmu translation
 
-	if( (PERMS[MAPPINGS[page]] & 0b0011) == 0b1011) // userperm and rx
+	if((proc_state & 0x0001) or (
+		CHECK_USERPERM(a.page) and 
+		CHECK_READABLE(a.page) and
+		CHECK_EXECUTABLE(a.page))
+		)
 	{
-		u16 temp  = (DATA[addr] << 8);
-		 addr = (page | ((subp + 1) & 0x0fff)) & 0x00ffffff;
-		    temp |= (DATA[addr] << 0);
-		return temp;
+		u32 payload = 0;
+		payload |= DATA[(u32(a.page) << 12) | (a.byte)];
+		payload = payload << 8;
+		a.byte++;
+		payload |= DATA[(u32(a.page) << 12) | (a.byte)];
+		return payload;
 	}
-	else return 0x0000;
+	else return 0xffffffff;
 }
 
 // for the instruction cache thing we used to do
@@ -201,38 +130,56 @@ u64 MMU::READ_64(u64 addr, u16 proc_state)
 
 void MMU::WRITE_8(u32 addr, u16 proc_state, u8 payload)
 {
-	u32 page = (addr & 0x00'ff'f0'00) >> 12;
-	addr = (MAPPINGS[page] << 12) | (addr & 0x00'00'0f'ff);
+	addr_t a;
+	a.page = (addr >> 12);
+	a.byte = (addr >>  0);
 
-	DATA[addr] = (payload >> 0) & 0xff;
+	if((proc_state & 0x0001) == 0)    // usermode perms
+		a.page = MAPPINGS[a.page];    // mean mmu translation
+
+	if((proc_state & 0x0001) or (CHECK_USERPERM(a.page) and CHECK_WRITABLE(a.page)))
+	{
+		DATA[(a.page << 12) | (a.byte)] = (payload >> 0) & 0xff;
+	};
+
 	return;
 }
 
 void MMU::WRITE_16(u32 addr, u16 proc_state, u16 payload)
 {
-	u32 page = (addr & 0x00'ff'f0'00) >> 12;
-	page = (MAPPINGS[page] << 12);
-	u32 subp = (addr & 0x00'00'0f'ff) >> 0;
-	addr = page | subp;
+	addr_t a;
+	a.page = (addr >> 12);
+	a.byte = (addr >>  0);
 
-	DATA[addr] = (payload >> 8) & 0xff;
-	addr = (page | ((subp + 1) & 0x0fff)) & 0x00ffffff;
-	DATA[addr] = (payload >> 0) & 0xff;
+	if((proc_state & 0x0001) == 0)    // usermode perms
+		a.page = MAPPINGS[a.page];    // mean mmu translation
+
+	if((proc_state & 0x0001) or (CHECK_USERPERM(a.page) and CHECK_WRITABLE(a.page)))
+	{
+		DATA[(a.page << 12) | (a.byte)] = (payload >> 8) & 0xff;
+		a.byte++;
+		DATA[(a.page << 12) | (a.byte)] = (payload >> 0) & 0xff;
+	}
 	return;
 }
 
 void MMU::WRITE_24(u32 addr, u16 proc_state, u32 payload)
 {
-	u32 page = (addr & 0x00'ff'f0'00) >> 12;
-	page = (MAPPINGS[page] << 12);
-	u32 subp = (addr & 0x00'00'0f'ff) >> 0;
-	addr = page | subp;
+	addr_t a;
+	a.page = (addr >> 12);
+	a.byte = (addr >>  0);
 
-	DATA[addr] = (payload >> 16) & 0xff;
-	addr = (page | ((subp + 1) & 0x0fff)) & 0x00ffffff;
-	DATA[addr] = (payload >> 8) & 0xff;
-	addr = (page | ((subp + 2) & 0x0fff)) & 0x00ffffff;
-	DATA[addr] = (payload >> 0) & 0xff;
+	if((proc_state & 0x0001) == 0)    // usermode perms
+		a.page = MAPPINGS[a.page];    // mean mmu translation
+
+	if((proc_state & 0x0001) or (CHECK_USERPERM(a.page) and CHECK_WRITABLE(a.page)))
+	{
+		DATA[(a.page << 12) | (a.byte)] = (payload >> 16) & 0xff;
+		a.byte++;
+		DATA[(a.page << 12) | (a.byte)] = (payload >>  8) & 0xff;
+		a.byte++;
+		DATA[(a.page << 12) | (a.byte)] = (payload >>  0) & 0xff;
+	}
 	return;
 }
 
