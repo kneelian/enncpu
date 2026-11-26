@@ -1,5 +1,68 @@
 #include "types.hpp"
 
+struct addr_t
+{
+	u32 page : 12;
+	u32 byte : 12;
+};
+
+u16 MMU::READ_8_NEW(u32 addr, u16 proc_state)
+{
+	addr_t a;
+	a.page = (addr >> 12);
+	a.byte = (addr >>  0);
+
+	if((proc_state & 0x0001) == 0) // usermode perms
+		a.page = MAPPINGS[a.page];    // mean mmu translation
+
+	u16 payload = 0;
+
+	payload = DATA[(a.page << 12) | (a.byte)];
+
+	return payload;
+}
+
+u32 MMU::READ_16_NEW(u32 addr, u16 proc_state)
+{
+	addr_t a;
+	a.page = (addr >> 12);
+	a.byte = (addr >>  0);
+
+	if((proc_state & 0x0001) == 0) // usermode perms
+		a.page = MAPPINGS[a.page];    // mean mmu translation
+
+	u32 payload = 0;
+
+	payload = DATA[(a.page << 12) | (a.byte)];
+	payload = payload << 8;
+	a.byte++;
+	payload = DATA[(a.page << 12) | (a.byte)];
+
+	return payload;
+}
+
+u32 MMU::READ_24_NEW(u32 addr, u16 proc_state)
+{
+	addr_t a;
+	a.page = (addr >> 12);
+	a.byte = (addr >>  0);
+
+	if((proc_state & 0x0001) == 0) // usermode perms
+		a.page = MAPPINGS[a.page];    // mean mmu translation
+
+	u32 payload = 0;
+
+	payload = DATA[(a.page << 12) | (a.byte)];
+	payload = payload << 8;
+	a.byte++;
+	payload = DATA[(a.page << 12) | (a.byte)];
+	payload = payload << 8;
+	a.byte++;
+	payload = DATA[(a.page << 12) | (a.byte)];
+
+	return payload;
+}
+
 // raw reads that bypass MMU remapping
 
 u16 MMU::READ_8_RAW (u32 addr) 
@@ -260,8 +323,8 @@ void MMU::SET_MAPPING(u16 from, u16 to)
 void MMU::FROM_TBL(u32 addr)
 {
 	addr &= 0x00'ff'ff'ff;
-	if(addr >= 0x00'ff'df'ff) // last 4096 entries
-		addr = 0x00'ff'df'ff;
+	if(addr >= 0x00'ffd'fff) // last 4096 entries
+		addr = 0x00'ffd'fff;
 
 	for(u16 i = 0; i < 4096; i++)
 	{

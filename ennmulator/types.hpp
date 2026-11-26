@@ -48,7 +48,7 @@ struct MMU
 		for(int i = 0; i < 4096; i++)
 		{ 
 			PERMS[i] = 0x0; 
-			MAPPINGS[i] = i;
+			MAPPINGS[i] = i; // initially identity-mapped
 		}
 		for(u8& i : DATA)
 		{
@@ -85,7 +85,11 @@ struct MMU
 	u32 READ_16(u32 addr, u16 proc_state);
 	u32 READ_24(u32 addr, u16 proc_state);
 	u32 READ_32(u32 addr, u16 proc_state);
-	u64 READ_64(u64 addr, u16 proc_state);	
+	u64 READ_64(u64 addr, u16 proc_state);
+
+	u16 READ_8_NEW (u32 addr, u16 proc_state);
+	u32 READ_16_NEW(u32 addr, u16 proc_state);
+	u32 READ_24_NEW(u32 addr, u16 proc_state);
 
 	u16 READ_8_RAW (u32 addr);
 	u32 READ_16_RAW(u32 addr);
