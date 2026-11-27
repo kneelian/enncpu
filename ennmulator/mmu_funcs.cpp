@@ -111,19 +111,20 @@ u32 MMU::READ_32(u32 addr, u16 proc_state)
 	return temp;
 }
 
-u64 MMU::READ_64(u64 addr, u16 proc_state)
+u64 MMU::READ_64(u32 addr, u16 proc_state)
 {
-	u32 page = (addr & 0x00'ff'f0'00) >> 12;
-	addr = (MAPPINGS[page] << 12) | (addr & 0x00'00'0f'ff);
+	addr_t a;
+	a.page = (addr >> 12);
+	a.byte = (addr >>  0);
 
-	u64 temp  = (DATA[addr + 0]); temp <<= 8;
-	 	temp |= (DATA[addr + 1]); temp <<= 8;
-	    temp |= (DATA[addr + 2]); temp <<= 8;
-	    temp |= (DATA[addr + 3]); temp <<= 8;
-	 	temp |= (DATA[addr + 4]); temp <<= 8;
-	 	temp |= (DATA[addr + 5]); temp <<= 8;
-	    temp |= (DATA[addr + 6]); temp <<= 8;
-	    temp |= (DATA[addr + 7]);
+	u64 temp  = (DATA[(u32(a.page) << 12) | (a.byte + 0)]); temp <<= 8;
+	 	temp |= (DATA[(u32(a.page) << 12) | (a.byte + 1)]); temp <<= 8;
+	    temp |= (DATA[(u32(a.page) << 12) | (a.byte + 2)]); temp <<= 8;
+	    temp |= (DATA[(u32(a.page) << 12) | (a.byte + 3)]); temp <<= 8;
+	 	temp |= (DATA[(u32(a.page) << 12) | (a.byte + 4)]); temp <<= 8;
+	 	temp |= (DATA[(u32(a.page) << 12) | (a.byte + 5)]); temp <<= 8;
+	    temp |= (DATA[(u32(a.page) << 12) | (a.byte + 6)]); temp <<= 8;
+	    temp |= (DATA[(u32(a.page) << 12) | (a.byte + 7)]);
 
 	return temp;
 }

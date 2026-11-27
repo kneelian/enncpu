@@ -82,7 +82,7 @@ struct MMU
 	u32 READ_16(u32 addr, u16 proc_state);
 	u32 READ_24(u32 addr, u16 proc_state);
 	u32 READ_32(u32 addr, u16 proc_state);
-	u64 READ_64(u64 addr, u16 proc_state);
+	u64 READ_64(u32 addr, u16 proc_state);
 
 	u32 READ_16_CODE(u32 addr, u16 proc_state);
 
@@ -278,6 +278,39 @@ struct CPU
 
 	INSN DECODE(u16);
 	i32 EXECUTE(INSN);
+	
+	u64 BLOCK = 0x00;
+	bool FOXTROT()
+	{
+		BLOCK  =  LINKED_MMU->READ_64(IP, PS);
+
+		u16 CURR_INSN = 0x0000;
+
+		for(int i = 3; i >= 0; i--)
+		{
+			TICKS++;
+			if(IS_PENDING_INT()) 
+			{ 
+				IRQ();  
+				return true;
+			}
+			CURR_INSN = (BLOCK >> (i * 16));
+			DECODED_INSN = DECODE(CURR_INSN);
+
+			IP += 2;
+
+			if(EXECUTE(DECODED_INSN) < 0)
+				return false;
+			else if(DECODED_INSN.OPERATION | JUMP_BASE)
+			{
+				BLOCK = 0x00;
+				return true;
+			}
+		}
+		BLOCK = 0x00;
+		return true;
+	}
+
 	bool STEP()
 	{
 		TICKS++;

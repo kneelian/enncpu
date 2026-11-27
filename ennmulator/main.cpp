@@ -54,7 +54,7 @@ void VM(CPU& us)
 	CPU_running = true;
 
 	for(u64 i = 0; i < (1ULL << 48); i++)
-		if((imgui_running == false) or (us.STEP() == false))
+		if((imgui_running == false) or (us.FOXTROT() == false))
 			break;
 
 	__DEBUG_PRINT_STATE(us);
