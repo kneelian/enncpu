@@ -29,8 +29,6 @@ struct CPU;
 
 struct MMU
 {
-	bool MMU_VALID = false;
-
 	u8 PERMS[4096];
 	/* perms are a bitmap of
 	   conditions;
@@ -54,7 +52,6 @@ struct MMU
 		{
 			i = 0x00;
 		}
-		MMU_VALID = true;
 	}
 	~MMU()
 	{
