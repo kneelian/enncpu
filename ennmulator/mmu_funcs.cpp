@@ -1,3 +1,5 @@
+#include<bit>
+#include<cstring>
 #include "types.hpp"
 
 struct addr_t
@@ -117,16 +119,35 @@ u64 MMU::READ_64(u32 addr, u16 proc_state)
 	a.page = (addr >> 12);
 	a.byte = (addr >>  0);
 
-	u64 temp  = (DATA[(u32(a.page) << 12) | (a.byte + 0)]); temp <<= 8;
-	 	temp |= (DATA[(u32(a.page) << 12) | (a.byte + 1)]); temp <<= 8;
-	    temp |= (DATA[(u32(a.page) << 12) | (a.byte + 2)]); temp <<= 8;
-	    temp |= (DATA[(u32(a.page) << 12) | (a.byte + 3)]); temp <<= 8;
-	 	temp |= (DATA[(u32(a.page) << 12) | (a.byte + 4)]); temp <<= 8;
-	 	temp |= (DATA[(u32(a.page) << 12) | (a.byte + 5)]); temp <<= 8;
-	    temp |= (DATA[(u32(a.page) << 12) | (a.byte + 6)]); temp <<= 8;
-	    temp |= (DATA[(u32(a.page) << 12) | (a.byte + 7)]);
+	u64 temp = 0;
 
-	return temp;
+	if(proc_state & 0x0001)    // kernel perms
+	{
+		std::memcpy(&temp, &DATA[(u32(a.page) << 12) | a.byte], 8);
+		temp = __builtin_bswap64(temp);
+		return temp;
+	}
+	else
+	{
+		a.page = MAPPINGS[a.page];
+		if(a.byte <= 4087)
+		{
+			std::memcpy(&temp, &DATA[(u32(a.page) << 12) | a.byte], 8);
+			temp = __builtin_bswap64(temp);
+			return temp;
+		}
+		else
+		{
+			temp  = READ_16_CODE(addr + 0, proc_state);
+			temp <<= 16;
+			temp |= READ_16_CODE(addr + 2, proc_state);
+			temp <<= 16;
+			temp |= READ_16_CODE(addr + 4, proc_state);
+			temp <<= 16;
+			temp |= READ_16_CODE(addr + 6, proc_state);
+			return temp;
+		}
+	}
 }
 
 void MMU::WRITE_8(u32 addr, u16 proc_state, u8 payload)
